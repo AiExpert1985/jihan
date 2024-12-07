@@ -218,6 +218,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "previous": MessageLookupByLibrary.simpleMessage("السابق"),
         "previous_debt": MessageLookupByLibrary.simpleMessage("الدين قبل"),
         "print": MessageLookupByLibrary.simpleMessage("طباعة"),
+        "printed": MessageLookupByLibrary.simpleMessage("مطبوع"),
         "printing_transactions":
             MessageLookupByLibrary.simpleMessage("طباعة التعاملات"),
         "product_alert_when_exceeds":

@@ -243,5 +243,6 @@
     "next": "Next",
     "previous": "Previous",
     "first": "First",
-    "last": "Last"
+    "last": "Last",
+    "printed": "Printed"
 }

@@ -222,6 +222,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "previous": MessageLookupByLibrary.simpleMessage("Previous"),
         "previous_debt": MessageLookupByLibrary.simpleMessage("Previous debt"),
         "print": MessageLookupByLibrary.simpleMessage("Print"),
+        "printed": MessageLookupByLibrary.simpleMessage("Printed"),
         "printing_transactions":
             MessageLookupByLibrary.simpleMessage("Printing transactions"),
         "product_alert_when_exceeds": MessageLookupByLibrary.simpleMessage(
