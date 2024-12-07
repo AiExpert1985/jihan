@@ -1,0 +1,25 @@
+[
+	{
+		"companyUrl": "www.facebook.com",
+		"currency": "dinar",
+		"dbRef": "ryrt[jdf",
+		"hideCompanyUrlBarCode": false,
+		"hideCustomerProfit": false,
+		"hideMainScreenColumnTotals": true,
+		"hideProductBuyingPrice": false,
+		"hideProductProfit": false,
+		"hideSalesmanProfit": false,
+		"hideTransactionAmountAsText": true,
+		"imageUrls": [
+			"someUrl"
+		],
+		"mainPageGreetingText": "جيهان",
+		"maxDebtAmount": 1000000,
+		"maxDebtDuration": 21,
+		"name": "default settings",
+		"paymentType": "credit",
+		"printedCustomerInvoices": 2,
+		"printedCustomerReceipts": 2,
+		"showCompanyUrlBarCode": false
+	}
+]
