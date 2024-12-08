@@ -15,8 +15,6 @@ import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provi
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart';
 
-import '../../features/transactions/model/transaction.dart';
-
 const darkBgColor = PdfColor(0.2, 0.2, 0.5);
 const lightBgColor = PdfColor(0.85, 0.85, 0.99);
 const bordersColor = PdfColors.grey;
@@ -65,39 +63,34 @@ Future<pw.ImageProvider> loadImage(String path) async {
 Future<Document> getCustomerInvoicePdf(
     BuildContext context, WidgetRef ref, Map<String, dynamic> transactionData) async {
   final pdf = pw.Document();
-  final transaction = Transaction.fromMap(transactionData);
   final customerDbCache = ref.read(customerDbCacheProvider.notifier);
-  final customerData = customerDbCache.getItemByDbRef(transaction.nameDbRef!);
+  final customerData = customerDbCache.getItemByDbRef(transactionData['nameDbRef']);
   final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);
-  final salesmanData = salesmanDbCache.getItemByDbRef(transaction.salesmanDbRef!);
-
-  final type = translateDbTextToScreenText(context, transaction.transactionType);
-  final number = transaction.number.toString();
-  final customerName = transaction.name;
+  final salesmanData = salesmanDbCache.getItemByDbRef(transactionData['salesmanDbRef']);
+  final type = translateDbTextToScreenText(context, transactionData['transactionType']);
+  final number = transactionData['number'].toString();
+  final customerName = transactionData['name'];
   final customerPhone = customerData['phone'] ?? '';
   final customerRegion = customerData['region'] ?? '';
   final salesmanName = salesmanData['name'] ?? '';
   final salesmanPhone = salesmanData['phone'] ?? '';
-  final items = transaction.items as List<dynamic>;
-  final paymentType = translateDbTextToScreenText(context, transaction.paymentType!);
-  final date = formatDate(transaction.date);
-  final subtotalAmount = doubleToStringWithComma(transaction.subTotalAmount);
-
-  final discount = doubleToStringWithComma(transaction.discount);
-  final currency = translateDbTextToScreenText(context, transaction.currency);
+  final items = transactionData['items'] as List<dynamic>;
+  final paymentType = translateDbTextToScreenText(context, transactionData['paymentType']);
+  final date = formatDate(transactionData['date']);
+  final subtotalAmount = doubleToStringWithComma(transactionData['subTotalAmount']);
+  final discount = doubleToStringWithComma(transactionData['discount']);
+  final currency = translateDbTextToScreenText(context, transactionData['currency']);
   final now = DateTime.now();
   final printingDate = DateFormat.yMd('ar').format(now);
   final printingTime = DateFormat.jm('ar').format(now);
-  final notes = transaction.notes;
+  final notes = transactionData['notes'];
   final totalNumOfItems = doubleToStringWithComma(calculateTotalNumOfItems(items));
-  final itemsWeigt = doubleToStringWithComma(transaction.totalWeight);
-
+  final itemsWeigt = doubleToStringWithComma(transactionData['totalWeight']);
   final customerScreenController = ref.read(customerScreenControllerProvider);
   final customerScreenData = customerScreenController.getItemScreenData(context, customerData);
   final debtAfter = doubleToStringWithComma(customerScreenData['totalDebt']);
   final debtBefore =
-      doubleToStringWithComma(customerScreenData['totalDebt'] - transaction.totalAmount);
-
+      doubleToStringWithComma(customerScreenData['totalDebt'] - transactionData['totalAmount']);
   final arabicFont =
       pw.Font.ttf(await rootBundle.load("assets/fonts/NotoSansArabic-VariableFont_wdth,wght.ttf"));
   final image = await loadImage('assets/images/invoice_logo.PNG');
