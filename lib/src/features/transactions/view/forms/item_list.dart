@@ -20,12 +20,13 @@ import 'package:tablets/src/features/products/repository/product_repository_prov
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_utils_controller.dart';
 
+const double codeColumnWidth = customerInvoiceFormWidth * 0.07;
 const double sequenceColumnWidth = customerInvoiceFormWidth * 0.055;
 const double nameColumnWidth = customerInvoiceFormWidth * 0.345;
-const double priceColumnWidth = customerInvoiceFormWidth * 0.16;
-const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.1;
-const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.1;
-const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.17;
+const double priceColumnWidth = customerInvoiceFormWidth * 0.14;
+const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.09;
+const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.09;
+const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.14;
 
 class ItemsList extends ConsumerWidget {
   const ItemsList(this.hideGifts, this.hidePrice, this.transactionType, {super.key});
@@ -51,8 +52,7 @@ class ItemsList extends ConsumerWidget {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _buildColumnTitles(
-                context, formDataNotifier, textEditingNotifier, hideGifts, hidePrice),
+            _buildItemsTitles(context, formDataNotifier, textEditingNotifier, hideGifts, hidePrice),
             ..._buildDataRows(formDataNotifier, textEditingNotifier, productRepository, hideGifts,
                 hidePrice, transactionType, productDbCache, productScreenController, context),
           ],
@@ -83,72 +83,96 @@ List<Widget> _buildDataRows(
       errorPrint('Warning: Missing TextEditingController for item index: $index');
       return const SizedBox.shrink(); // Return an empty widget if the controller is missing
     }
-    return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // buildDataCell(sequenceColumnWidth, Text((index + 1).toString()), isFirst: true),
-          _buildDeleteItemButton(
-              formDataNotifier, textEditingNotifier, index, sequenceColumnWidth, transactionType,
-              isFirst: true),
-          _buildDropDownWithSearch(formDataNotifier, textEditingNotifier, index, nameColumnWidth,
-              productDbCache, productScreenController, context, items.length),
-
-          if (!hidePrice)
+    return Container(
+      color: (index + 1) % 2 == 0 ? Colors.grey[300] : null,
+      child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CodeFormInputField(
+                index, codeColumnWidth, itemsKey, itemCodeKey, transactionType, items.length,
+                isFirst: true),
+            _buildDropDownWithSearch(formDataNotifier, textEditingNotifier, index, nameColumnWidth,
+                productDbCache, productScreenController, context, items.length),
             TransactionFormInputField(
-                index, priceColumnWidth, itemsKey, itemSellingPriceKey, transactionType),
-
-          TransactionFormInputField(
-              index, soldQuantityColumnWidth, itemsKey, itemSoldQuantityKey, transactionType),
-          if (!hideGifts)
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.red, // Set the border color to red
-                  width: 0.5, // Set the border width
+                index, soldQuantityColumnWidth, itemsKey, itemSoldQuantityKey, transactionType),
+            if (!hideGifts)
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.red, // Set the border color to red
+                    width: 0.5, // Set the border width
+                  ),
+                  borderRadius: BorderRadius.circular(3.0), // Optional: Set border radius
                 ),
-                borderRadius: BorderRadius.circular(8.0), // Optional: Set border radius
+                child: TransactionFormInputField(
+                    index, giftQuantityColumnWidth, itemsKey, itemGiftQuantityKey, transactionType),
               ),
-              child: TransactionFormInputField(
-                  index, giftQuantityColumnWidth, itemsKey, itemGiftQuantityKey, transactionType),
-            ),
-          if (!hidePrice)
-            TransactionFormInputField(
-                index, soldTotalAmountColumnWidth, itemsKey, itemTotalAmountKey, transactionType,
-                // textEditingNotifier: textEditingNotifier,
-                isLast: false,
-                isReadOnly: true),
-          buildDataCell(
+            if (!hidePrice)
+              TransactionFormInputField(
+                  index, priceColumnWidth, itemsKey, itemSellingPriceKey, transactionType),
+            if (!hidePrice)
+              TransactionFormInputField(
+                  index, soldTotalAmountColumnWidth, itemsKey, itemTotalAmountKey, transactionType,
+                  // textEditingNotifier: textEditingNotifier,
+                  isLast: false,
+                  isReadOnly: true),
+            buildDataCell(
               soldQuantityColumnWidth,
-              Text(formDataNotifier
-                      .getSubProperty(itemsKey, index, itemStockQuantityKey)
-                      ?.toString() ??
-                  ''),
-              isLast: true),
-        ]);
+              Text(
+                doubleToIntString(
+                    formDataNotifier.getSubProperty(itemsKey, index, itemStockQuantityKey)),
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+            // don't add delete button to last row because it will be always empty
+            index < items.length - 1
+                ? _buildDeleteItemButton(
+                    formDataNotifier,
+                    textEditingNotifier,
+                    index,
+                    sequenceColumnWidth,
+                    transactionType,
+                  )
+                : buildDataCell(sequenceColumnWidth, const Text(''), isLast: true),
+          ]),
+    );
   });
 }
 
-Widget _buildAddItemButton(
-    ItemFormData formDataNotifier, TextControllerNotifier textEditingNotifier) {
-  return IconButton(
-    onPressed: () {
-      formDataNotifier.updateSubProperties(itemsKey, emptyInvoiceItem);
-      textEditingNotifier.updateSubControllers(itemsKey, {
-        itemSellingPriceKey: 0,
-        itemSoldQuantityKey: 0,
-        itemGiftQuantityKey: 0,
-        itemTotalAmountKey: 0,
-        itemTotalWeightKey: 0
-      });
-    },
-    icon: const Icon(Icons.add, color: Colors.green),
-  );
-}
+// Widget _buildAddItemButton(
+//     ItemFormData formDataNotifier, TextControllerNotifier textEditingNotifier) {
+//   return IconButton(
+//     onPressed: () {
+//       formDataNotifier.updateSubProperties(itemsKey, emptyInvoiceItem);
+//       textEditingNotifier.updateSubControllers(itemsKey, {
+//         itemSellingPriceKey: 0,
+//         itemSoldQuantityKey: 0,
+//         itemGiftQuantityKey: 0,
+//         itemTotalAmountKey: 0,
+//         itemTotalWeightKey: 0
+//       });
+//     },
+//     icon: const Icon(Icons.add, color: Colors.green),
+//   );
+// }
 
-void addNewRow(formDataNotifier, textEditingNotifier) {
-  formDataNotifier.updateSubProperties(itemsKey, emptyInvoiceItem);
+void addNewRow(ItemFormData formDataNotifier, TextControllerNotifier textEditingNotifier) {
+  formDataNotifier.updateSubProperties(itemsKey, {
+    itemCodeKey: null,
+    itemNameKey: '',
+    itemSellingPriceKey: 0,
+    itemWeightKey: 0,
+    itemSoldQuantityKey: 0,
+    itemGiftQuantityKey: 0,
+    itemTotalAmountKey: 0,
+    itemTotalWeightKey: 0,
+    itemStockQuantityKey: 0,
+    itemTotalProfitKey: 0,
+    itemSalesmanTotalCommissionKey: 0,
+  });
   textEditingNotifier.updateSubControllers(itemsKey, {
+    itemCodeKey: null,
     itemSellingPriceKey: 0,
     itemSoldQuantityKey: 0,
     itemGiftQuantityKey: 0,
@@ -157,28 +181,27 @@ void addNewRow(formDataNotifier, textEditingNotifier) {
   });
 }
 
-// TODO when last item removed, there still data, i need to solve that
-// TODO I was working on using remove textEditingController.subControllers(...) but
-// TODO stopped due to lack of time
-Widget _buildDeleteItemButton(ItemFormData formDataNotifier,
-    TextControllerNotifier textEditingNotifier, int index, double width, String transactionType,
-    {bool isFirst = false}) {
+// note that we don't allow deleting last row, the delete button is not activated for it
+// so, we don't need to check if the row is last row
+Widget _buildDeleteItemButton(
+  ItemFormData formDataNotifier,
+  TextControllerNotifier textEditingNotifier,
+  int index,
+  double width,
+  String transactionType,
+) {
   return buildDataCell(
       width,
       IconButton(
         onPressed: () {
           final items = formDataNotifier.getProperty(itemsKey) as List<Map<String, dynamic>>;
           final deletedItem = {...items[index]};
-          // if there is only one item, it is not deleted, but formData & textEditingData is reseted
-          if (items.length <= 1) {
-            formDataNotifier.updateSubProperties(itemsKey, emptyInvoiceItem, index: 0);
-          } else {
-            formDataNotifier.removeSubProperties(itemsKey, index);
-            textEditingNotifier.removeSubController(itemsKey, index, itemSellingPriceKey);
-          }
+          formDataNotifier.removeSubProperties(itemsKey, index);
+          textEditingNotifier.removeSubControllers(itemsKey, index);
 
           // update all transaction totals due to item removal
-          final subTotalAmount = _getTotal(formDataNotifier, itemsKey, subTotalAmountKey);
+
+          final subTotalAmount = _getTotal(formDataNotifier, itemsKey, itemTotalAmountKey);
           final discount = formDataNotifier.getProperty(discountKey);
           // for gifts we don't charget customer
           final totalAmount =
@@ -204,33 +227,42 @@ Widget _buildDeleteItemButton(ItemFormData formDataNotifier,
         },
         icon: const Icon(Icons.remove, color: Colors.red),
       ),
-      isFirst: true);
+      isLast: true);
 }
 
-Widget _buildColumnTitles(BuildContext context, ItemFormData formDataNotifier,
+Widget _buildItemsTitles(BuildContext context, ItemFormData formDataNotifier,
     TextControllerNotifier textEditingNotifier, bool hideGifts, bool hidePrice) {
   final titles = [
-    _buildAddItemButton(formDataNotifier, textEditingNotifier),
-    Text(S.of(context).item_name),
-    if (!hidePrice) Text(S.of(context).item_price),
-    Text(S.of(context).item_sold_quantity),
-    if (!hideGifts) Text(S.of(context).item_gifts_quantity),
-    if (!hidePrice) Text(S.of(context).item_total_price),
-    Text(S.of(context).stock),
+    // _buildAddItemButton(formDataNotifier, textEditingNotifier), // not needed, row auto added
+    Text(S.of(context).code, style: const TextStyle(color: Colors.white, fontSize: 14)),
+    Text(S.of(context).item_name, style: const TextStyle(color: Colors.white, fontSize: 14)),
+    Text(S.of(context).item_sold_quantity,
+        style: const TextStyle(color: Colors.white, fontSize: 14)),
+    if (!hideGifts)
+      Text(S.of(context).item_gifts_quantity,
+          style: const TextStyle(color: Colors.white, fontSize: 14)),
+    if (!hidePrice)
+      Text(S.of(context).item_price, style: const TextStyle(color: Colors.white, fontSize: 14)),
+    if (!hidePrice)
+      Text(S.of(context).item_total_price,
+          style: const TextStyle(color: Colors.white, fontSize: 12)),
+    Text(S.of(context).stock, style: const TextStyle(color: Colors.white, fontSize: 14)),
+    const SizedBox(),
   ];
 
   final widths = [
-    sequenceColumnWidth,
+    codeColumnWidth,
     nameColumnWidth,
-    if (!hidePrice) priceColumnWidth,
     soldQuantityColumnWidth,
     if (!hideGifts) giftQuantityColumnWidth,
+    if (!hidePrice) priceColumnWidth,
     if (!hidePrice) soldTotalAmountColumnWidth,
     soldQuantityColumnWidth,
+    sequenceColumnWidth,
   ];
 
   return Container(
-    color: const Color.fromARGB(255, 227, 240, 247),
+    color: Colors.blueGrey,
     child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -295,6 +327,7 @@ Widget _buildDropDownWithSearch(
         // updates related fields using the item selected (of type Map<String, dynamic>)
         // and triger the on changed function in price field using its controller
         final subProperties = {
+          itemCodeKey: item['code'],
           itemNameKey: item['name'],
           itemDbRefKey: item['dbRef'],
           itemSellingPriceKey: _getItemPrice(context, formDataNotifier, item),
@@ -305,12 +338,9 @@ Widget _buildDropDownWithSearch(
         };
         formDataNotifier.updateSubProperties(itemsKey, subProperties, index: index);
         final price = formDataNotifier.getSubProperty(itemsKey, index, itemSellingPriceKey);
-        textEditingNotifier.updateSubControllers(itemsKey, {itemSellingPriceKey: price},
+        textEditingNotifier.updateSubControllers(
+            itemsKey, {itemSellingPriceKey: price, itemCodeKey: item['code']},
             index: index);
-// add new empty row if current row is last one, (always keep one empty row)
-        if (index == numRows - 1) {
-          addNewRow(formDataNotifier, textEditingNotifier);
-        }
       },
     ),
   );
@@ -319,7 +349,7 @@ Widget _buildDropDownWithSearch(
 class TransactionFormInputField extends ConsumerWidget {
   const TransactionFormInputField(
       this.index, this.width, this.property, this.subProperty, this.transactionType,
-      {this.isLast = false, this.isReadOnly = false, super.key});
+      {this.isLast = false, this.isReadOnly = false, this.isFirst = false, super.key});
 
   final int index;
   final double width;
@@ -327,6 +357,7 @@ class TransactionFormInputField extends ConsumerWidget {
   final String subProperty;
   final String transactionType;
   final bool isLast;
+  final bool isFirst;
   final bool isReadOnly;
 
   @override
@@ -405,6 +436,72 @@ class TransactionFormInputField extends ConsumerWidget {
         },
       ),
       isLast: isLast,
+      isFirst: isFirst,
+    );
+  }
+}
+
+class CodeFormInputField extends ConsumerWidget {
+  const CodeFormInputField(
+      this.index, this.width, this.property, this.subProperty, this.transactionType, this.numRows,
+      {this.isLast = false, this.isReadOnly = false, this.isFirst = false, super.key});
+
+  final int index;
+  final double width;
+  final String property;
+  final String subProperty;
+  final String transactionType;
+  final int numRows;
+  final bool isLast;
+  final bool isFirst;
+  final bool isReadOnly;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
+    final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
+    final productDbCache = ref.read(productDbCacheProvider.notifier);
+    final productScreenController = ref.read(productScreenControllerProvider);
+    return buildDataCell(
+      width,
+      FormInputField(
+          initialValue: formDataNotifier.getSubProperty(property, index, subProperty),
+          controller: textEditingNotifier.getSubController(property, index, subProperty),
+          hideBorders: true,
+          isRequired: false,
+          isReadOnly: isReadOnly,
+          dataType: constants.FieldDataType.num,
+          name: subProperty,
+          onChangedFn: (value) {
+            // calculate the quantity of the product
+            final productData = productDbCache.getItemByProperty('code', value);
+            final prodcutScreenData =
+                productScreenController.getItemScreenData(context, productData);
+            final productQuantity = prodcutScreenData[productQuantityKey];
+            // updates related fields using the item selected (of type Map<String, dynamic>)
+            // and triger the on changed function in price field using its controller
+            final subProperties = {
+              itemCodeKey: productData['code'],
+              itemNameKey: productData['name'],
+              itemDbRefKey: productData['dbRef'],
+              itemSellingPriceKey: _getItemPrice(context, formDataNotifier, productData),
+              itemWeightKey: productData['packageWeight'],
+              itemBuyingPriceKey: productData['buyingPrice'],
+              itemSalesmanCommissionKey: productData['salesmanCommission'],
+              itemStockQuantityKey: productQuantity,
+            };
+            formDataNotifier.updateSubProperties(itemsKey, subProperties, index: index);
+            final price = formDataNotifier.getSubProperty(itemsKey, index, itemSellingPriceKey);
+            textEditingNotifier.updateSubControllers(
+                itemsKey, {itemSellingPriceKey: price, itemCodeKey: productData['code']},
+                index: index);
+// add new empty row if current row is last one, (always keep one empty row)
+            if (index == numRows - 1) {
+              addNewRow(formDataNotifier, textEditingNotifier);
+            }
+          }),
+      isLast: isLast,
+      isFirst: isFirst,
     );
   }
 }
@@ -414,9 +511,10 @@ Widget buildDataCell(double width, Widget cell,
   return Container(
       decoration: BoxDecoration(
         border: Border(
-            left: !isLast ? const BorderSide(color: Colors.black12, width: 1.0) : BorderSide.none,
-            right: !isFirst ? const BorderSide(color: Colors.black12, width: 1.0) : BorderSide.none,
-            bottom: const BorderSide(color: Colors.black12, width: 1.0)),
+          left: !isLast ? const BorderSide(color: Colors.black12, width: 1.0) : BorderSide.none,
+          right: !isFirst ? const BorderSide(color: Colors.black12, width: 1.0) : BorderSide.none,
+          bottom: const BorderSide(color: Colors.black12, width: 0.5),
+        ),
       ),
       width: width,
       height: height is double ? height : height.toDouble(),
@@ -433,7 +531,7 @@ Widget buildDataCell(double width, Widget cell,
 // if customer is not selected yet then default is salewhole type
 double _getItemPrice(
     BuildContext context, ItemFormData formDataNotifier, Map<String, dynamic> item) {
-  final transactionType = formDataNotifier.getProperty(transactionTypeKey);
+  final transactionType = formDataNotifier.getProperty(transTypeKey);
   if (transactionType == TransactionType.expenditures.name ||
       transactionType == TransactionType.customerReceipt.name ||
       transactionType == TransactionType.vendorReceipt.name) {

@@ -5,7 +5,7 @@ const String numberKey = 'number';
 const String dateKey = 'date';
 const String currencyKey = 'currency';
 const String notesKey = 'notes';
-const String transactionTypeKey = 'transactionType';
+const String transTypeKey = 'transactionType';
 const String paymentTypeKey = 'paymentType';
 const String salesmanKey = 'salesman';
 const String itemsKey = 'items';
@@ -27,6 +27,7 @@ const String itemSoldQuantityKey = 'soldQuantity';
 const String itemGiftQuantityKey = 'giftQuantity';
 const String itemTotalAmountKey = 'itemTotalAmount';
 const String itemTotalWeightKey = 'itemTotalWeight';
+const String itemCodeKey = 'code';
 const String subTotalAmountKey = 'subTotalAmount';
 const String salesmanDbRefKey = 'salesmanDbRef';
 const String sellingPriceTypeKey = 'sellingPriceType';
@@ -36,7 +37,8 @@ const String itemsTotalProfitKey = 'itemsTotalProfit'; // profit of all items in
 const String isPrintedKey = 'isPrinted';
 
 Map<String, dynamic> emptyInvoiceItem = {
-  nameKey: '',
+  itemCodeKey: null,
+  itemNameKey: '',
   itemSellingPriceKey: 0,
   itemWeightKey: 0,
   itemSoldQuantityKey: 0,
@@ -44,4 +46,6 @@ Map<String, dynamic> emptyInvoiceItem = {
   itemTotalAmountKey: 0,
   itemTotalWeightKey: 0,
   itemStockQuantityKey: 0,
+  itemTotalProfitKey: 0,
+  itemSalesmanTotalCommissionKey: 0,
 };

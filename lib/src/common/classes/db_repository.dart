@@ -18,7 +18,7 @@ class DbRepository {
       // Device is connected to the internet
       try {
         await _firestore.collection(_collectionName).doc().set(item.toMap());
-        errorLog('Item added to live firestore successfully!');
+        tempPrint('Item added to live firestore successfully!');
         return;
       } catch (e) {
         errorPrint('Error adding item to live firestore: $e');
@@ -28,7 +28,7 @@ class DbRepository {
     // Device is offline
     final docRef = _firestore.collection(_collectionName).doc();
     docRef.set(item.toMap()).then((_) {
-      errorLog('Item added to firestore cache!');
+      tempPrint('Item added to firestore cache!');
     }).catchError((e) {
       errorPrint('Error adding item to firestore cache: $e');
     });
@@ -41,9 +41,7 @@ class DbRepository {
         connectivityResult.contains(ConnectivityResult.vpn)) {
       // Device is connected to the internet
       try {
-        final query = _firestore
-            .collection(_collectionName)
-            .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
+        final query = _firestore.collection(_collectionName).where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
         final querySnapshot = await query.get(const GetOptions(source: Source.cache));
         if (querySnapshot.size > 0) {
           final documentRef = querySnapshot.docs[0].reference;
@@ -57,13 +55,12 @@ class DbRepository {
       }
     }
     // when offline
-    final query =
-        _firestore.collection(_collectionName).where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
+    final query = _firestore.collection(_collectionName).where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
     final querySnapshot = await query.get(const GetOptions(source: Source.cache));
     if (querySnapshot.size > 0) {
       final documentRef = querySnapshot.docs[0].reference;
       await documentRef.update(updatedItem.toMap()).then((_) {
-        errorLog('Item updated in firestore cache!');
+        tempPrint('Item updated in firestore cache!');
       }).catchError((e) {
         errorPrint('Error updating item in firebase cache: $e');
       });
@@ -84,7 +81,7 @@ class DbRepository {
         if (querySnapshot.size > 0) {
           final documentRef = querySnapshot.docs[0].reference;
           await documentRef.delete();
-          errorLog('Item deleted from live firestore successfully!');
+          tempPrint('Item deleted from live firestore successfully!');
         }
         return;
       } catch (e) {
@@ -99,7 +96,7 @@ class DbRepository {
     if (querySnapshot.size > 0) {
       final documentRef = querySnapshot.docs[0].reference;
       await documentRef.delete().then((_) {
-        errorLog('Item deleted from firestore cache!');
+        tempPrint('Item deleted from firestore cache!');
       }).catchError((e) {
         errorPrint('Error deleting item from firestore cache: $e');
       });
@@ -200,8 +197,7 @@ class DbRepository {
 
   /// below function fetch data from firestore if there is internet connection
   /// if not, it fetch from cache
-  Future<List<Map<String, dynamic>>> fetchItemListAsMaps(
-      {String? filterKey, String? filterValue}) async {
+  Future<List<Map<String, dynamic>>> fetchItemListAsMaps({String? filterKey, String? filterValue}) async {
     try {
       Query query = _firestore.collection(_collectionName);
 
@@ -216,16 +212,12 @@ class DbRepository {
           connectivityResult.contains(ConnectivityResult.ethernet) ||
           connectivityResult.contains(ConnectivityResult.vpn)) {
         final snapshot = await query.get();
-        tempPrint('data fetched from firebase live data');
-        return snapshot.docs
-            .map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>)
-            .toList();
+        tempPrint('data fetched from firebase ($_collectionName)live data');
+        return snapshot.docs.map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>).toList();
       } else {
-        tempPrint('data fetched from cache');
+        tempPrint('data fetched from cache ($_collectionName)');
         final cachedSnapshot = await query.get(const GetOptions(source: Source.cache));
-        return cachedSnapshot.docs
-            .map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>)
-            .toList();
+        return cachedSnapshot.docs.map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>).toList();
       }
     } catch (e) {
       errorLog('Error during fetching items from Firebase - $e');

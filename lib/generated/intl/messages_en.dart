@@ -45,6 +45,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "category_selection":
             MessageLookupByLibrary.simpleMessage("Select category"),
         "choose_image": MessageLookupByLibrary.simpleMessage("Choose image"),
+        "code": MessageLookupByLibrary.simpleMessage("Code"),
         "commission": MessageLookupByLibrary.simpleMessage("Commission"),
         "count": MessageLookupByLibrary.simpleMessage("Count"),
         "create_new_account":
@@ -198,6 +199,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "no_data_available":
             MessageLookupByLibrary.simpleMessage("No data available"),
+        "no_name_print_error":
+            MessageLookupByLibrary.simpleMessage("You must enter name"),
         "notes": MessageLookupByLibrary.simpleMessage("Notes"),
         "num_due_invoices":
             MessageLookupByLibrary.simpleMessage("Due invoices"),

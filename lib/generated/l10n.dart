@@ -2509,6 +2509,26 @@ class S {
       args: [],
     );
   }
+
+  /// `You must enter name`
+  String get no_name_print_error {
+    return Intl.message(
+      'You must enter name',
+      name: 'no_name_print_error',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Code`
+  String get code {
+    return Intl.message(
+      'Code',
+      name: 'code',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

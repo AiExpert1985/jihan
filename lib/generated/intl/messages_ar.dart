@@ -44,6 +44,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "category_selection":
             MessageLookupByLibrary.simpleMessage("اختيار الصنف "),
         "choose_image": MessageLookupByLibrary.simpleMessage("اختر صورة"),
+        "code": MessageLookupByLibrary.simpleMessage("الرمز"),
         "commission": MessageLookupByLibrary.simpleMessage("العمولة"),
         "count": MessageLookupByLibrary.simpleMessage("العدد"),
         "create_new_account":
@@ -165,14 +166,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "invoices_number": MessageLookupByLibrary.simpleMessage("عدد القوائم"),
         "item_available_quantity":
             MessageLookupByLibrary.simpleMessage("المخزون"),
-        "item_gifts_quantity":
-            MessageLookupByLibrary.simpleMessage("عدد الهدايا"),
+        "item_gifts_quantity": MessageLookupByLibrary.simpleMessage("الهدية"),
         "item_name": MessageLookupByLibrary.simpleMessage("اسم المادة"),
         "item_price": MessageLookupByLibrary.simpleMessage("سعر المادة"),
         "item_sequence": MessageLookupByLibrary.simpleMessage("تسلسل"),
         "item_sold_quantity": MessageLookupByLibrary.simpleMessage("العدد"),
-        "item_total_price":
-            MessageLookupByLibrary.simpleMessage("السعر الكلي للمادة"),
+        "item_total_price": MessageLookupByLibrary.simpleMessage("السعر الكلي"),
         "last": MessageLookupByLibrary.simpleMessage("الاخير"),
         "later_debt": MessageLookupByLibrary.simpleMessage("الدين بعد"),
         "loading_data": MessageLookupByLibrary.simpleMessage("تحميل البيانات"),
@@ -192,6 +191,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "no": MessageLookupByLibrary.simpleMessage("لا"),
         "no_data_available":
             MessageLookupByLibrary.simpleMessage("لا يوجد بيانات"),
+        "no_name_print_error":
+            MessageLookupByLibrary.simpleMessage("يجب ادخال الاسم"),
         "notes": MessageLookupByLibrary.simpleMessage("الملاحظات"),
         "num_due_invoices":
             MessageLookupByLibrary.simpleMessage("القوائم المتجاوزة"),

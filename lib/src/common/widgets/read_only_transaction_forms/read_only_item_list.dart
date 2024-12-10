@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/values/form_dimenssions.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
@@ -41,12 +42,17 @@ List<Widget> _buildDataRows(Transaction transaction, bool hideGifts, bool hidePr
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           buildDataCell(nameColumnWidth, Text(item[itemNameKey]), isFirst: true),
-          if (!hidePrice) buildDataCell(priceColumnWidth, Text('${item[itemSellingPriceKey]}')),
-          buildDataCell(soldQuantityColumnWidth, Text('${item[itemSoldQuantityKey]}')),
-          if (!hideGifts)
-            buildDataCell(giftQuantityColumnWidth, Text('${item[itemGiftQuantityKey]}')),
           if (!hidePrice)
-            buildDataCell(soldTotalAmountColumnWidth, Text('${item[itemTotalAmountKey]}'),
+            buildDataCell(
+                priceColumnWidth, Text(doubleToStringWithComma(item[itemSellingPriceKey]))),
+          buildDataCell(
+              soldQuantityColumnWidth, Text(doubleToStringWithComma(item[itemSoldQuantityKey]))),
+          if (!hideGifts)
+            buildDataCell(
+                giftQuantityColumnWidth, Text(doubleToStringWithComma(item[itemGiftQuantityKey]))),
+          if (!hidePrice)
+            buildDataCell(
+                soldTotalAmountColumnWidth, Text(doubleToStringWithComma(item[itemTotalAmountKey])),
                 isLast: true),
         ]);
   });

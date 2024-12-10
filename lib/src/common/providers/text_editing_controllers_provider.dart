@@ -19,15 +19,24 @@ class TextControllerNotifier extends StateNotifier<Map<String, dynamic>> {
     state = {...newState};
   }
 
-  // TODO not working properly needs testing
-  /// remove a complete row of subControllers
   void removeSubControllers(String property, int index) {
     Map<String, dynamic> newState = Map.from(state);
     if (!isValidController(property) || newState[property] is! List) return;
-    newState[property][index].forEach((subProperty, controller) {
+    // Ensure the index is valid
+    if (index < 0 || index >= newState[property].length) return;
+    var subControllers = newState[property][index];
+    if (subControllers is! Map) return; // Ensure it's a map
+// Collect keys to remove
+    List<String> keysToRemove = [];
+// First pass: Identify which keys to remove
+    subControllers.forEach((subProperty, textController) {
       if (!isValidSubController(property, index, subProperty)) return;
-      removeSubController(property, index, subProperty);
+      keysToRemove.add(subProperty);
     });
+// Second pass: Remove the identified keys
+    for (String key in keysToRemove) {
+      removeSubController(property, index, key);
+    }
     // finally, remove the map
     newState[property].removeAt(index);
     state = {...newState};
@@ -35,10 +44,11 @@ class TextControllerNotifier extends StateNotifier<Map<String, dynamic>> {
 
   void removeSubController(String property, int index, String subProperty) {
     if (!isValidSubController(property, index, subProperty)) return;
-    final list = state[property];
-    TextEditingController controller = list[index][subProperty]!;
-    list.removeAt(index);
+    final list = [...state[property]];
+    var subControllerMap = list[index];
+    TextEditingController controller = subControllerMap[subProperty]!;
     controller.dispose();
+    subControllerMap.remove(subProperty);
     state = {
       ...state,
       property: list,

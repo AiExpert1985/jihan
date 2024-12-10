@@ -46,16 +46,23 @@ class MainScreenTextCell extends StatelessWidget {
               fontSize: 16,
               fontWeight: FontWeight.bold,
             )
-          : TextStyle(
-              fontSize: 16,
-              color: isWarning ? Colors.red : null,
-              fontWeight: isHighlighted ? FontWeight.bold : null),
+          : TextStyle(fontSize: 16, color: _getCellColor(isWarning, isHighlighted), fontWeight: FontWeight.bold),
     );
     if (isExpanded) {
       cell = Expanded(child: cell);
     }
     return cell;
   }
+}
+
+Color _getCellColor(bool isWarning, bool isHighlighted) {
+  if (isWarning) {
+    return Colors.red;
+  }
+  if (isHighlighted) {
+    return const Color.fromARGB(255, 25, 150, 48);
+  }
+  return Colors.black;
 }
 
 /// Empty cell used as place holder in list data or list headers
@@ -209,8 +216,7 @@ class SortableMainScreenHeaderCell extends StatelessWidget {
   final String _propertyName;
   final String _title;
 
-  const SortableMainScreenHeaderCell(this._screenDataNotifier, this._propertyName, this._title,
-      {super.key});
+  const SortableMainScreenHeaderCell(this._screenDataNotifier, this._propertyName, this._title, {super.key});
 
   @override
   Widget build(BuildContext context) {

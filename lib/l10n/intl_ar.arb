@@ -120,8 +120,8 @@
     "item_name": "اسم المادة",
     "item_price": "سعر المادة",
     "item_sold_quantity": "العدد",
-    "item_total_price": "السعر الكلي للمادة",
-    "item_gifts_quantity": "عدد الهدايا",
+    "item_total_price": "السعر الكلي",
+    "item_gifts_quantity": "الهدية",
     "invoice_total_price": "المبلغ النهائي",
     "invoice_total_weight": "الوزن النهائي ",
     "transaction_total_amount_as_text": "المبلغ كتابة",
@@ -244,5 +244,7 @@
     "previous": "السابق",
     "first": "الاول",
     "last": "الاخير",
-    "printed": "مطبوع"
+    "printed": "مطبوع",
+    "no_name_print_error": "يجب ادخال الاسم",
+    "code": "الرمز"
 }

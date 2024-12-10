@@ -23,7 +23,7 @@ class FromNavigator {
       // first we copy transactions with same type
       List<Map<String, dynamic>> dbCacheData = _dbCacheNotifier.data;
       transactionsOfSameType = dbCacheData.where((formData) {
-        return formData[transactionTypeKey] == transactionType;
+        return formData[transTypeKey] == transactionType;
       }).toList();
       transactionsOfSameType!.sort((a, b) => a[numberKey].compareTo(b[numberKey]));
       // and add empty form to the end (new form)

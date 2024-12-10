@@ -75,12 +75,16 @@ class DbCache extends StateNotifier<List<Map<String, dynamic>>> {
 
   /// get an item by its provided dbRef
   Map<String, dynamic> getItemByDbRef(String itemDbRef) {
+    return getItemByProperty('dbRef', itemDbRef);
+  }
+
+  Map<String, dynamic> getItemByProperty(String propertyKey, dynamic propertyValue) {
     for (int index = 0; index < state.length; index++) {
-      if (state[index]['dbRef'] == itemDbRef) {
+      if (state[index][propertyKey] == propertyValue) {
         return state[index];
       }
     }
-    errorPrint('item not found');
+    errorPrint('item not found in dbCache');
     return {};
   }
 

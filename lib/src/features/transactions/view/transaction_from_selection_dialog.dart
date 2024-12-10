@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/common/providers/background_color.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
@@ -122,7 +121,6 @@ class TransactionTypeSelection extends ConsumerWidget {
     final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
     final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
-    final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
     final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
 
@@ -151,7 +149,6 @@ class TransactionTypeSelection extends ConsumerWidget {
                     formDataNotifier,
                     settingsDataNotifier,
                     textEditingNotifier,
-                    backgroundColorNofifier,
                     formType: formTypes[index],
                     transactionDbCache: transactionDbCache,
                   );

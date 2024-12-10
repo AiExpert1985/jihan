@@ -112,13 +112,13 @@ class ListHeaders extends ConsumerWidget {
         SortableMainScreenHeaderCell(
             screenDataNotifier, transactionTypeKey, S.of(context).transaction_type),
         SortableMainScreenHeaderCell(
+            screenDataNotifier, transactionNumberKey, S.of(context).transaction_number),
+        SortableMainScreenHeaderCell(
             screenDataNotifier, transactionDateKey, S.of(context).transaction_date),
         SortableMainScreenHeaderCell(
             screenDataNotifier, transactionNameKey, S.of(context).transaction_name),
         SortableMainScreenHeaderCell(
             screenDataNotifier, transactionSalesmanKey, S.of(context).salesman_selection),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, transactionNumberKey, S.of(context).transaction_number),
         SortableMainScreenHeaderCell(
             screenDataNotifier, transactionTotalAmountKey, S.of(context).transaction_amount),
         SortableMainScreenHeaderCell(screenDataNotifier, transactionNotesKey, S.of(context).notes),
@@ -156,10 +156,10 @@ class DataRow extends ConsumerWidget {
                 color: color,
               ),
               MainScreenTextCell(transactionScreenData[transactionTypeKey]),
+              MainScreenTextCell(transactionScreenData[transactionNumberKey]),
               MainScreenTextCell(date),
               MainScreenTextCell(transactionScreenData[transactionNameKey]),
               MainScreenTextCell(transactionScreenData[transactionSalesmanKey]),
-              MainScreenTextCell(transactionScreenData[transactionNumberKey]),
               MainScreenTextCell(transactionScreenData[transactionTotalAmountKey]),
               MainScreenTextCell(transactionScreenData[transactionNotesKey]),
             ],
@@ -173,9 +173,9 @@ class DataRow extends ConsumerWidget {
     final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
-    final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
+    // final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
-    backgroundColorNofifier.state = Colors.white;
+    // backgroundColorNofifier.state = normalColor!;
     TransactionShowForm.showForm(
       context,
       ref,
@@ -183,7 +183,6 @@ class DataRow extends ConsumerWidget {
       formDataNotifier,
       settingsDataNotifier,
       textEditingNotifier,
-      backgroundColorNofifier,
       transaction: transaction,
       formType: transaction.transactionType,
     );
@@ -249,7 +248,7 @@ class TransactionsFloatingButtons extends ConsumerWidget {
               backgroundColor: iconsColor,
               onTap: () {
                 // reset background color when form is closed
-                ref.read(backgroundColorProvider.notifier).state = Colors.white;
+                ref.read(backgroundColorProvider.notifier).state = normalColor!;
                 showDialog(
                   context: context,
                   builder: (BuildContext ctx) => const TransactionGroupSelection(),
@@ -308,6 +307,7 @@ class FastAccessButton extends ConsumerWidget {
     final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
     final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
+
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: textColor,
@@ -316,6 +316,7 @@ class FastAccessButton extends ConsumerWidget {
         ),
       ),
       onPressed: () {
+        backgroundColorNofifier.state = normalColor!;
         TransactionShowForm.showForm(
           context,
           ref,
@@ -323,7 +324,6 @@ class FastAccessButton extends ConsumerWidget {
           formDataNotifier,
           settingsDataNotifier,
           textEditingNotifier,
-          backgroundColorNofifier,
           formType: formType,
           transactionDbCache: transactionDbCache,
         );

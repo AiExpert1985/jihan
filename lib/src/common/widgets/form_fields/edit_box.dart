@@ -19,7 +19,7 @@ class FormInputField extends ConsumerWidget {
     this.controller,
     required this.name,
     super.key,
-    this.textColor = Colors.black,
+    this.textColor = Colors.black87,
     this.fontSize = 14,
   });
 
@@ -49,7 +49,7 @@ class FormInputField extends ConsumerWidget {
         controller: controller,
         // enabled: !isReadOnly,
         textAlign: TextAlign.center,
-        style: TextStyle(color: textColor, fontSize: fontSize),
+        style: TextStyle(color: textColor, fontSize: fontSize, fontWeight: FontWeight.w500),
         name: name,
         decoration: utils.formFieldDecoration(label: label, hideBorders: hideBorders),
         onChanged: _onChanged,

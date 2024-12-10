@@ -30,6 +30,7 @@ class DropDownWithSearchFormField extends ConsumerWidget {
       child: DropdownSearch<Map<String, dynamic>>(
         mode: Mode.form,
         decoratorProps: DropDownDecoratorProps(
+          baseStyle: const TextStyle(fontWeight: FontWeight.w500),
           textAlign: TextAlign.center,
           decoration: utils.formFieldDecoration(label: label, hideBorders: hideBorders),
         ),

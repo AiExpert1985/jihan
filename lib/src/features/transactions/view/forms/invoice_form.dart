@@ -299,9 +299,8 @@ class TotalsRow extends ConsumerWidget {
                   formDataNotifier,
                   customerScreenController,
                 );
-                final invoiceColor =
-                    inValidCustomer ? const Color.fromARGB(255, 248, 177, 177) : Colors.white;
-                backgroundColorNotifier.state = invoiceColor;
+                final invoiceColor = inValidCustomer ? warningColor : normalColor;
+                backgroundColorNotifier.state = invoiceColor!;
               },
             ),
             HorizontalGap.xxl,

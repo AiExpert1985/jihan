@@ -7,8 +7,8 @@ Widget readOnlyTextFormField(dynamic fieldValue, {String? label}) {
   String stringFieldValue;
   if (fieldValue is DateTime) {
     stringFieldValue = formatDate(fieldValue); // Assuming formatDate is defined elsewhere
-  } else if (fieldValue is int || fieldValue is double) {
-    stringFieldValue = fieldValue.toString();
+  } else if (fieldValue is int || fieldValue is double || fieldValue is num) {
+    stringFieldValue = doubleToStringWithComma(fieldValue);
   } else if (fieldValue is String) {
     stringFieldValue = fieldValue;
   } else {

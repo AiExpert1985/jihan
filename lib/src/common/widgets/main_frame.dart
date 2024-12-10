@@ -45,6 +45,7 @@ class AppScreenFrame extends ConsumerWidget {
       ),
       drawer: const MainDrawer(),
       body: Container(
+        color: const Color.fromARGB(255, 250, 251, 252),
         padding: const EdgeInsets.all(30),
         child: MainScreenBody(listWidget, buttonsWidget),
       ),
