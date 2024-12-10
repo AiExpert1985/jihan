@@ -216,6 +216,7 @@ Widget _buildDeleteItemButton(
           itemsTotalProfit -= itemProfit;
           final transactionTotalProfit = itemsTotalProfit - discount - totalSalesmanCommission;
           formDataNotifier.updateProperties({
+            subTotalAmountKey: subTotalAmount,
             totalAmountKey: totalAmount,
             totalWeightKey: totalWeight,
             salesmanTransactionComssionKey: totalSalesmanCommission,
