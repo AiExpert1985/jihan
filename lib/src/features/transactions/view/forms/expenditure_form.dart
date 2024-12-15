@@ -9,10 +9,10 @@ import 'package:tablets/src/common/values/constants.dart' as constants;
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/form_fields/drop_down.dart';
 import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
-import 'package:tablets/src/common/widgets/form_title.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
+import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 
 class ExpenditureForm extends ConsumerWidget {
@@ -27,6 +27,7 @@ class ExpenditureForm extends ConsumerWidget {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideTransactionAmountAsText =
         settingsController.getProperty(hideTransactionAmountAsTextKey);
+    final formNavigator = ref.read(formNavigatorProvider);
     ref.watch(transactionFormDataProvider);
 
     return SingleChildScrollView(
@@ -35,27 +36,27 @@ class ExpenditureForm extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            buildFormTitle(title),
-            VerticalGap.xl,
-            _buildFirstRow(context, formDataNotifier),
+            _buildFirstRow(context, formDataNotifier, formNavigator),
             VerticalGap.l,
-            _buildSecondRow(context, formDataNotifier, textEditingNotifier),
+            _buildSecondRow(context, formDataNotifier, textEditingNotifier, formNavigator),
             VerticalGap.l,
-            _buildThirdRow(context, formDataNotifier),
+            _buildThirdRow(context, formDataNotifier, formNavigator),
             VerticalGap.l,
-            _buildForthRow(context, formDataNotifier),
+            _buildForthRow(context, formDataNotifier, formNavigator),
             VerticalGap.l,
-            _buildFifthRow(context, formDataNotifier, hideTransactionAmountAsText),
+            _buildFifthRow(context, formDataNotifier, hideTransactionAmountAsText, formNavigator),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFirstRow(BuildContext context, ItemFormData formDataNotifier) {
+  Widget _buildFirstRow(
+      BuildContext context, ItemFormData formDataNotifier, FromNavigator formNavigator) {
     return Row(
       children: [
         DropDownListFormField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(nameKey),
           itemList: [
             S.of(context).transaction_expenditure_salary,
@@ -75,10 +76,11 @@ class ExpenditureForm extends ConsumerWidget {
   }
 
   Widget _buildSecondRow(BuildContext context, ItemFormData formDataNotifier,
-      TextControllerNotifier textEditingNotifier) {
+      TextControllerNotifier textEditingNotifier, FromNavigator formNavigator) {
     return Row(
       children: [
         DropDownListFormField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(currencyKey),
           itemList: [
             S.of(context).transaction_payment_Dinar,
@@ -94,6 +96,8 @@ class ExpenditureForm extends ConsumerWidget {
         FormInputField(
           initialValue: formDataNotifier.getProperty(subTotalAmountKey),
           name: subTotalAmountKey,
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           dataType: constants.FieldDataType.num,
           label: S.of(context).transaction_subTotal_amount,
           onChangedFn: (value) {
@@ -112,10 +116,13 @@ class ExpenditureForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildThirdRow(BuildContext context, ItemFormData formDataNotifier) {
+  Widget _buildThirdRow(
+      BuildContext context, ItemFormData formDataNotifier, FromNavigator formNavigator) {
     return Row(
       children: [
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           dataType: constants.FieldDataType.num,
           name: numberKey,
           label: S.of(context).transaction_number,
@@ -126,6 +133,7 @@ class ExpenditureForm extends ConsumerWidget {
         ),
         HorizontalGap.l,
         FormDatePickerField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(dateKey) is Timestamp
               ? formDataNotifier.getProperty(dateKey).toDate()
               : formDataNotifier.getProperty(dateKey),
@@ -139,10 +147,13 @@ class ExpenditureForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildForthRow(BuildContext context, ItemFormData formDataNotifier) {
+  Widget _buildForthRow(
+      BuildContext context, ItemFormData formDataNotifier, FromNavigator formNavigator) {
     return Row(
       children: [
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           isRequired: false,
           dataType: constants.FieldDataType.text,
           name: notesKey,
@@ -156,13 +167,15 @@ class ExpenditureForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildFifthRow(
-      BuildContext context, ItemFormData formDataNotifier, bool hideTransactionAmountAsTextKey) {
+  Widget _buildFifthRow(BuildContext context, ItemFormData formDataNotifier,
+      bool hideTransactionAmountAsTextKey, FromNavigator formNavigator) {
     return Visibility(
       visible: !hideTransactionAmountAsTextKey,
       child: Row(
         children: [
           FormInputField(
+            isReadOnly: formNavigator.isReadOnly,
+            isDisabled: formNavigator.isReadOnly,
             isRequired: false,
             dataType: constants.FieldDataType.text,
             name: totalAsTextKey,

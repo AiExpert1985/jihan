@@ -11,8 +11,7 @@ final customerReportControllerProvider = Provider<CustomerReportController>((ref
 class CustomerReportController {
   CustomerReportController();
 
-  void showCustomerMatchingReport(
-      BuildContext context, List<List<dynamic>> transactionList, String title) {
+  void showCustomerMatchingReport(BuildContext context, List<List<dynamic>> transactionList, String title) {
     final selectionList = getTransactionTypeDropList(context);
     showReportDialog(context, _getCustomerMatchingReportTitles(context), transactionList,
         dateIndex: 3,
@@ -33,10 +32,7 @@ class CustomerReportController {
       title: title,
       sumIndex: 4,
       dropdownIndex: 2,
-      dropdownList: [
-        S.of(context).transaction_type_gifts,
-        S.of(context).transaction_type_customer_invoice
-      ],
+      dropdownList: [S.of(context).transaction_type_gifts, S.of(context).transaction_type_customer_invoice],
       dropdownLabel: S.of(context).transaction_type,
       useOriginalTransaction: true,
     );
@@ -77,6 +73,7 @@ class CustomerReportController {
       title: title,
       sumIndex: 5,
       useOriginalTransaction: true,
+      dateIndex: 2,
     );
   }
 
@@ -86,6 +83,7 @@ class CustomerReportController {
       S.of(context).transaction_number,
       S.of(context).transaction_date,
       S.of(context).transaction_amount,
+      S.of(context).balance,
     ];
   }
 

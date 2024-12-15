@@ -13,6 +13,7 @@ class DropDownListFormField extends StatelessWidget {
       required this.itemList,
       this.isRequired = true,
       this.hideBorders = false,
+      this.isReadOnly = false,
       super.key});
   final String? label; // label displayed in the field
   final String name; // used by the widget, not used by me
@@ -20,12 +21,15 @@ class DropDownListFormField extends StatelessWidget {
   final bool hideBorders; // hide borders in decoration, used if the field in sub list
   final bool isRequired; // if isRequired = false, then the field will not be validated
   final String? initialValue;
+  final bool isReadOnly;
   final void Function(String?) onChangedFn;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: FormBuilderDropdown(
+          enabled: !isReadOnly,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
           initialValue: initialValue,
           decoration: utils.formFieldDecoration(label: label, hideBorders: hideBorders),
           validator: isRequired

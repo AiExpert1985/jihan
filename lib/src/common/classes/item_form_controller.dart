@@ -7,11 +7,11 @@ class ItemFormController {
     this._repository,
   );
   final DbRepository _repository;
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  // final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  bool validateData() => formKey.currentState!.validate();
+  // bool validateData() => formKey.currentState!.validate();
 
-  void submitData() => formKey.currentState!.save();
+  // void submitData() => formKey.currentState!.save();
 
   void saveItemToDb(BuildContext context, BaseItem item, bool isEditMode,
       {bool keepDialogOpen = false}) async {

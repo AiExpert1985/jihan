@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:flutter_multi_formatter/flutter_multi_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/utils.dart';
@@ -15,6 +16,7 @@ class FormInputField extends ConsumerWidget {
     this.isRequired = true,
     this.hideBorders = false,
     this.isReadOnly = false,
+    this.isDisabled = false,
     required this.dataType,
     this.controller,
     required this.name,
@@ -37,6 +39,7 @@ class FormInputField extends ConsumerWidget {
   // I mainly use controller to reflect changes caused by other fields
   // for example when an adjacent dropdown is select, this field is changed
   final TextEditingController? controller;
+  final bool isDisabled;
   final String name; // used by the widget, not used by me
 
   @override
@@ -45,11 +48,23 @@ class FormInputField extends ConsumerWidget {
       child: FormBuilderTextField(
         // if controller is used, initialValue should be neglected
         initialValue: _getInitialValue(),
+        // only use input formatter if type is number, this is used for thousand separator
+        inputFormatters: dataType == FieldDataType.num
+            ? [
+                CurrencyInputFormatter(
+                    thousandSeparator: ThousandSeparator.Comma,
+                    useSymbolPadding: true,
+                    mantissaLength: 0 // the length of the fractional side
+
+                    ),
+              ]
+            : null,
         readOnly: isReadOnly,
+        enabled: !isDisabled,
         controller: controller,
         // enabled: !isReadOnly,
         textAlign: TextAlign.center,
-        style: TextStyle(color: textColor, fontSize: fontSize, fontWeight: FontWeight.w500),
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         name: name,
         decoration: utils.formFieldDecoration(label: label, hideBorders: hideBorders),
         onChanged: _onChanged,
@@ -60,7 +75,7 @@ class FormInputField extends ConsumerWidget {
 
   dynamic _getInitialValue() {
     if (controller != null) return null;
-    return initialValue is! String ? doubleToIntString(initialValue) : initialValue;
+    return initialValue is! String ? doubleToStringWithComma(initialValue) : initialValue;
   }
 
   void _onChanged(String? value) {
@@ -70,6 +85,8 @@ class FormInputField extends ConsumerWidget {
       if (value == null) return;
       if (dataType == FieldDataType.num) {
         if (value.toString().trim().isEmpty) return;
+        // if number contains thousand separator, we remove it
+        value = value.replaceAll(',', '');
         final parsedValue = double.parse(value);
         onChangedFn(parsedValue);
         return;

@@ -5,9 +5,6 @@ import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/database_backup.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
-import 'package:tablets/src/common/functions/import_excel.dart';
-import 'package:tablets/src/common/functions/import_json.dart';
-import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/daily_backup_provider.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
@@ -20,8 +17,6 @@ import 'package:tablets/src/features/products/controllers/product_screen_control
 import 'package:tablets/src/features/regions/controllers/region_screen_controller.dart';
 import 'package:tablets/src/features/regions/controllers/region_screen_data_notifier.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_controller.dart';
-import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
-import 'package:tablets/src/features/settings/repository/settings_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_controller.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
@@ -66,19 +61,6 @@ class MainDrawer extends ConsumerWidget {
   }
 }
 
-void _initializeSettings(BuildContext context, WidgetRef ref) {
-  final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
-  if (settingsDataNotifier.data.isEmpty) {
-    final settingsData = ref.read(settingsDbCacheProvider);
-    if (settingsData.isEmpty) {
-      errorLog('try to access settingDbCache, while it is not loaded yet');
-      failureUserMessage(context, 'try to access settingDbCache, while it is not loaded yet');
-      return;
-    }
-    settingsDataNotifier.initialize(initialData: settingsData[0]);
-  }
-}
-
 /// every time app runs, I create backup. if backup is done, it will not updated
 /// unless user manually modify it through pressing backup button
 void _autoDatabaseBackup(BuildContext context, WidgetRef ref) async {
@@ -109,7 +91,7 @@ void processAndMoveToTargetPage(BuildContext context, WidgetRef ref,
   await initializeAllDbCaches(context, ref);
   // we inialize settings
   if (context.mounted) {
-    _initializeSettings(context, ref);
+    initializeSettings(context, ref);
   }
   // load dbCache data into screenData, which will be used later for show data in the
   // page main screen, and also for search
@@ -205,7 +187,7 @@ class SettingsButton extends ConsumerWidget {
 
         await initializeAllDbCaches(context, ref);
         if (context.mounted) {
-          _initializeSettings(context, ref);
+          initializeSettings(context, ref);
         }
         pageLoadingNotifier.state = false;
         if (context.mounted) {

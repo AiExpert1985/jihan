@@ -35,6 +35,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "average_invoice_closing_duration":
             MessageLookupByLibrary.simpleMessage(
                 "Average invoice closing duration"),
+        "back": MessageLookupByLibrary.simpleMessage("Back"),
+        "balance": MessageLookupByLibrary.simpleMessage("Balance"),
         "basic_salary": MessageLookupByLibrary.simpleMessage("Basic salary"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "categories": MessageLookupByLibrary.simpleMessage("Categories"),
@@ -181,6 +183,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Sold Qtty."),
         "item_total_price": MessageLookupByLibrary.simpleMessage("Total"),
         "last": MessageLookupByLibrary.simpleMessage("Last"),
+        "last_receipt_date":
+            MessageLookupByLibrary.simpleMessage("Last receipt date"),
         "later_debt": MessageLookupByLibrary.simpleMessage("Later debt"),
         "loading_data": MessageLookupByLibrary.simpleMessage("Loading data"),
         "login": MessageLookupByLibrary.simpleMessage("Login"),
@@ -195,6 +199,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "monthly_profit_report":
             MessageLookupByLibrary.simpleMessage("Monthly profit report"),
         "name": MessageLookupByLibrary.simpleMessage("Name"),
+        "new_item": MessageLookupByLibrary.simpleMessage("New"),
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "no_data_available":
@@ -321,8 +326,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settings_main_page_greeting":
             MessageLookupByLibrary.simpleMessage("main Page Greeting Text"),
         "share": MessageLookupByLibrary.simpleMessage("Share"),
+        "show_all": MessageLookupByLibrary.simpleMessage("Show all"),
         "show_barcode_when_printing":
             MessageLookupByLibrary.simpleMessage("show Company Url Bar Code"),
+        "show_printed_only":
+            MessageLookupByLibrary.simpleMessage("Show printed only"),
         "signup": MessageLookupByLibrary.simpleMessage("Sign up"),
         "slogan": MessageLookupByLibrary.simpleMessage(
             "Tablets, where accounting started"),
@@ -330,9 +338,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "success": MessageLookupByLibrary.simpleMessage("Success"),
         "sum_of_commissions":
             MessageLookupByLibrary.simpleMessage("Commissions_sum"),
+        "there_is_no_customer_receipt":
+            MessageLookupByLibrary.simpleMessage("no receipt"),
         "to": MessageLookupByLibrary.simpleMessage("To"),
         "to_date": MessageLookupByLibrary.simpleMessage("To date"),
         "total": MessageLookupByLibrary.simpleMessage("Total"),
+        "total_debt":
+            MessageLookupByLibrary.simpleMessage("Customer total debt"),
         "transaction_amount": MessageLookupByLibrary.simpleMessage("Amount"),
         "transaction_currency":
             MessageLookupByLibrary.simpleMessage("Currency"),
@@ -353,6 +365,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Salaries"),
         "transaction_expenditure_type":
             MessageLookupByLibrary.simpleMessage("Expendure type"),
+        "transaction_group_selection":
+            MessageLookupByLibrary.simpleMessage("Transaction group selection"),
         "transaction_item_gift": MessageLookupByLibrary.simpleMessage("Gift"),
         "transaction_item_name": MessageLookupByLibrary.simpleMessage("Item"),
         "transaction_item_price": MessageLookupByLibrary.simpleMessage("Price"),
@@ -361,6 +375,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "transaction_item_total_price":
             MessageLookupByLibrary.simpleMessage("Total price"),
         "transaction_name": MessageLookupByLibrary.simpleMessage("Name"),
+        "transaction_not_found":
+            MessageLookupByLibrary.simpleMessage("Transaction not found"),
         "transaction_notes": MessageLookupByLibrary.simpleMessage("Notes"),
         "transaction_number": MessageLookupByLibrary.simpleMessage("Number"),
         "transaction_payment_Dinar":
@@ -398,6 +414,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "transaction_type_gifts": MessageLookupByLibrary.simpleMessage("Gifts"),
         "transaction_type_initial_credit":
             MessageLookupByLibrary.simpleMessage("Initial credit Items"),
+        "transaction_type_selection":
+            MessageLookupByLibrary.simpleMessage("Transaction type selection"),
         "transaction_type_vender_invoice":
             MessageLookupByLibrary.simpleMessage("Vender Invoice"),
         "transaction_type_vender_return":

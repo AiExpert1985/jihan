@@ -13,10 +13,11 @@ import 'package:tablets/src/common/widgets/form_fields/drop_down_with_search.dar
 import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
-import 'package:tablets/src/common/widgets/form_title.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
+import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider.dart';
 
@@ -37,6 +38,7 @@ class ReceiptForm extends ConsumerWidget {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideTransactionAmountAsText =
         settingsController.getProperty(hideTransactionAmountAsTextKey);
+    final formNavigator = ref.read(formNavigatorProvider);
     ref.watch(transactionFormDataProvider);
 
     return SingleChildScrollView(
@@ -45,29 +47,36 @@ class ReceiptForm extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            buildFormTitle(title),
-            VerticalGap.xl,
-            _buildFirstRow(
-                context, formDataNotifier, counterPartyDbCache, salesmanDbCache, isVendor),
+            _buildFirstRow(context, formDataNotifier, counterPartyDbCache, salesmanDbCache,
+                isVendor, formNavigator, ref),
             VerticalGap.l,
-            _buildSecondRow(context, formDataNotifier, textEditingNotifier, isVendor),
+            _buildSecondRow(
+                context, formDataNotifier, textEditingNotifier, isVendor, formNavigator),
             VerticalGap.l,
-            _buildForthRow(context, formDataNotifier),
+            _buildForthRow(context, formDataNotifier, formNavigator),
             VerticalGap.l,
-            _buildFifthRow(context, formDataNotifier, hideTransactionAmountAsText),
+            _buildFifthRow(context, formDataNotifier, hideTransactionAmountAsText, formNavigator),
             VerticalGap.xxl,
-            _buildTotalsRow(context, formDataNotifier, textEditingNotifier),
+            _buildTotalsRow(context, formDataNotifier, textEditingNotifier, formNavigator),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFirstRow(BuildContext context, ItemFormData formDataNotifier,
-      DbCache counterPartyDbCache, DbCache salesmanDbCache, bool isVendor) {
+  Widget _buildFirstRow(
+      BuildContext context,
+      ItemFormData formDataNotifier,
+      DbCache counterPartyDbCache,
+      DbCache salesmanDbCache,
+      bool isVendor,
+      FromNavigator formNavigator,
+      WidgetRef ref) {
+    final customerDebtInfo = ref.read(customerDebtNotifierProvider.notifier);
     return Row(
       children: [
         DropDownWithSearchFormField(
+          isReadOnly: formNavigator.isReadOnly,
           label: isVendor ? S.of(context).vendor : S.of(context).customer,
           initialValue: formDataNotifier.getProperty(nameKey),
           dbCache: counterPartyDbCache,
@@ -79,11 +88,16 @@ class ReceiptForm extends ConsumerWidget {
               salesmanDbRefKey: item['salesmanDbRef']
             };
             formDataNotifier.updateProperties(properties);
+            // update customerDebtInfo so that it will be used to show preview of customer debt in form screen
+            if (!isVendor) {
+              customerDebtInfo.update(context, item);
+            }
           },
         ),
         if (!isVendor) HorizontalGap.l,
         if (!isVendor)
           DropDownWithSearchFormField(
+            isReadOnly: formNavigator.isReadOnly,
             label: S.of(context).transaction_salesman,
             initialValue: formDataNotifier.getProperty(salesmanKey),
             dbCache: salesmanDbCache,
@@ -93,6 +107,7 @@ class ReceiptForm extends ConsumerWidget {
           ),
         HorizontalGap.l,
         FormDatePickerField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(dateKey) is Timestamp
               ? formDataNotifier.getProperty(dateKey).toDate()
               : formDataNotifier.getProperty(dateKey),
@@ -107,10 +122,12 @@ class ReceiptForm extends ConsumerWidget {
   }
 
   Widget _buildSecondRow(BuildContext context, ItemFormData formDataNotifier,
-      TextControllerNotifier textEditingNotifier, bool isVendor) {
+      TextControllerNotifier textEditingNotifier, bool isVendor, FromNavigator formNavigator) {
     return Row(
       children: [
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           dataType: constants.FieldDataType.num,
           name: numberKey,
           label: S.of(context).transaction_number,
@@ -121,6 +138,8 @@ class ReceiptForm extends ConsumerWidget {
         ),
         HorizontalGap.l,
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(subTotalAmountKey),
           name: subTotalAmountKey,
           dataType: constants.FieldDataType.num,
@@ -140,6 +159,8 @@ class ReceiptForm extends ConsumerWidget {
         // hide for vendors, because there is no discount
         if (!isVendor)
           FormInputField(
+            isReadOnly: formNavigator.isReadOnly,
+            isDisabled: formNavigator.isReadOnly,
             initialValue: formDataNotifier.getProperty(discountKey),
             name: discountKey,
             dataType: constants.FieldDataType.num,
@@ -155,6 +176,7 @@ class ReceiptForm extends ConsumerWidget {
           ),
         HorizontalGap.l,
         DropDownListFormField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(currencyKey),
           itemList: [
             S.of(context).transaction_payment_Dinar,
@@ -170,10 +192,13 @@ class ReceiptForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildForthRow(BuildContext context, ItemFormData formDataNotifier) {
+  Widget _buildForthRow(
+      BuildContext context, ItemFormData formDataNotifier, FromNavigator formNavigator) {
     return Row(
       children: [
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           isRequired: false,
           dataType: constants.FieldDataType.text,
           name: notesKey,
@@ -187,13 +212,15 @@ class ReceiptForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildFifthRow(
-      BuildContext context, ItemFormData formDataNotifier, bool hideTransactionAmountAsText) {
+  Widget _buildFifthRow(BuildContext context, ItemFormData formDataNotifier,
+      bool hideTransactionAmountAsText, FromNavigator formNavigator) {
     return Visibility(
       visible: !hideTransactionAmountAsText,
       child: Row(
         children: [
           FormInputField(
+            isReadOnly: formNavigator.isReadOnly,
+            isDisabled: formNavigator.isReadOnly,
             isRequired: false,
             dataType: constants.FieldDataType.text,
             name: totalAsTextKey,
@@ -209,7 +236,7 @@ class ReceiptForm extends ConsumerWidget {
   }
 
   Widget _buildTotalsRow(BuildContext context, ItemFormData formDataNotifier,
-      TextControllerNotifier textEditingNotifier) {
+      TextControllerNotifier textEditingNotifier, FromNavigator formNavigator) {
     return Container(
         color: const Color.fromARGB(255, 227, 240, 247),
         // width: customerInvoiceFormWidth * 0.6,
@@ -222,6 +249,7 @@ class ReceiptForm extends ConsumerWidget {
               style: const TextStyle(fontSize: 16),
             ),
             FormInputField(
+              isDisabled: formNavigator.isReadOnly,
               hideBorders: true,
               // textColor: Colors.white,
               fontSize: 18,

@@ -137,9 +137,18 @@ String formatDate(DateTime date) => DateFormat('yyyy/MM/dd').format(date);
 
 // used to create thousand comma separators for numbers displayed in the UI
 // it can be used with or without decimal places using numDecimalPlaces optional parameter
-String doubleToStringWithComma(dynamic value, {int? numDecimalPlaces}) {
+String doubleToStringWithComma(dynamic value,
+    {int? numDecimalPlaces, bool isAbsoluteValue = false}) {
+  if (value == null) {
+    return '';
+  }
   String valueString;
-  value = value.round();
+  if (value is double || value is num) {
+    value = value.round();
+  }
+  if (isAbsoluteValue && (value is double || value is num || value is int)) {
+    value = value.abs();
+  }
   if (numDecimalPlaces != null) {
     valueString = value.toStringAsFixed(numDecimalPlaces); // Keeping 2 decimal places
   } else {
@@ -164,12 +173,16 @@ String doubleToIntString(dynamic value) {
 }
 
 // order a list of lists based on date, from latest to oldest
-List<List<dynamic>> sortListOfListsByDate(List<List<dynamic>> list, int dateIndex) {
+List<List<dynamic>> sortListOfListsByDate(List<List<dynamic>> list, int dateIndex,
+    {bool isAscending = false}) {
   list.sort((a, b) {
     final dateA = a[dateIndex] is Timestamp
         ? a[dateIndex].toDate()
         : a[dateIndex]; // Assuming dateKey is the key for the date
     final dateB = b[dateIndex] is Timestamp ? b[dateIndex].toDate() : b[dateIndex];
+    if (isAscending) {
+      return dateA.compareTo(dateB);
+    }
     return dateB.compareTo(dateA); // Descending order
   });
   return list;
@@ -277,4 +290,18 @@ List<Map<String, dynamic>> formatDateForJson(List<Map<String, dynamic>> data, St
 /// create completely new copy of dbCache or any List<Map<String, dynamic>>
 List<Map<String, dynamic>> deepCopyDbCache(List<Map<String, dynamic>> original) {
   return original.map((map) => Map<String, dynamic>.from(map)).toList();
+}
+
+// I did below map creation to solve issue I faced with List<dynamic> is not accepted as List<Map<String, dynamic>>
+List<Map<String, dynamic>> convertListofDyanmicToListofMaps(List<dynamic> list) {
+  List<Map<String, dynamic>> newList = [];
+  for (var item in list) {
+    Map<String, dynamic> typeAdjustedItem = {};
+    item.forEach((key, value) {
+      typeAdjustedItem[key] = value;
+    });
+    newList.add(typeAdjustedItem);
+  }
+
+  return newList;
 }

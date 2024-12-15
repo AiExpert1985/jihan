@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/classes/item_form_data.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
@@ -9,45 +12,54 @@ import 'package:tablets/src/features/transactions/repository/transaction_db_cach
 class FromNavigator {
   final DbCache _dbCacheNotifier;
   final ItemFormData _formDataNotifier;
-  int? currentIndex;
-  bool? isReadOnly;
-  List<Map<String, dynamic>>? transactionsOfSameType;
+  int currentIndex = 0;
+  bool isReadOnly = false;
+  // navigatorTransactions represents all transactions of same type as the currently displayed one
+  List<Map<String, dynamic>> navigatorTransactions = [];
 
   FromNavigator(
     this._dbCacheNotifier,
     this._formDataNotifier,
   );
 
+  void filterPrinted() {
+    navigatorTransactions = navigatorTransactions.where((formData) {
+      return formData[isPrintedKey] == false;
+    }).toList();
+  }
+
+  /// during intitalization, we load all transactions of same type as the currently displayed on
+  /// and set the index to the displayed transaction
+  /// and make it read only (unless it is a new transaction)
   void initialize(String transactionType, String dbRef) {
     try {
       // first we copy transactions with same type
       List<Map<String, dynamic>> dbCacheData = _dbCacheNotifier.data;
-      transactionsOfSameType = dbCacheData.where((formData) {
+      navigatorTransactions = dbCacheData.where((formData) {
         return formData[transTypeKey] == transactionType;
       }).toList();
-      transactionsOfSameType!.sort((a, b) => a[numberKey].compareTo(b[numberKey]));
-      // and add empty form to the end (new form)
-      transactionsOfSameType!.add({});
+      navigatorTransactions.sort((a, b) => a[numberKey].compareTo(b[numberKey]));
+      // // and add empty form to the end (new form)
+      // navigatorTransactions!.add({});
       // then search for dbRef, if found means user is editing new form so we use its inde
       // if not found means user creating new form, means index should point to last empty form
-      currentIndex = transactionsOfSameType!.length - 1;
-      for (int i = 0; i < transactionsOfSameType!.length; i++) {
-        if (transactionsOfSameType![i][dbRefKey] == dbRef) {
+      currentIndex = navigatorTransactions.length - 1;
+      for (int i = 0; i < navigatorTransactions.length; i++) {
+        if (navigatorTransactions[i][dbRefKey] == dbRef) {
           currentIndex = i;
         }
       }
-      isReadOnly = false;
     } catch (e) {
       String message = 'Error during initializing FormNavigator';
-      errorLog(message);
+      debugLog(message);
       errorPrint(message);
     }
   }
 
   bool isValidRequest() {
-    if (currentIndex == null || transactionsOfSameType == null) {
+    if (navigatorTransactions.isEmpty) {
       String message = 'FormNavigator was not initialized';
-      errorLog(message);
+      debugLog(message);
       errorPrint(message);
       return false;
     }
@@ -56,30 +68,30 @@ class FromNavigator {
 
   Map<String, dynamic> next() {
     if (!isValidRequest()) return {};
-    if (currentIndex! < transactionsOfSameType!.length - 1) {
+    if (currentIndex < navigatorTransactions.length - 1) {
       saveNewFormData();
-      currentIndex = currentIndex! + 1;
+      currentIndex = currentIndex + 1;
       isReadOnly = true;
     }
-    return transactionsOfSameType![currentIndex!];
+    return navigatorTransactions[currentIndex];
   }
 
   Map<String, dynamic> previous() {
     if (!isValidRequest()) return {};
-    if (currentIndex! > 0) {
+    if (currentIndex > 0) {
       saveNewFormData();
-      currentIndex = currentIndex! - 1;
+      currentIndex = currentIndex - 1;
       isReadOnly = true;
     }
-    return transactionsOfSameType![currentIndex!];
+    return navigatorTransactions[currentIndex];
   }
 
   Map<String, dynamic> last() {
     if (!isValidRequest()) return {};
     saveNewFormData();
-    currentIndex = transactionsOfSameType!.length - 1;
+    currentIndex = navigatorTransactions.length - 1;
     isReadOnly = false;
-    return transactionsOfSameType![currentIndex!];
+    return navigatorTransactions[currentIndex];
   }
 
   Map<String, dynamic> first() {
@@ -87,7 +99,7 @@ class FromNavigator {
     saveNewFormData();
     currentIndex = 0;
     isReadOnly = true;
-    return transactionsOfSameType![currentIndex!];
+    return navigatorTransactions[currentIndex];
   }
 
   void allowEdit() {
@@ -95,15 +107,29 @@ class FromNavigator {
   }
 
   void reset() {
-    currentIndex = null;
-    isReadOnly = null;
-    transactionsOfSameType = null;
+    currentIndex = 0;
+    isReadOnly = false;
+    navigatorTransactions = [];
   }
 
   void saveNewFormData() {
     if (!isValidRequest()) return;
-    if (currentIndex == transactionsOfSameType!.length - 1) {
-      transactionsOfSameType![currentIndex!] = _formDataNotifier.data;
+    if (currentIndex == navigatorTransactions.length - 1) {
+      navigatorTransactions[currentIndex] = _formDataNotifier.data;
+    }
+  }
+
+  void goTo(BuildContext context, int? transactionNumber) {
+    bool found = false;
+    if (transactionNumber == null) return;
+    for (int i = 0; i < navigatorTransactions.length; i++) {
+      if (navigatorTransactions[i][numberKey] == transactionNumber) {
+        currentIndex = i;
+        found = true;
+      }
+    }
+    if (!found) {
+      failureUserMessage(context, S.of(context).transaction_not_found);
     }
   }
 }

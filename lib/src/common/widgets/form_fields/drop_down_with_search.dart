@@ -15,6 +15,7 @@ class DropDownWithSearchFormField extends ConsumerWidget {
       this.hideBorders = false,
       required this.dbCache,
       this.initialValue,
+      this.isReadOnly = false,
       super.key});
 
   final DbCache dbCache; // used to bring items (from database) shown in the list
@@ -22,6 +23,7 @@ class DropDownWithSearchFormField extends ConsumerWidget {
   final String? label; // label shown on the cell
   final bool hideBorders; // hide borders in decoration, used if the field in sub list
   final bool isRequired; // if isRequired = false, then the field will not be validated
+  final bool isReadOnly;
   final void Function(Map<String, dynamic>) onChangedFn;
 
   @override
@@ -29,8 +31,9 @@ class DropDownWithSearchFormField extends ConsumerWidget {
     return Expanded(
       child: DropdownSearch<Map<String, dynamic>>(
         mode: Mode.form,
+        enabled: !isReadOnly,
         decoratorProps: DropDownDecoratorProps(
-          baseStyle: const TextStyle(fontWeight: FontWeight.w500),
+          baseStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           textAlign: TextAlign.center,
           decoration: utils.formFieldDecoration(label: label, hideBorders: hideBorders),
         ),

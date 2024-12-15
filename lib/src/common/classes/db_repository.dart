@@ -41,12 +41,14 @@ class DbRepository {
         connectivityResult.contains(ConnectivityResult.vpn)) {
       // Device is connected to the internet
       try {
-        final query = _firestore.collection(_collectionName).where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
+        final query = _firestore
+            .collection(_collectionName)
+            .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
         final querySnapshot = await query.get(const GetOptions(source: Source.cache));
         if (querySnapshot.size > 0) {
           final documentRef = querySnapshot.docs[0].reference;
           await documentRef.update(updatedItem.toMap());
-          errorLog('Item updated in live firestore successfully!');
+          debugLog('Item updated in live firestore successfully!');
         }
         return;
       } catch (e) {
@@ -55,7 +57,8 @@ class DbRepository {
       }
     }
     // when offline
-    final query = _firestore.collection(_collectionName).where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
+    final query =
+        _firestore.collection(_collectionName).where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
     final querySnapshot = await query.get(const GetOptions(source: Source.cache));
     if (querySnapshot.size > 0) {
       final documentRef = querySnapshot.docs[0].reference;
@@ -197,7 +200,8 @@ class DbRepository {
 
   /// below function fetch data from firestore if there is internet connection
   /// if not, it fetch from cache
-  Future<List<Map<String, dynamic>>> fetchItemListAsMaps({String? filterKey, String? filterValue}) async {
+  Future<List<Map<String, dynamic>>> fetchItemListAsMaps(
+      {String? filterKey, String? filterValue}) async {
     try {
       Query query = _firestore.collection(_collectionName);
 
@@ -213,14 +217,18 @@ class DbRepository {
           connectivityResult.contains(ConnectivityResult.vpn)) {
         final snapshot = await query.get();
         tempPrint('data fetched from firebase ($_collectionName)live data');
-        return snapshot.docs.map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>).toList();
+        return snapshot.docs
+            .map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>)
+            .toList();
       } else {
         tempPrint('data fetched from cache ($_collectionName)');
         final cachedSnapshot = await query.get(const GetOptions(source: Source.cache));
-        return cachedSnapshot.docs.map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>).toList();
+        return cachedSnapshot.docs
+            .map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>)
+            .toList();
       }
     } catch (e) {
-      errorLog('Error during fetching items from Firebase - $e');
+      debugLog('Error during fetching items from Firebase - $e');
       return [];
     }
   }

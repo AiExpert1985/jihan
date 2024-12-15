@@ -7,11 +7,7 @@ class ApproveIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      const Icon(Icons.check, color: Colors.green),
-      VerticalGap.s,
-      Text(S.of(context).approve)
-    ]);
+    return Column(children: [const Icon(Icons.check, color: Colors.green), VerticalGap.s, Text(S.of(context).approve)]);
   }
 }
 
@@ -31,16 +27,44 @@ class MainMenuIcon extends StatelessWidget {
   }
 }
 
+class HomeReturnIcon extends StatelessWidget {
+  const HomeReturnIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      const Icon(Icons.home, color: Colors.red, size: 30),
+      HorizontalGap.s,
+      Text(
+        S.of(context).home_page,
+        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+      )
+    ]);
+  }
+}
+
+class NavigationBackButton extends StatelessWidget {
+  const NavigationBackButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Text(
+        S.of(context).back,
+        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+      ),
+      HorizontalGap.s,
+      const Icon(Icons.arrow_forward_ios_outlined, color: Colors.black, size: 30)
+    ]);
+  }
+}
+
 class SaveIcon extends StatelessWidget {
   const SaveIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      const Icon(Icons.check, color: Colors.green),
-      VerticalGap.s,
-      Text(S.of(context).save)
-    ]);
+    return Column(children: [const Icon(Icons.check, color: Colors.green), VerticalGap.s, Text(S.of(context).save)]);
   }
 }
 
@@ -130,6 +154,44 @@ class AddImageIcon extends StatelessWidget {
         const Icon(Icons.image),
         VerticalGap.s,
         Text(S.of(context).add),
+      ],
+    );
+  }
+}
+
+class NewIemIcon extends StatelessWidget {
+  const NewIemIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Icon(
+          Icons.add,
+          color: Colors.green,
+          size: 25,
+        ),
+        VerticalGap.s,
+        Text(S.of(context).new_item),
+      ],
+    );
+  }
+}
+
+class EditIcon extends StatelessWidget {
+  const EditIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const Icon(
+          Icons.edit_document,
+          color: Colors.orangeAccent,
+          size: 25,
+        ),
+        VerticalGap.s,
+        Text(S.of(context).edit),
       ],
     );
   }

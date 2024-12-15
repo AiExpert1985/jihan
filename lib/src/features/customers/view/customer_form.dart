@@ -1,12 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/classes/item_form_controller.dart';
 import 'package:tablets/src/common/classes/item_form_data.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
+import 'package:tablets/src/common/widgets/custome_appbar_for_back_return.dart';
 import 'package:tablets/src/common/widgets/form_frame.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
+import 'package:tablets/src/common/widgets/form_title.dart';
 import 'package:tablets/src/common/widgets/image_slider.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/values/gaps.dart';
@@ -17,6 +21,7 @@ import 'package:tablets/src/features/customers/model/customer.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/customers/view/customer_form_fields.dart';
 import 'package:tablets/src/features/customers/controllers/customer_form_data_notifier.dart';
+import 'package:tablets/src/routers/go_router_provider.dart';
 
 class CustomerForm extends ConsumerWidget {
   const CustomerForm({this.isEditMode = false, super.key});
@@ -30,32 +35,54 @@ class CustomerForm extends ConsumerWidget {
     final screenController = ref.read(customerScreenControllerProvider);
     final dbCache = ref.read(customerDbCacheProvider.notifier);
     ref.watch(imagePickerProvider);
-    return FormFrame(
-      formKey: formController.formKey,
-      fields: Column(
+
+    return Scaffold(
+      appBar: buildArabicAppBar(context, () async {
+        // back to customers screen
+        Navigator.pop(context);
+      }, () async {
+        // back to home screen
+        Navigator.pop(context);
+        context.goNamed(AppRoute.home.name);
+      }),
+      // body: const Text('hi')
+      body: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          ImageSlider(imageUrls: formDataNotifier.data['imageUrls']),
-          VerticalGap.l,
-          const CustomerFormFields(),
+          FormFrame(
+            title: buildFormTitle(S.of(context).customer),
+            fields: Container(
+              padding: const EdgeInsets.all(0),
+              width: 800,
+              height: 550,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ImageSlider(imageUrls: formDataNotifier.data['imageUrls']),
+                  VerticalGap.l,
+                  const CustomerFormFields(),
+                ],
+              ),
+            ),
+            buttons: [
+              IconButton(
+                onPressed: () => _onSavePress(
+                    context, formDataNotifier, formImagesNotifier, formController, dbCache, screenController),
+                icon: const SaveIcon(),
+              ),
+              if (isEditMode)
+                IconButton(
+                  onPressed: () => _onDeletePressed(
+                      context, formDataNotifier, formImagesNotifier, formController, dbCache, screenController),
+                  icon: const DeleteIcon(),
+                ),
+            ],
+            width: customerFormWidth,
+            height: customerFormHeight,
+          ),
         ],
       ),
-      buttons: [
-        IconButton(
-          onPressed: () => _onSavePress(context, formDataNotifier, formImagesNotifier,
-              formController, dbCache, screenController),
-          icon: const SaveIcon(),
-        ),
-        if (isEditMode)
-          IconButton(
-            onPressed: () => _onDeletePressed(context, formDataNotifier, formImagesNotifier,
-                formController, dbCache, screenController),
-            icon: const DeleteIcon(),
-          ),
-      ],
-      width: customerFormWidth,
-      height: customerFormHeight,
     );
   }
 
@@ -67,8 +94,8 @@ class CustomerForm extends ConsumerWidget {
     DbCache dbCache,
     CustomerScreenController screenController,
   ) {
-    if (!formController.validateData()) return;
-    formController.submitData();
+    // if (!formController.validateData()) return;
+    // formController.submitData();
     final formData = formDataNotifier.data;
     final imageUrls = formImagesNotifier.saveChanges();
     final itemData = {...formData, 'imageUrls': imageUrls};
@@ -96,8 +123,7 @@ class CustomerForm extends ConsumerWidget {
     DbCache dbCache,
     CustomerScreenController screenController,
   ) async {
-    final confiramtion = await showDeleteConfirmationDialog(
-        context: context, message: formDataNotifier.data['name']);
+    final confiramtion = await showDeleteConfirmationDialog(context: context, message: formDataNotifier.data['name']);
     if (confiramtion != null) {
       final formData = formDataNotifier.data;
       final imageUrls = formImagesNotifier.saveChanges();

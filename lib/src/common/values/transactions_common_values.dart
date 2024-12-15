@@ -35,7 +35,6 @@ const String transactionTotalProfitKey = 'transactionTotalProfit';
 const String salesmanTransactionComssionKey = 'salesmanTransactionComssion';
 const String itemsTotalProfitKey = 'itemsTotalProfit'; // profit of all items in the transaction
 const String isPrintedKey = 'isPrinted';
-
 Map<String, dynamic> emptyInvoiceItem = {
   itemCodeKey: null,
   itemNameKey: '',

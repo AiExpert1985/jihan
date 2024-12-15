@@ -35,6 +35,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "approve": MessageLookupByLibrary.simpleMessage("موافق"),
         "average_invoice_closing_duration":
             MessageLookupByLibrary.simpleMessage("معدل الاغلاق"),
+        "back": MessageLookupByLibrary.simpleMessage("رجوع"),
+        "balance": MessageLookupByLibrary.simpleMessage("الرصيد"),
         "basic_salary": MessageLookupByLibrary.simpleMessage("الراتب الاسمي"),
         "cancel": MessageLookupByLibrary.simpleMessage("رجوع"),
         "categories": MessageLookupByLibrary.simpleMessage("الاصناف"),
@@ -110,8 +112,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("العودة الى الصفحة الرئيسية"),
         "gps_x": MessageLookupByLibrary.simpleMessage("احداثيات الطول"),
         "gps_y": MessageLookupByLibrary.simpleMessage("احداثيات العرض"),
-        "greeting":
-            MessageLookupByLibrary.simpleMessage("مرحبا بك في نظام الواح"),
+        "greeting": MessageLookupByLibrary.simpleMessage(""),
         "hide_amount_as_text":
             MessageLookupByLibrary.simpleMessage("اخفاء حقل كتابة المبلغ"),
         "hide_customer_profit":
@@ -173,6 +174,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "item_sold_quantity": MessageLookupByLibrary.simpleMessage("العدد"),
         "item_total_price": MessageLookupByLibrary.simpleMessage("السعر الكلي"),
         "last": MessageLookupByLibrary.simpleMessage("الاخير"),
+        "last_receipt_date":
+            MessageLookupByLibrary.simpleMessage("اخر وصل تسديد"),
         "later_debt": MessageLookupByLibrary.simpleMessage("الدين بعد"),
         "loading_data": MessageLookupByLibrary.simpleMessage("تحميل البيانات"),
         "login": MessageLookupByLibrary.simpleMessage("الدخول"),
@@ -187,6 +190,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "monthly_profit_report":
             MessageLookupByLibrary.simpleMessage("تقرير الارباح الشهرية"),
         "name": MessageLookupByLibrary.simpleMessage("الاسم"),
+        "new_item": MessageLookupByLibrary.simpleMessage("جديد"),
         "next": MessageLookupByLibrary.simpleMessage("التالي"),
         "no": MessageLookupByLibrary.simpleMessage("لا"),
         "no_data_available":
@@ -270,8 +274,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "regions": MessageLookupByLibrary.simpleMessage("المناطق"),
         "reload_page":
             MessageLookupByLibrary.simpleMessage("اعادة تحميل الصفحة"),
-        "remaining_amount":
-            MessageLookupByLibrary.simpleMessage("المتبقى من القائمة"),
+        "remaining_amount": MessageLookupByLibrary.simpleMessage("المتبقى "),
         "reports": MessageLookupByLibrary.simpleMessage("تقارير"),
         "returns_amount":
             MessageLookupByLibrary.simpleMessage("مبلغ الارجاعات"),
@@ -307,8 +310,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settings_main_page_greeting":
             MessageLookupByLibrary.simpleMessage("تحية البرنامج"),
         "share": MessageLookupByLibrary.simpleMessage("ارسال"),
+        "show_all": MessageLookupByLibrary.simpleMessage("عرض الجميع"),
         "show_barcode_when_printing":
             MessageLookupByLibrary.simpleMessage("اخفاء الباركود عند الطباعة"),
+        "show_printed_only":
+            MessageLookupByLibrary.simpleMessage("غير المطبوع"),
         "signup": MessageLookupByLibrary.simpleMessage("انشاء حساب"),
         "slogan":
             MessageLookupByLibrary.simpleMessage("الواح  ...  حساباتك اسهل"),
@@ -316,9 +322,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "success": MessageLookupByLibrary.simpleMessage("نجاح"),
         "sum_of_commissions":
             MessageLookupByLibrary.simpleMessage("مجموع العمولات"),
+        "there_is_no_customer_receipt":
+            MessageLookupByLibrary.simpleMessage("لا يوجد"),
         "to": MessageLookupByLibrary.simpleMessage("الى"),
         "to_date": MessageLookupByLibrary.simpleMessage("الى تاريخ"),
         "total": MessageLookupByLibrary.simpleMessage("المجموع"),
+        "total_debt": MessageLookupByLibrary.simpleMessage("الدين الكلي"),
         "transaction_amount":
             MessageLookupByLibrary.simpleMessage("مبلغ القائمة"),
         "transaction_currency": MessageLookupByLibrary.simpleMessage("العملة"),
@@ -339,6 +348,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("رواتب"),
         "transaction_expenditure_type":
             MessageLookupByLibrary.simpleMessage("نوع المصاريف"),
+        "transaction_group_selection":
+            MessageLookupByLibrary.simpleMessage("اختيار نوع التعامل"),
         "transaction_item_gift": MessageLookupByLibrary.simpleMessage("هدية"),
         "transaction_item_name":
             MessageLookupByLibrary.simpleMessage("اسم المادة"),
@@ -349,6 +360,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "transaction_item_total_price":
             MessageLookupByLibrary.simpleMessage("السعر الكلي"),
         "transaction_name": MessageLookupByLibrary.simpleMessage("الأسم"),
+        "transaction_not_found": MessageLookupByLibrary.simpleMessage(
+            "لم يتم ايجاد التعامل المطلوب"),
         "transaction_notes": MessageLookupByLibrary.simpleMessage("الملاحظات"),
         "transaction_number":
             MessageLookupByLibrary.simpleMessage("رقم القائمة"),
@@ -386,6 +399,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("هدية زبون"),
         "transaction_type_initial_credit":
             MessageLookupByLibrary.simpleMessage("رصيد اولي"),
+        "transaction_type_selection":
+            MessageLookupByLibrary.simpleMessage("اختيار القائمة"),
         "transaction_type_vender_invoice":
             MessageLookupByLibrary.simpleMessage("قائمة مجهز"),
         "transaction_type_vender_return":

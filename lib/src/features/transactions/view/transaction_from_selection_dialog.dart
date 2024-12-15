@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/values/constants.dart';
+import 'package:tablets/src/common/widgets/custome_appbar_for_back_return.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/view/transaction_show_form.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
+import 'package:tablets/src/routers/go_router_provider.dart';
 
 class TransactionGroupSelection extends ConsumerWidget {
   const TransactionGroupSelection({super.key});
@@ -26,43 +29,49 @@ class TransactionGroupSelection extends ConsumerWidget {
       "internal",
     ];
 
-    return AlertDialog(
-      alignment: Alignment.center,
-      scrollable: true,
-      content: Container(
-        padding: const EdgeInsets.all(25),
-        width: 300,
-        height: 500,
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1, // Number of columns
-            childAspectRatio: 1.7, // Aspect ratio of each card
-          ),
-          itemCount: names.length,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-                showDialog(
-                  context: context,
-                  builder: (BuildContext ctx) => TransactionTypeSelection(formTypes[index]),
-                ).whenComplete(() {});
-              },
-              child: Card(
-                elevation: 4,
-                margin: const EdgeInsets.all(16),
-                child: SizedBox(
-                  height: 40, // Reduced height for the card
-                  child: Center(
-                    child: Text(
-                      names[index], // Use the corresponding name
-                      style: const TextStyle(fontSize: 18),
+    return Scaffold(
+      appBar: buildArabicAppBar(context, () {
+        // back to transactions
+        Navigator.of(context).pop();
+      }, () {
+        context.goNamed(AppRoute.home.name);
+      }),
+      body: Center(
+        child: Container(
+          width: 300,
+          height: 900,
+          padding: const EdgeInsets.all(12),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 1, // Number of columns
+              childAspectRatio: 1.7, // Aspect ratio of each card
+            ),
+            itemCount: names.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => TransactionTypeSelection(formTypes[index])),
+                  );
+                },
+                child: Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    height: 40, // Reduced height for the card
+                    child: Center(
+                      child: Text(
+                        names[index], // Use the corresponding name
+                        style: const TextStyle(fontSize: 18),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -124,51 +133,56 @@ class TransactionTypeSelection extends ConsumerWidget {
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
     final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
 
-    return AlertDialog(
-      alignment: Alignment.center,
-      scrollable: true,
-      content: Container(
-        padding: const EdgeInsets.all(25),
-        width: 300,
-        height: names.length * 185,
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 1, // Number of columns
-            childAspectRatio: 1.5, // Aspect ratio of each card
-          ),
-          itemCount: names.length,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () async {
-                Navigator.of(context).pop();
-                if (context.mounted) {
-                  TransactionShowForm.showForm(
-                    context,
-                    ref,
-                    imagePickerNotifier,
-                    formDataNotifier,
-                    settingsDataNotifier,
-                    textEditingNotifier,
-                    formType: formTypes[index],
-                    transactionDbCache: transactionDbCache,
-                  );
-                }
-              },
-              child: Card(
-                elevation: 4,
-                margin: const EdgeInsets.all(16),
-                child: SizedBox(
-                  height: 40, // Reduced height for the card
-                  child: Center(
-                    child: Text(
-                      names[index], // Use the corresponding name
-                      style: const TextStyle(fontSize: 18),
+    return Scaffold(
+      appBar: buildArabicAppBar(context, () {
+        // we pop twice to return to transaction
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }, () {
+        context.goNamed(AppRoute.home.name);
+      }),
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(5),
+          width: 300,
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 1, // Number of columns
+              childAspectRatio: 1.5, // Aspect ratio of each card
+            ),
+            itemCount: names.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () async {
+                  if (context.mounted) {
+                    TransactionShowForm.showForm(
+                      context,
+                      ref,
+                      imagePickerNotifier,
+                      formDataNotifier,
+                      settingsDataNotifier,
+                      textEditingNotifier,
+                      formType: formTypes[index],
+                      transactionDbCache: transactionDbCache,
+                    );
+                  }
+                },
+                child: Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    height: 40, // Reduced height for the card
+                    child: Center(
+                      child: Text(
+                        names[index], // Use the corresponding name
+                        style: const TextStyle(fontSize: 18),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

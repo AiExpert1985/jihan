@@ -12,6 +12,7 @@ class FormDatePickerField extends StatelessWidget {
     this.label,
     this.isRequired = true,
     this.hideBorders = false,
+    this.isReadOnly = false,
     super.key,
   });
   final String? label; // label displayed on the field (can be shown in Arabic)
@@ -19,14 +20,17 @@ class FormDatePickerField extends StatelessWidget {
   final String name; // Widget needs it, not used by me
   final bool hideBorders; // hide borders in decoration, used if the field in sub list
   final bool isRequired; // if isRequired = false, then the field will not be validated
+  final bool isReadOnly;
   final void Function(DateTime?) onChangedFn;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: FormBuilderDateTimePicker(
+        enabled: !isReadOnly,
         decoration: utils.formFieldDecoration(label: label, hideBorders: hideBorders),
         textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         name: name,
         initialValue: initialValue,
         fieldHintText: S.of(context).date_picker_hint,

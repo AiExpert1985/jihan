@@ -28,7 +28,7 @@ Future<void> _printPDf(Document pdf) async {
       );
     }
   } catch (e) {
-    errorLog('Printing failed - ($e)');
+    debugLog('Printing failed - ($e)');
   }
 }
 
@@ -49,9 +49,8 @@ Future<void> printDocument(
       final file = File(filePath);
       await file.writeAsBytes(await pdf.save());
     }
-    successLog('PDF saved at: $filePath');
   } catch (e) {
-    errorLog('Pdf creation failed - ($e)');
+    debugLog('Pdf creation failed - ($e)');
   }
 }
 

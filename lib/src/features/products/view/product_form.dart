@@ -1,13 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/classes/item_form_controller.dart';
 import 'package:tablets/src/common/classes/item_form_data.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
+import 'package:tablets/src/common/widgets/custome_appbar_for_back_return.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/form_frame.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
+import 'package:tablets/src/common/widgets/form_title.dart';
 import 'package:tablets/src/common/widgets/image_slider.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
@@ -17,6 +21,7 @@ import 'package:tablets/src/common/values/form_dimenssions.dart';
 import 'package:tablets/src/features/products/model/product.dart';
 import 'package:tablets/src/features/products/view/product_form_fields.dart';
 import 'package:tablets/src/features/products/controllers/product_form_data_notifier.dart';
+import 'package:tablets/src/routers/go_router_provider.dart';
 
 class ProductForm extends ConsumerWidget {
   const ProductForm({this.isEditMode = false, super.key});
@@ -30,23 +35,39 @@ class ProductForm extends ConsumerWidget {
     final screenController = ref.read(productScreenControllerProvider);
     final dbCache = ref.read(productDbCacheProvider.notifier);
     ref.watch(imagePickerProvider);
-    return FormFrame(
-      formKey: formController.formKey,
-      fields: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ImageSlider(imageUrls: formDataNotifier.data['imageUrls']),
-            VerticalGap.l,
-            const ProductFormFields(editMode: true),
-          ],
+    return Scaffold(
+      appBar: buildArabicAppBar(context, () async {
+        // back to customers screen
+        Navigator.pop(context);
+      }, () async {
+        // back to home screen
+        Navigator.pop(context);
+        context.goNamed(AppRoute.home.name);
+      }),
+      // body: const Text('hi')
+      body: FormFrame(
+        title: buildFormTitle(S.of(context).products),
+        fields: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(0),
+            width: 800,
+            height: 550,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ImageSlider(imageUrls: formDataNotifier.data['imageUrls']),
+                VerticalGap.l,
+                const ProductFormFields(editMode: true),
+              ],
+            ),
+          ),
         ),
+        buttons:
+            _actionButtons(context, formController, formDataNotifier, formImagesNotifier, dbCache, screenController),
+        width: productFormWidth,
+        height: productFormHeight,
       ),
-      buttons: _actionButtons(
-          context, formController, formDataNotifier, formImagesNotifier, dbCache, screenController),
-      width: productFormWidth,
-      height: productFormHeight,
     );
   }
 
@@ -61,16 +82,16 @@ class ProductForm extends ConsumerWidget {
     return [
       IconButton(
         onPressed: () {
-          _onSavePressed(context, formController, formDataNotifier, formImagesNotifier,
-              transactionDbCache, screenController);
+          _onSavePressed(
+              context, formController, formDataNotifier, formImagesNotifier, transactionDbCache, screenController);
         },
         icon: const SaveIcon(),
       ),
       if (isEditMode)
         IconButton(
           onPressed: () {
-            _onDeletePressed(context, formDataNotifier, formImagesNotifier, formController,
-                transactionDbCache, screenController);
+            _onDeletePressed(
+                context, formDataNotifier, formImagesNotifier, formController, transactionDbCache, screenController);
           },
           icon: const DeleteIcon(),
         ),
@@ -85,8 +106,8 @@ class ProductForm extends ConsumerWidget {
     DbCache dbCache,
     ProductScreenController screenController,
   ) {
-    if (!formController.validateData()) return;
-    formController.submitData();
+    // if (!formController.validateData()) return;
+    // formController.submitData();
     final formData = formDataNotifier.data;
     final imageUrls = formImagesNotifier.saveChanges();
     final itemData = {...formData, 'imageUrls': imageUrls};
@@ -114,8 +135,7 @@ class ProductForm extends ConsumerWidget {
     DbCache dbCache,
     ProductScreenController screenController,
   ) async {
-    final confirmation = await showDeleteConfirmationDialog(
-        context: context, message: formDataNotifier.data['name']);
+    final confirmation = await showDeleteConfirmationDialog(context: context, message: formDataNotifier.data['name']);
     final formData = formDataNotifier.data;
     if (confirmation != null) {
       final imageUrls = formImagesNotifier.saveChanges();

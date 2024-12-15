@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tablets/src/common/functions/debug_print.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/features/categories/repository/category_db_cache_provider.dart';
 import 'package:tablets/src/features/categories/repository/category_repository_provider.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
@@ -10,6 +12,7 @@ import 'package:tablets/src/features/regions/repository/region_db_cache_provider
 import 'package:tablets/src/features/regions/repository/region_repository_provider.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_repository_provider.dart';
+import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/repository/settings_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/repository/settings_repository_provider.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
@@ -23,6 +26,19 @@ import 'package:tablets/src/features/vendors/repository/vendor_repository_provid
 //! change happened to a feature (add, update, delete), we update the cache and
 //! database with same data (whether create, update or delete), so there will be no need to fetch
 //! from database again
+
+void initializeSettings(BuildContext context, WidgetRef ref) {
+  final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
+  if (settingsDataNotifier.data.isEmpty) {
+    final settingsData = ref.read(settingsDbCacheProvider);
+    if (settingsData.isEmpty) {
+      debugLog('try to access settingDbCache, while it is not loaded yet');
+      failureUserMessage(context, 'try to access settingDbCache, while it is not loaded yet');
+      return;
+    }
+    settingsDataNotifier.initialize(initialData: settingsData[0]);
+  }
+}
 
 Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   await _initializeTransactionDbCache(context, ref);

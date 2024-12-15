@@ -2,23 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
-import 'package:tablets/src/common/classes/item_form_controller.dart';
 import 'package:tablets/src/common/classes/item_form_data.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
-import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
-import 'package:tablets/src/features/transactions/controllers/transaction_form_controller.dart';
-import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
-import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/view/transaction_form.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
 
 class TransactionShowForm {
   static void showForm(
@@ -51,126 +45,15 @@ class TransactionShowForm {
 
     if (!isEditMode) {
       // if the transaction is new, we save it directly with empty data
-      saveTransaction(context, ref, formDataNotifier.data, false);
+      TransactionForm.saveTransaction(context, ref, formDataNotifier.data, false);
     }
 
-    // // initalize form navigator
-    // final formNavigator = ref.read(formNavigatorProvider);
-    // formNavigator.initialize(transactionType, formDataNotifier.data['dbRef']);
-
-    showDialog(
-      context: context,
-      // barrierDismissible: false,
-      builder: (BuildContext ctx) => TransactionForm(isEditMode, transactionType),
-    ).whenComplete(() {
-      imagePickerNotifier.close();
-      final formController = ref.read(transactionFormControllerProvider);
-      final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
-      final screenController = ref.read(transactionScreenControllerProvider);
-      final dbCache = ref.read(transactionDbCacheProvider.notifier);
-      if (context.mounted) {
-        // if no transaction name, automatically delete the transaction
-        if (formDataNotifier.data[nameKey] == '') {
-          deleteTransaction(context, formDataNotifier, imagePickerNotifier, formController, dbCache,
-              screenController,
-              showConfiramtion: false, keepDialog: true);
-        } else {
-          // we update item on close, unless the dialog were closed due to delete button
-          // we need to check, if transaction is in dbCache it means dialog was not close
-          // due to delete button, i.e. item was updated
-          final transDbRef = formDataNotifier.data[dbRefKey];
-          if (dbCache.getItemByDbRef(transDbRef).isNotEmpty) {
-            saveTransaction(context, ref, formDataNotifier.data, true);
-          }
-        }
-      }
-    });
-  }
-
-  static Future<void> deleteTransaction(
-      BuildContext context,
-      ItemFormData formDataNotifier,
-      ImageSliderNotifier formImagesNotifier,
-      ItemFormController formController,
-      DbCache transactionDbCache,
-      TransactionScreenController screenController,
-      {bool showConfiramtion = true,
-      bool keepDialog = false}) async {
-    if (showConfiramtion) {
-      final confirmation = await showDeleteConfirmationDialog(
-          context: context, message: formDataNotifier.data['name']);
-      if (confirmation == null) return;
-    }
-    final formData = formDataNotifier.data;
-
-    final imageUrls = formImagesNotifier.saveChanges();
-    final itemData = {...formData, 'imageUrls': imageUrls};
-    final transaction = Transaction.fromMap(itemData);
-    if (context.mounted) {
-      formController.deleteItemFromDb(context, transaction, keepDialogOpen: true);
-    }
-    // update the bdCache (database mirror) so that we don't need to fetch data from db
-    const operationType = DbCacheOperationTypes.delete;
-    transactionDbCache.update(itemData, operationType);
-    // redo screenData calculations
-    if (context.mounted) {
-      screenController.setFeatureScreenData(context);
-    }
-
-    if (context.mounted && !keepDialog) {
-      Navigator.of(context).pop();
-    }
-  }
-
-  static void saveTransaction(
-    BuildContext context,
-    WidgetRef ref,
-    Map<String, dynamic> formData,
-    bool isEditing,
-  ) {
-    final formController = ref.read(transactionFormControllerProvider);
-    final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
-    final formImagesNotifier = ref.read(imagePickerProvider.notifier);
-    final screenController = ref.read(transactionScreenControllerProvider);
-    final dbCache = ref.read(transactionDbCacheProvider.notifier);
-    // if (isEditing) {
-    //   if (!formController.validateData()) return;
-    //   formController.submitData();
-    // }
-    Map<String, dynamic> formData = {...formDataNotifier.data};
-    // we need to remove empty rows (rows without item name, which is usally last one)
-    formData = removeEmptyRows(formData);
-    final imageUrls = formImagesNotifier.saveChanges();
-    final itemData = {...formData, 'imageUrls': imageUrls};
-    final transaction = Transaction.fromMap({...formData, 'imageUrls': imageUrls});
-    formController.saveItemToDb(context, transaction, isEditing, keepDialogOpen: true);
-    // update the bdCache (database mirror) so that we don't need to fetch data from db
-    if (itemData[transactionDateKey] is DateTime) {
-      // in our form the data type usually is DateTime, but the date type in dbCache should be
-      // Timestamp, as to mirror the datatype of firebase
-      itemData[transactionDateKey] = firebase.Timestamp.fromDate(formData[transactionDateKey]);
-    }
-    final operationType = isEditing ? DbCacheOperationTypes.edit : DbCacheOperationTypes.add;
-    dbCache.update(itemData, operationType);
-    // redo screenData calculations
-    if (context.mounted) {
-      screenController.setFeatureScreenData(context);
-    }
-  }
-
-  /// delete rows where there is not item name
-  static Map<String, dynamic> removeEmptyRows(Map<String, dynamic> formData) {
-    List<Map<String, dynamic>> items = [];
-    for (var i = 0; i < formData[itemsKey].length; i++) {
-      final item = formData[itemsKey][i];
-      // only add items with non empty name field
-      if (item[nameKey] != '') {
-        Map<String, dynamic> newItem = {};
-        item.forEach((key, value) => newItem[key] = value);
-        items.add(newItem);
-      }
-    }
-    return {...formData, itemsKey: items};
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (BuildContext ctx) => TransactionForm(isEditMode, transactionType)),
+      // builder: (BuildContext ctx) => TransactionForm(isEditMode, transactionType)),
+    );
   }
 
   static void initializeFormData(BuildContext context, ItemFormData formDataNotifier,
@@ -252,8 +135,18 @@ class TransactionShowForm {
       // formData like itemWeight & totalItemAmounts doesn't comply to these two condistions
       final totalAmount = formDataNotifier.getProperty(totalAmountKey);
       final totalWeight = formDataNotifier.getProperty(totalWeightKey);
-      textEditingNotifier
-          .updateControllers({totalAmountKey: totalAmount, totalWeightKey: totalWeight});
+      // below 4 (number, discount, notes,) are need for form navigation, when loadng new data inside form, this is the way to update
+      // data seen by user
+      final number = formDataNotifier.getProperty(transactionNumberKey);
+      final discount = formDataNotifier.getProperty(discountKey);
+      final notes = formDataNotifier.getProperty(notesKey);
+      textEditingNotifier.updateControllers({
+        totalAmountKey: totalAmount,
+        totalWeightKey: totalWeight,
+        transactionNumberKey: number,
+        discountKey: discount,
+        notesKey: notes,
+      });
     }
   }
 

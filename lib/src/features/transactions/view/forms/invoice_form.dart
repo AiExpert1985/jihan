@@ -16,9 +16,10 @@ import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
 import 'package:tablets/src/features/customers/model/customer.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
-import 'package:tablets/src/common/widgets/form_title.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
+import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_utils_controller.dart';
 import 'package:tablets/src/features/transactions/view/forms/item_list.dart';
@@ -27,12 +28,13 @@ import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider
 
 class InvoiceForm extends ConsumerWidget {
   const InvoiceForm(this.title, this.transactionType,
-      {this.isVendor = false, this.hideGifts = true, super.key});
+      {this.isVendor = false, this.hideGifts = true, super.key, this.backgroundColor});
 
   final String title;
   final bool hideGifts;
   final bool isVendor;
   final String transactionType;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,13 +42,11 @@ class InvoiceForm extends ConsumerWidget {
 
     return SingleChildScrollView(
       child: Container(
-        // color: backgroundColor,
-        padding: const EdgeInsets.symmetric(vertical: 18),
+        color: backgroundColor,
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            buildFormTitle(title),
-            VerticalGap.xl,
             FirstRow(isVendor, transactionType),
             VerticalGap.m,
             SecondRow(transactionType),
@@ -81,9 +81,12 @@ class FirstRow extends ConsumerWidget {
     final backgroundColorNotifier = ref.read(backgroundColorProvider.notifier);
     final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);
     final customerScreenController = ref.read(customerScreenControllerProvider);
+    final formNavigator = ref.read(formNavigatorProvider);
+    final customerDebtInfo = ref.read(customerDebtNotifierProvider.notifier);
     return Row(
       children: [
         DropDownWithSearchFormField(
+          isReadOnly: formNavigator.isReadOnly,
           label: isVendor ? S.of(context).vendor : S.of(context).customer,
           initialValue: formDataNotifier.getProperty(nameKey),
           dbCache: dbCache,
@@ -105,26 +108,30 @@ class FirstRow extends ConsumerWidget {
             final customer = Customer.fromMap(item);
             // the value is used by other Widgets so we update it in the provider
             transactionUtils.customer = customer;
-            final inValidCustomer = transactionUtils.inValidTransaction(
-                context, customer, formDataNotifier, customerScreenController);
-            final invoiceColor =
-                inValidCustomer ? const Color.fromARGB(255, 245, 187, 184) : Colors.white;
+            final inValidCustomer =
+                transactionUtils.inValidTransaction(context, customer, formDataNotifier, customerScreenController);
+            final invoiceColor = inValidCustomer ? const Color.fromARGB(255, 245, 187, 184) : Colors.white;
             backgroundColorNotifier.state = invoiceColor;
+            // update customerDebtInfo so that it will be used to show preview of customer debt in form screen
+            if (!isVendor) {
+              customerDebtInfo.update(context, item);
+            }
           },
         ),
         if (!isVendor) HorizontalGap.l,
         if (!isVendor)
           DropDownWithSearchFormField(
+            isReadOnly: formNavigator.isReadOnly,
             label: S.of(context).transaction_salesman,
             initialValue: formDataNotifier.getProperty(salesmanKey),
             dbCache: salesmanDbCache,
             onChangedFn: (item) {
-              formDataNotifier
-                  .updateProperties({salesmanKey: item['name'], salesmanDbRefKey: item['dbRef']});
+              formDataNotifier.updateProperties({salesmanKey: item['name'], salesmanDbRefKey: item['dbRef']});
             },
           ),
         HorizontalGap.l,
         FormDatePickerField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(dateKey) is Timestamp
               ? formDataNotifier.getProperty(dateKey).toDate()
               : formDataNotifier.getProperty(dateKey),
@@ -147,11 +154,15 @@ class SecondRow extends ConsumerWidget {
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
     final transactionUtils = ref.read(transactionUtilsControllerProvider);
+    final formNavigator = ref.read(formNavigatorProvider);
     return Row(
       children: [
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           dataType: constants.FieldDataType.num,
           name: numberKey,
+          controller: textEditingNotifier.getController(numberKey),
           label: S.of(context).transaction_number,
           initialValue: formDataNotifier.getProperty(numberKey),
           onChangedFn: (value) {
@@ -160,9 +171,12 @@ class SecondRow extends ConsumerWidget {
         ),
         HorizontalGap.l,
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(discountKey),
           name: discountKey,
           dataType: constants.FieldDataType.num,
+          controller: textEditingNotifier.getController(discountKey),
           label: S.of(context).transaction_discount,
           onChangedFn: (value) {
             formDataNotifier.updateProperties({discountKey: value});
@@ -170,10 +184,9 @@ class SecondRow extends ConsumerWidget {
             final subTotalAmount = formDataNotifier.getProperty(subTotalAmountKey);
             final totalAmount = subTotalAmount - value;
             final itemsTotalProfit = formDataNotifier.getProperty(itemsTotalProfitKey) ?? 0;
-            final salesmanTransactionComssion =
-                formDataNotifier.getProperty(salesmanTransactionComssionKey) ?? 0;
-            double transactionTotalProfit = transactionUtils.getTransactionProfit(formDataNotifier,
-                transactionType, itemsTotalProfit, value, salesmanTransactionComssion);
+            final salesmanTransactionComssion = formDataNotifier.getProperty(salesmanTransactionComssionKey) ?? 0;
+            double transactionTotalProfit = transactionUtils.getTransactionProfit(
+                formDataNotifier, transactionType, itemsTotalProfit, value, salesmanTransactionComssion);
             final updatedProperties = {
               transactionTotalProfitKey: transactionTotalProfit,
               totalAmountKey: totalAmount,
@@ -184,6 +197,7 @@ class SecondRow extends ConsumerWidget {
         ),
         HorizontalGap.l,
         DropDownListFormField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(currencyKey),
           itemList: [
             S.of(context).transaction_payment_Dinar,
@@ -197,6 +211,7 @@ class SecondRow extends ConsumerWidget {
         ),
         HorizontalGap.l,
         DropDownListFormField(
+          isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(paymentTypeKey),
           itemList: [
             S.of(context).transaction_payment_cash,
@@ -218,12 +233,17 @@ class ForthRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
+    final formNavigator = ref.read(formNavigatorProvider);
+    // final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
     return Row(
       children: [
         FormInputField(
+          isReadOnly: formNavigator.isReadOnly,
+          isDisabled: formNavigator.isReadOnly,
           isRequired: false,
           dataType: constants.FieldDataType.text,
           name: notesKey,
+          // controller: textEditingNotifier.getController(notesKey),
           label: S.of(context).transaction_notes,
           initialValue: formDataNotifier.getProperty(notesKey),
           onChangedFn: (value) {
@@ -240,14 +260,15 @@ class FifthRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideTransactionAmountAsText =
-        settingsController.getProperty(hideTransactionAmountAsTextKey);
+    final hideTransactionAmountAsText = settingsController.getProperty(hideTransactionAmountAsTextKey);
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
+    final formNavigator = ref.read(formNavigatorProvider);
     return Visibility(
       visible: !hideTransactionAmountAsText,
       child: Row(
         children: [
           FormInputField(
+            isReadOnly: formNavigator.isReadOnly,
             isRequired: false,
             dataType: constants.FieldDataType.text,
             name: totalAsTextKey,
@@ -274,6 +295,7 @@ class TotalsRow extends ConsumerWidget {
     final backgroundColorNotifier = ref.read(backgroundColorProvider.notifier);
     // final customerScreenData = ref.read(customerScreenDataProvider);
     final transactionUtils = ref.read(transactionUtilsControllerProvider);
+    final formNavigator = ref.read(formNavigatorProvider);
     return SizedBox(
         width: customerInvoiceFormWidth * 0.6,
         child: Row(
@@ -281,6 +303,7 @@ class TotalsRow extends ConsumerWidget {
             FormInputField(
               controller: textEditingNotifier.getController(totalAmountKey),
               isReadOnly: true,
+              isDisabled: formNavigator.isReadOnly,
               dataType: constants.FieldDataType.num,
               label: S.of(context).invoice_total_price,
               name: totalAmountKey,
@@ -289,8 +312,7 @@ class TotalsRow extends ConsumerWidget {
                 formDataNotifier.updateProperties({totalAmountKey: value});
                 // check wether customer exceeded the debt or time limits
                 // below applies only for customer invoices not any other transaction
-                if (transactionUtils.customer == null ||
-                    transactionType != TransactionType.customerInvoice.name) {
+                if (transactionUtils.customer == null || transactionType != TransactionType.customerInvoice.name) {
                   return;
                 }
                 final inValidCustomer = transactionUtils.inValidTransaction(
@@ -307,6 +329,7 @@ class TotalsRow extends ConsumerWidget {
             FormInputField(
               controller: textEditingNotifier.getController(totalWeightKey),
               isReadOnly: true,
+              isDisabled: formNavigator.isReadOnly,
               dataType: constants.FieldDataType.num,
               label: S.of(context).invoice_total_weight,
               name: totalWeightKey,

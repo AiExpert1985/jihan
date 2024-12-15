@@ -1,13 +1,14 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
-import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tablets/src/common/providers/background_color.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
+import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_drawer_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
@@ -173,9 +174,10 @@ class DataRow extends ConsumerWidget {
     final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
-    // final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
-    // backgroundColorNofifier.state = normalColor!;
+    final formNavigator = ref.read(formNavigatorProvider);
+    // transactions opens unEditable, if user want he press the edit button
+    formNavigator.isReadOnly = true;
     TransactionShowForm.showForm(
       context,
       ref,
@@ -215,125 +217,43 @@ class TransactionsFloatingButtons extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final drawerController = ref.watch(transactionDrawerControllerProvider);
     const iconsColor = Color.fromARGB(255, 126, 106, 211);
-    return Column(
+    return SpeedDial(
+      direction: SpeedDialDirection.up,
+      switchLabelPosition: false,
+      animatedIcon: AnimatedIcons.menu_close,
+      spaceBetweenChildren: 10,
+      animatedIconTheme: const IconThemeData(size: 28.0),
+      visible: true,
+      curve: Curves.bounceInOut,
       children: [
-        const FastAccessButtons(),
-        VerticalGap.xl,
-        SpeedDial(
-          direction: SpeedDialDirection.up,
-          switchLabelPosition: false,
-          animatedIcon: AnimatedIcons.menu_close,
-          spaceBetweenChildren: 10,
-          animatedIconTheme: const IconThemeData(size: 28.0),
-          visible: true,
-          curve: Curves.bounceInOut,
-          children: [
-            SpeedDialChild(
-                child: const Icon(Icons.pie_chart, color: Colors.white),
-                backgroundColor: iconsColor,
-                onTap: () async {
-                  final allTransactions =
-                      await ref.read(transactionRepositoryProvider).fetchItemListAsMaps();
-                  if (context.mounted) {
-                    drawerController.showReports(context, allTransactions);
-                  }
-                }),
-            SpeedDialChild(
-              child: const Icon(Icons.search, color: Colors.white),
-              backgroundColor: iconsColor,
-              onTap: () => drawerController.showSearchForm(context),
-            ),
-            SpeedDialChild(
-              child: const Icon(Icons.add, color: Colors.white),
-              backgroundColor: iconsColor,
-              onTap: () {
-                // reset background color when form is closed
-                ref.read(backgroundColorProvider.notifier).state = normalColor!;
-                showDialog(
-                  context: context,
-                  builder: (BuildContext ctx) => const TransactionGroupSelection(),
-                ).whenComplete(() {});
-              },
-            ),
-          ],
+        SpeedDialChild(
+            child: const Icon(Icons.pie_chart, color: Colors.white),
+            backgroundColor: iconsColor,
+            onTap: () async {
+              final allTransactions =
+                  await ref.read(transactionRepositoryProvider).fetchItemListAsMaps();
+              if (context.mounted) {
+                drawerController.showReports(context, allTransactions);
+              }
+            }),
+        SpeedDialChild(
+          child: const Icon(Icons.search, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () => drawerController.showSearchForm(context),
+        ),
+        SpeedDialChild(
+          child: const Icon(Icons.add, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () {
+            // reset background color when form is closed
+            ref.read(backgroundColorProvider.notifier).state = normalColor!;
+            Navigator.push(
+              context,
+              CupertinoPageRoute(builder: (context) => const TransactionGroupSelection()),
+            );
+          },
         ),
       ],
-    );
-  }
-}
-
-class FastAccessButtons extends ConsumerWidget {
-  const FastAccessButtons({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
-      children: [
-        FastAccessButton(
-          TransactionType.customerInvoice.name,
-          textColor: Colors.green[50],
-        ),
-        VerticalGap.l,
-        FastAccessButton(
-          TransactionType.customerReceipt.name,
-          textColor: Colors.red[50],
-        ),
-        VerticalGap.l,
-        FastAccessButton(
-          TransactionType.customerReturn.name,
-          textColor: Colors.grey[300],
-        ),
-        VerticalGap.l,
-        FastAccessButton(
-          TransactionType.gifts.name,
-          textColor: Colors.orange[50],
-        ),
-      ],
-    );
-  }
-}
-
-class FastAccessButton extends ConsumerWidget {
-  const FastAccessButton(this.formType, {this.textColor, super.key});
-  final String formType;
-  final Color? textColor;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    String label = translateDbTextToScreenText(context, formType);
-    final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
-    final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
-    final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
-    final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
-    final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
-    final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
-
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: textColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-      onPressed: () {
-        backgroundColorNofifier.state = normalColor!;
-        TransactionShowForm.showForm(
-          context,
-          ref,
-          imagePickerNotifier,
-          formDataNotifier,
-          settingsDataNotifier,
-          textEditingNotifier,
-          formType: formType,
-          transactionDbCache: transactionDbCache,
-        );
-      },
-      child: Container(
-        height: 55,
-        width: 34,
-        padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
-        child: Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15)),
-      ),
     );
   }
 }

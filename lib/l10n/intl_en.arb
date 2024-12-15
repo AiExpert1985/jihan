@@ -246,5 +246,16 @@
     "last": "Last",
     "printed": "Printed",
     "no_name_print_error": "You must enter name",
-    "code": "Code"
+    "code": "Code",
+    "transaction_group_selection": "Transaction group selection",
+    "transaction_type_selection": "Transaction type selection",
+    "back": "Back",
+    "new_item": "New",
+    "last_receipt_date": "Last receipt date",
+    "total_debt": "Customer total debt",
+    "show_printed_only": "Show printed only",
+    "show_all": "Show all",
+    "transaction_not_found": "Transaction not found",
+    "there_is_no_customer_receipt": "no receipt",
+    "balance": "Balance"
 }

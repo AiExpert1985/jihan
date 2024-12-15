@@ -2529,6 +2529,116 @@ class S {
       args: [],
     );
   }
+
+  /// `Transaction group selection`
+  String get transaction_group_selection {
+    return Intl.message(
+      'Transaction group selection',
+      name: 'transaction_group_selection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transaction type selection`
+  String get transaction_type_selection {
+    return Intl.message(
+      'Transaction type selection',
+      name: 'transaction_type_selection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Back`
+  String get back {
+    return Intl.message(
+      'Back',
+      name: 'back',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New`
+  String get new_item {
+    return Intl.message(
+      'New',
+      name: 'new_item',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Last receipt date`
+  String get last_receipt_date {
+    return Intl.message(
+      'Last receipt date',
+      name: 'last_receipt_date',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Customer total debt`
+  String get total_debt {
+    return Intl.message(
+      'Customer total debt',
+      name: 'total_debt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show printed only`
+  String get show_printed_only {
+    return Intl.message(
+      'Show printed only',
+      name: 'show_printed_only',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show all`
+  String get show_all {
+    return Intl.message(
+      'Show all',
+      name: 'show_all',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Transaction not found`
+  String get transaction_not_found {
+    return Intl.message(
+      'Transaction not found',
+      name: 'transaction_not_found',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `no receipt`
+  String get there_is_no_customer_receipt {
+    return Intl.message(
+      'no receipt',
+      name: 'there_is_no_customer_receipt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Balance`
+  String get balance {
+    return Intl.message(
+      'Balance',
+      name: 'balance',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
