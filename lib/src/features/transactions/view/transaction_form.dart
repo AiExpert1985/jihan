@@ -139,9 +139,8 @@ class TransactionForm extends ConsumerWidget {
             height: height is double ? height : height.toDouble(),
           ),
           // customer debt info only show for customer transactions
-          transactionType.contains('customer')
-              ? const CustomerDebtReview()
-              : const SizedBox(width: 300),
+
+          CustomerDebtReview(transactionType)
         ],
       ),
     );
@@ -412,7 +411,8 @@ class TransactionForm extends ConsumerWidget {
 }
 
 class CustomerDebtReview extends ConsumerWidget {
-  const CustomerDebtReview({super.key});
+  const CustomerDebtReview(this.transactionType, {super.key});
+  final String transactionType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -425,12 +425,15 @@ class CustomerDebtReview extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const PrintStatus(),
+          if (transactionType.contains('customer')) VerticalGap.l,
+          if (transactionType.contains('customer'))
+            ReviewRow(S.of(context).last_receipt_date, customerDebtInfo.lastReceiptDate),
           VerticalGap.l,
-          ReviewRow(S.of(context).last_receipt_date, customerDebtInfo.lastReceiptDate),
+          if (transactionType.contains('customer'))
+            ReviewRow(S.of(context).total_debt, customerDebtInfo.totalDebt),
           VerticalGap.l,
-          ReviewRow(S.of(context).total_debt, customerDebtInfo.totalDebt),
-          VerticalGap.l,
-          ReviewRow(S.of(context).due_debt_amount, customerDebtInfo.dueDebt, isWarning: true),
+          if (transactionType.contains('customer'))
+            ReviewRow(S.of(context).due_debt_amount, customerDebtInfo.dueDebt, isWarning: true),
         ],
       ),
     );
