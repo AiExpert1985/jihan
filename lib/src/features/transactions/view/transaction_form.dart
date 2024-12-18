@@ -114,12 +114,12 @@ class TransactionForm extends ConsumerWidget {
     return Scaffold(
       appBar: buildArabicAppBar(context, () async {
         // back to transactions screen
-        onReturn(context, ref, formImagesNotifier);
+        onLeavingTransaction(context, ref, formImagesNotifier);
         Navigator.pop(context);
         context.goNamed(AppRoute.transactions.name);
       }, () async {
         // back to home screen
-        onReturn(context, ref, formImagesNotifier);
+        onLeavingTransaction(context, ref, formImagesNotifier);
         Navigator.pop(context);
         context.goNamed(AppRoute.home.name);
       }),
@@ -213,6 +213,8 @@ class TransactionForm extends ConsumerWidget {
 
     // first we need to save changes done to the form, then print, because if we don't save,
     // then the debt of customer will not accurately calculated
+    // also, as a policy, I want always to save before print, because I want to ensure always the transaction in
+    // database matches the printed transaction.
     saveTransaction(context, ref, formDataNotifier.data, true);
     printDocument(context, ref, formDataNotifier.data);
     formDataNotifier.updateProperties({isPrintedKey: true});
@@ -233,8 +235,9 @@ class TransactionForm extends ConsumerWidget {
     // if we are navigating or creating new transaction, we save previous one, but if we are comming from
     // delete button inside the form, then we don't save
     if (!isDeleting) {
-      // this step to save currently displayed transacton before moving to the navigated one
-      saveTransaction(context, ref, formDataNotifier.data, true);
+      // as we are leaving the current transaction, we should make sure to delete the transaction if it has no name
+      // or to save (update) it if it does have name.
+      onLeavingTransaction(context, ref, formImagesNotifier);
     }
     Navigator.of(context).pop();
     // now load the target transaction into the form, whether it is navigated or new transaction
@@ -273,8 +276,10 @@ class TransactionForm extends ConsumerWidget {
     }
   }
 
-  /// currenlty, we only save transaction on return
-  static Future<void> onReturn(
+  /// this function is called when navigating away from current transaction
+  /// or when leaving the form page
+  /// unless the transaction has no name, we save (update) it.
+  static Future<void> onLeavingTransaction(
       BuildContext context, WidgetRef ref, ImageSliderNotifier formImagesNotifier) async {
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final formData = formDataNotifier.data;
@@ -299,8 +304,10 @@ class TransactionForm extends ConsumerWidget {
         formData[itemsKey].length == 1 &&
         formData[itemsKey][0]['code'] == null &&
         formData[itemsKey][0]['name'].isEmpty) {
-      failureUserMessage(context, S.of(context).no_item_were_added_to_invoice);
+      failureUserMessage(
+          context, '${S.of(context).no_item_were_added_to_invoice} ${formData[numberKey]}');
     }
+    // save (or update) transaction
     formImagesNotifier.close();
     final dbCache = ref.read(transactionDbCacheProvider.notifier);
     final transDbRef = formDataNotifier.data[dbRefKey];
