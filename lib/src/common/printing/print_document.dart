@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/file_system_path.dart';
 import 'package:tablets/src/common/printing/customer_invoice_pdf.dart';
+import 'package:tablets/src/common/printing/customer_receipt_pdf.dart';
 import 'package:tablets/src/common/printing/customer_return.dart';
 import 'package:tablets/src/common/printing/expendure_pdf.dart';
 import 'package:tablets/src/common/printing/vendor_receipt_pdf.dart';
@@ -74,15 +75,17 @@ Future<pw.ImageProvider> loadImage(String path) async {
 
 Future<Document> getPdfFile(BuildContext context, WidgetRef ref,
     Map<String, dynamic> transactionData, pw.ImageProvider image) async {
+  final type = transactionData['transactionType'];
   // now we only print customer invoices
-  if (transactionData['transactionType'] == TransactionType.customerInvoice.name) {
+  if (type == TransactionType.customerInvoice.name) {
     return getCustomerInvoicePdf(context, ref, transactionData, image);
-  } else if (transactionData['transactionType'] == TransactionType.customerReceipt.name) {
-  } else if (transactionData['transactionType'] == TransactionType.vendorReceipt.name) {
+  } else if (type == TransactionType.customerReceipt.name) {
+    return getCustomerReceiptPdf(context, ref, transactionData, image);
+  } else if (type == TransactionType.vendorReceipt.name) {
     return getVendorReceiptPdf(context, ref, transactionData, image);
-  } else if (transactionData['transactionType'] == TransactionType.expenditures.name) {
+  } else if (type == TransactionType.expenditures.name) {
     return getExpenditurePdf(context, ref, transactionData, image);
-  } else if (transactionData['transactionType'] == TransactionType.customerReturn.name) {
+  } else if (type == TransactionType.customerReturn.name) {
     return getCustomerReturnPdf(context, ref, transactionData, image);
   }
   return getEmptyPdf();

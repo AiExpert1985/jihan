@@ -279,6 +279,7 @@ class TransactionForm extends ConsumerWidget {
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final formData = formDataNotifier.data;
     final name = formData[nameKey];
+    final type = formData[transactionTypeKey];
     // if form doesn't contain name, delete it
     if (name.isEmpty) {
       final formController = ref.read(transactionFormControllerProvider);
@@ -290,7 +291,10 @@ class TransactionForm extends ConsumerWidget {
       return;
     }
     // if invoice doesn't contain items, delete it
-    if (formData.containsKey(itemsKey) &&
+    final isItemedTransaction =
+        type.contains('Invoice') || type.contains('gift') || type.contains('Return');
+    if (isItemedTransaction &&
+        formData.containsKey(itemsKey) &&
         formData[itemsKey] is List &&
         formData[itemsKey].length == 1 &&
         formData[itemsKey][0]['code'] == null &&

@@ -337,7 +337,7 @@ Widget _buildDropDownWithSearch(
       isRequired: false,
       onChangedFn: (item) {
         final items = formDataNotifier.getProperty(itemsKey);
-        if (items.length > 1 && items[index - 1][itemSoldQuantityKey] == 0) {
+        if (index > 1 && items[index - 1][itemSoldQuantityKey] == 0) {
           failureUserMessage(context, S.of(context).previous_item_quantity_is_zero);
         }
         // calculate the quantity of the product

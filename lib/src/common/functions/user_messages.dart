@@ -18,7 +18,7 @@ void _message(BuildContext context, String message, type) {
       style: const TextStyle(fontSize: 17),
       textAlign: TextAlign.center,
     ),
-    autoCloseDuration: const Duration(seconds: 10),
+    autoCloseDuration: const Duration(seconds: 6),
     type: type,
     style: ToastificationStyle.flatColored,
     alignment: Alignment.center,
