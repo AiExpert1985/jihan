@@ -108,9 +108,10 @@ class FirstRow extends ConsumerWidget {
             final customer = Customer.fromMap(item);
             // the value is used by other Widgets so we update it in the provider
             transactionUtils.customer = customer;
-            final inValidCustomer =
-                transactionUtils.inValidTransaction(context, customer, formDataNotifier, customerScreenController);
-            final invoiceColor = inValidCustomer ? const Color.fromARGB(255, 245, 187, 184) : Colors.white;
+            final inValidCustomer = transactionUtils.inValidTransaction(
+                context, customer, formDataNotifier, customerScreenController);
+            final invoiceColor =
+                inValidCustomer ? const Color.fromARGB(255, 245, 187, 184) : Colors.white;
             backgroundColorNotifier.state = invoiceColor;
             // update customerDebtInfo so that it will be used to show preview of customer debt in form screen
             if (!isVendor) {
@@ -126,7 +127,8 @@ class FirstRow extends ConsumerWidget {
             initialValue: formDataNotifier.getProperty(salesmanKey),
             dbCache: salesmanDbCache,
             onChangedFn: (item) {
-              formDataNotifier.updateProperties({salesmanKey: item['name'], salesmanDbRefKey: item['dbRef']});
+              formDataNotifier
+                  .updateProperties({salesmanKey: item['name'], salesmanDbRefKey: item['dbRef']});
             },
           ),
         HorizontalGap.l,
@@ -184,9 +186,10 @@ class SecondRow extends ConsumerWidget {
             final subTotalAmount = formDataNotifier.getProperty(subTotalAmountKey);
             final totalAmount = subTotalAmount - value;
             final itemsTotalProfit = formDataNotifier.getProperty(itemsTotalProfitKey) ?? 0;
-            final salesmanTransactionComssion = formDataNotifier.getProperty(salesmanTransactionComssionKey) ?? 0;
-            double transactionTotalProfit = transactionUtils.getTransactionProfit(
-                formDataNotifier, transactionType, itemsTotalProfit, value, salesmanTransactionComssion);
+            final salesmanTransactionComssion =
+                formDataNotifier.getProperty(salesmanTransactionComssionKey) ?? 0;
+            double transactionTotalProfit = transactionUtils.getTransactionProfit(formDataNotifier,
+                transactionType, itemsTotalProfit, value, salesmanTransactionComssion);
             final updatedProperties = {
               transactionTotalProfitKey: transactionTotalProfit,
               totalAmountKey: totalAmount,
@@ -260,7 +263,8 @@ class FifthRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideTransactionAmountAsText = settingsController.getProperty(hideTransactionAmountAsTextKey);
+    final hideTransactionAmountAsText =
+        settingsController.getProperty(hideTransactionAmountAsTextKey);
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final formNavigator = ref.read(formNavigatorProvider);
     return Visibility(
@@ -312,7 +316,8 @@ class TotalsRow extends ConsumerWidget {
                 formDataNotifier.updateProperties({totalAmountKey: value});
                 // check wether customer exceeded the debt or time limits
                 // below applies only for customer invoices not any other transaction
-                if (transactionUtils.customer == null || transactionType != TransactionType.customerInvoice.name) {
+                if (transactionUtils.customer == null ||
+                    transactionType != TransactionType.customerInvoice.name) {
                   return;
                 }
                 final inValidCustomer = transactionUtils.inValidTransaction(

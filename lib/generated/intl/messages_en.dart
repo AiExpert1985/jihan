@@ -204,8 +204,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "no_data_available":
             MessageLookupByLibrary.simpleMessage("No data available"),
+        "no_item_were_added_to_invoice": MessageLookupByLibrary.simpleMessage(
+            "No item were added to invoice"),
         "no_name_print_error":
             MessageLookupByLibrary.simpleMessage("You must enter name"),
+        "not_printed": MessageLookupByLibrary.simpleMessage("Not printed"),
         "notes": MessageLookupByLibrary.simpleMessage("Notes"),
         "num_due_invoices":
             MessageLookupByLibrary.simpleMessage("Due invoices"),
@@ -229,6 +232,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "phone": MessageLookupByLibrary.simpleMessage("Phone number"),
         "previous": MessageLookupByLibrary.simpleMessage("Previous"),
         "previous_debt": MessageLookupByLibrary.simpleMessage("Previous debt"),
+        "previous_item_quantity_is_zero": MessageLookupByLibrary.simpleMessage(
+            "Previous item has zero quantity"),
         "print": MessageLookupByLibrary.simpleMessage("Print"),
         "printed": MessageLookupByLibrary.simpleMessage("Printed"),
         "printing_transactions":
@@ -248,6 +253,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "product_num_items_inside_package":
             MessageLookupByLibrary.simpleMessage(
                 "Number of item in eacch package"),
+        "product_out_of_stock":
+            MessageLookupByLibrary.simpleMessage("Product is out of stock"),
         "product_package_type":
             MessageLookupByLibrary.simpleMessage("Packaging type"),
         "product_package_weight":

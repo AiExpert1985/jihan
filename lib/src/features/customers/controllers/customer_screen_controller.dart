@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
-import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/screen_data_notifier.dart';
@@ -56,7 +55,8 @@ class CustomerScreenController implements ScreenDataController {
     for (var customerData in allCustomersData) {
       final customerDbRef = customerData['dbRef'];
       final customerTransactions = allCustomersTransactions[customerDbRef]!;
-      final newRow = getItemScreenData(context, customerData, customerTransactions: customerTransactions);
+      final newRow =
+          getItemScreenData(context, customerData, customerTransactions: customerTransactions);
       screenData.add(newRow);
     }
     Map<String, dynamic> summaryTypes = {
@@ -197,7 +197,8 @@ class CustomerScreenController implements ScreenDataController {
     return customerTransactions;
   }
 
-  List<List<dynamic>> customerMatching(BuildContext context, List<Map<String, dynamic>> customerTransactions) {
+  List<List<dynamic>> customerMatching(
+      BuildContext context, List<Map<String, dynamic>> customerTransactions) {
     List<List<dynamic>> matchingTransactions = [];
     final sortedTransactions = deepCopyDbCache(customerTransactions);
     sortedTransactions.sort((a, b) {
@@ -215,12 +216,13 @@ class CustomerScreenController implements ScreenDataController {
           ? -1
           : 1;
       final transactionAmount = transaction.totalAmount * amountSign;
-      tempPrint(transactionAmount);
       startingDebt = startingDebt + transactionAmount;
       matchingTransactions.add([
         transaction,
         translateDbTextToScreenText(context, transactionType),
-        transaction.transactionType == TransactionType.initialCredit.name ? '' : transaction.number.toString(),
+        transaction.transactionType == TransactionType.initialCredit.name
+            ? ''
+            : transaction.number.toString(),
         transaction.date,
         transactionAmount,
         startingDebt,
@@ -229,12 +231,14 @@ class CustomerScreenController implements ScreenDataController {
     return matchingTransactions.toList();
   }
 
-  List<List<dynamic>> _getOpenInvoices(BuildContext context, List<List<dynamic>> processedInvoices, int statusIndex) {
+  List<List<dynamic>> _getOpenInvoices(
+      BuildContext context, List<List<dynamic>> processedInvoices, int statusIndex) {
     if (processedInvoices.isEmpty) return [];
     String openStatus = S.of(context).invoice_status_open;
     String dueStatus = S.of(context).invoice_status_due;
-    final openInvoices =
-        processedInvoices.where((item) => item[statusIndex] == openStatus || item[statusIndex] == dueStatus).toList();
+    final openInvoices = processedInvoices
+        .where((item) => item[statusIndex] == openStatus || item[statusIndex] == dueStatus)
+        .toList();
     // skip last index, which stores the profit of the invoice
     final openInvoicesWithoutProfit = openInvoices
         .map((innerList) => innerList.sublist(0, innerList.length - 1)) // Skip the last index
@@ -249,10 +253,12 @@ class CustomerScreenController implements ScreenDataController {
     return openInvoicesWithoutProfit.where((item) => item[statusIndex] == dueStatus).toList();
   }
 
-  List<List<dynamic>> _getClosedInvoices(BuildContext context, List<List<dynamic>> processedInvoices, int statusIndex) {
+  List<List<dynamic>> _getClosedInvoices(
+      BuildContext context, List<List<dynamic>> processedInvoices, int statusIndex) {
     if (processedInvoices.isEmpty) return [];
     String closedStatus = S.of(context).invoice_status_closed;
-    final closedInvoices = processedInvoices.where((item) => item[statusIndex] == closedStatus).toList();
+    final closedInvoices =
+        processedInvoices.where((item) => item[statusIndex] == closedStatus).toList();
     // skip last index, which stores the profit of the invoice
     final closedInvoicesWithoutProfit = closedInvoices
         .map((innerList) => innerList.sublist(0, innerList.length - 1)) // Skip the last index
@@ -295,7 +301,9 @@ class CustomerScreenController implements ScreenDataController {
         .where((innerList) => innerList.length > daysIndex && innerList[daysIndex] is num)
         .map((innerList) => innerList[daysIndex])
         .toList();
-    double average = values.isNotEmpty ? values.reduce((a, b) => a + b) / values.length : 0.0; // Avoid division by zero
+    double average = values.isNotEmpty
+        ? values.reduce((a, b) => a + b) / values.length
+        : 0.0; // Avoid division by zero
     // by rounding to int, I sacrifice some accuracy for earsier understanding
     // I think for user it is more understandable to see 15 days to close a transaction, than 15.73
     // .73 doesn't make any effect on the result the user needs from this info
@@ -306,7 +314,8 @@ class CustomerScreenController implements ScreenDataController {
 // filter transactions and keep only gifts and customerInvoices that contains a discount
 // or gift items and return it in a list of lists, where each list contains
 // [Transaction, num, type, date, amount]
-  List<List<dynamic>> _getGiftsAndDiscounts(BuildContext context, List<Map<String, dynamic>> customerTransactions) {
+  List<List<dynamic>> _getGiftsAndDiscounts(
+      BuildContext context, List<Map<String, dynamic>> customerTransactions) {
     List<List<dynamic>> giftsAndDiscounts = [];
     for (var transactionMap in customerTransactions) {
       if (transactionMap['transactionType'] == TransactionType.gifts.name) {
@@ -376,8 +385,8 @@ class InvoiceInfo {
   // the transaction
   Transaction originalTransaction;
 
-  InvoiceInfo(this.type, this.number, this.date, this.totalAmount, this.amountLeft, this.status, this.receiptsUsed,
-      this.durationToClose, this.profit, this.originalTransaction);
+  InvoiceInfo(this.type, this.number, this.date, this.totalAmount, this.amountLeft, this.status,
+      this.receiptsUsed, this.durationToClose, this.profit, this.originalTransaction);
 }
 
 List<InvoiceInfo> processTransactions(List<Map<String, dynamic>> transactions) {
@@ -407,9 +416,10 @@ List<InvoiceInfo> processTransactions(List<Map<String, dynamic>> transactions) {
     while (remainingAmount > 0 && receiptIndex < receipts.length) {
       var receipt = receipts[receiptIndex];
       if (receipt.totalAmount > 0) {
-        double amountToUse = (receipt.totalAmount >= remainingAmount) ? remainingAmount : receipt.totalAmount;
-        usedReceipts.add(ReceiptUsed(
-            receipt.transactionType, receipt.number.toString(), receipt.date, receipt.totalAmount, amountToUse));
+        double amountToUse =
+            (receipt.totalAmount >= remainingAmount) ? remainingAmount : receipt.totalAmount;
+        usedReceipts.add(ReceiptUsed(receipt.transactionType, receipt.number.toString(),
+            receipt.date, receipt.totalAmount, amountToUse));
         remainingAmount -= amountToUse;
         receipt.totalAmount -= amountToUse;
         lastReceiptDate = receipt.date;
@@ -422,10 +432,11 @@ List<InvoiceInfo> processTransactions(List<Map<String, dynamic>> transactions) {
     }
     String status = remainingAmount > 0 ? 'open' : 'closed';
     double amountLeft = remainingAmount > 0 ? remainingAmount : 0;
-    Duration durationToClose =
-        status == 'closed' ? lastReceiptDate.difference(invoice.date) : DateTime.now().difference(invoice.date);
-    result.add(InvoiceInfo(invoice.transactionType, invoice.number.toString(), invoice.date, invoice.totalAmount,
-        amountLeft, status, usedReceipts, durationToClose, profit, invoice));
+    Duration durationToClose = status == 'closed'
+        ? lastReceiptDate.difference(invoice.date)
+        : DateTime.now().difference(invoice.date);
+    result.add(InvoiceInfo(invoice.transactionType, invoice.number.toString(), invoice.date,
+        invoice.totalAmount, amountLeft, status, usedReceipts, durationToClose, profit, invoice));
   }
   return result;
 }
@@ -447,7 +458,8 @@ List<List<dynamic>> getCustomerProcessedInvoices(
       final receiptType = translateDbTextToScreenText(context, receipt.type);
       final receiptDate = formatDate(receipt.date);
       amountLeft -= receipt.amountUsed;
-      receiptInfo = '$receiptInfo $receiptType (${receipt.number}) $receiptDate (${receipt.amountUsed}) ';
+      receiptInfo =
+          '$receiptInfo $receiptType (${receipt.number}) $receiptDate (${receipt.amountUsed}) ';
       // add line only if there are more receipts to be added
       if (i + 1 < invoice.receiptsUsed.length) {
         receiptInfo = '$receiptInfo \n';

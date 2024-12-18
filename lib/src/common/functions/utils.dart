@@ -255,7 +255,9 @@ double sumAtIndex(List<List<dynamic>> listOfLists, int index) {
   double sum = 0;
   for (var sublist in listOfLists) {
     if (index < sublist.length) {
-      sum += sublist[index];
+      if (sublist[index] != null) {
+        sum += sublist[index];
+      }
     }
   }
   return sum;

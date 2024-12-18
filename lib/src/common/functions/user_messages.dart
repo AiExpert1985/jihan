@@ -13,12 +13,17 @@ void infoUserMessage(BuildContext context, String message) =>
 void _message(BuildContext context, String message, type) {
   toastification.show(
     context: context, // optional if you use ToastificationWrapper
-    title: Text(message),
-    autoCloseDuration: const Duration(seconds: 5),
+    title: Text(
+      message,
+      style: const TextStyle(fontSize: 17),
+      textAlign: TextAlign.center,
+    ),
+    autoCloseDuration: const Duration(seconds: 10),
     type: type,
     style: ToastificationStyle.flatColored,
-    alignment: Alignment.topCenter,
+    alignment: Alignment.center,
     showProgressBar: false,
     showIcon: false,
+    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
   );
 }

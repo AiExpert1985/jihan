@@ -245,6 +245,7 @@
     "first": "First",
     "last": "Last",
     "printed": "Printed",
+    "not_printed": "Not printed",
     "no_name_print_error": "You must enter name",
     "code": "Code",
     "transaction_group_selection": "Transaction group selection",
@@ -257,5 +258,8 @@
     "show_all": "Show all",
     "transaction_not_found": "Transaction not found",
     "there_is_no_customer_receipt": "no receipt",
-    "balance": "Balance"
+    "balance": "Balance",
+    "no_item_were_added_to_invoice": "No item were added to invoice",
+    "previous_item_quantity_is_zero": "Previous item has zero quantity",
+    "product_out_of_stock": "Product is out of stock"
 }

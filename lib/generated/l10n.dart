@@ -2510,6 +2510,16 @@ class S {
     );
   }
 
+  /// `Not printed`
+  String get not_printed {
+    return Intl.message(
+      'Not printed',
+      name: 'not_printed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `You must enter name`
   String get no_name_print_error {
     return Intl.message(
@@ -2635,6 +2645,36 @@ class S {
     return Intl.message(
       'Balance',
       name: 'balance',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No item were added to invoice`
+  String get no_item_were_added_to_invoice {
+    return Intl.message(
+      'No item were added to invoice',
+      name: 'no_item_were_added_to_invoice',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Previous item has zero quantity`
+  String get previous_item_quantity_is_zero {
+    return Intl.message(
+      'Previous item has zero quantity',
+      name: 'previous_item_quantity_is_zero',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Product is out of stock`
+  String get product_out_of_stock {
+    return Intl.message(
+      'Product is out of stock',
+      name: 'product_out_of_stock',
       desc: '',
       args: [],
     );

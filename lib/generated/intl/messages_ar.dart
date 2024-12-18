@@ -195,8 +195,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "no": MessageLookupByLibrary.simpleMessage("لا"),
         "no_data_available":
             MessageLookupByLibrary.simpleMessage("لا يوجد بيانات"),
+        "no_item_were_added_to_invoice": MessageLookupByLibrary.simpleMessage(
+            "لم يتم اضافة اي مادة للقائمة"),
         "no_name_print_error":
             MessageLookupByLibrary.simpleMessage("يجب ادخال الاسم"),
+        "not_printed": MessageLookupByLibrary.simpleMessage("غير مطبوع"),
         "notes": MessageLookupByLibrary.simpleMessage("الملاحظات"),
         "num_due_invoices":
             MessageLookupByLibrary.simpleMessage("القوائم المتجاوزة"),
@@ -222,6 +225,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "phone": MessageLookupByLibrary.simpleMessage("رقم الهاتف"),
         "previous": MessageLookupByLibrary.simpleMessage("السابق"),
         "previous_debt": MessageLookupByLibrary.simpleMessage("الدين قبل"),
+        "previous_item_quantity_is_zero": MessageLookupByLibrary.simpleMessage(
+            "لم يتم ادخال العدد للمادة السابقة"),
         "print": MessageLookupByLibrary.simpleMessage("طباعة"),
         "printed": MessageLookupByLibrary.simpleMessage("مطبوع"),
         "printing_transactions":
@@ -239,6 +244,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "product_name": MessageLookupByLibrary.simpleMessage("اسم المادة"),
         "product_num_items_inside_package":
             MessageLookupByLibrary.simpleMessage("عدد القطع في التعبئة"),
+        "product_out_of_stock": MessageLookupByLibrary.simpleMessage(
+            "لا يوجد مخزون كافي من المادة"),
         "product_package_type":
             MessageLookupByLibrary.simpleMessage("نوع العبوة"),
         "product_package_weight":

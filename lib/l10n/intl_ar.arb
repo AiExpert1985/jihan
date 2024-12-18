@@ -245,6 +245,7 @@
     "first": "الاول",
     "last": "الاخير",
     "printed": "مطبوع",
+    "not_printed": "غير مطبوع",
     "no_name_print_error": "يجب ادخال الاسم",
     "code": "الرمز",
     "transaction_group_selection": "اختيار نوع التعامل",
@@ -257,5 +258,8 @@
     "show_all": "عرض الجميع",
     "transaction_not_found": "لم يتم ايجاد التعامل المطلوب",
     "there_is_no_customer_receipt": "لا يوجد",
-    "balance": "الرصيد"
+    "balance": "الرصيد",
+    "no_item_were_added_to_invoice": "لم يتم اضافة اي مادة للقائمة",
+    "previous_item_quantity_is_zero": "لم يتم ادخال العدد للمادة السابقة",
+    "product_out_of_stock": "لا يوجد مخزون كافي من المادة"
 }

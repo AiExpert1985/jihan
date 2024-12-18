@@ -147,7 +147,8 @@ class ReceiptForm extends ConsumerWidget {
           onChangedFn: (value) {
             formDataNotifier.updateProperties({subTotalAmountKey: value});
             final discount = formDataNotifier.getProperty(discountKey);
-            final totalAmount = value - discount;
+            // note that discount is added (not subtracted) to the subtotal
+            final totalAmount = value + discount;
             final updatedProperties = {totalAmountKey: totalAmount, transactionTotalProfitKey: 0};
             formDataNotifier.updateProperties(updatedProperties);
             textEditingNotifier.updateControllers(updatedProperties);
@@ -168,7 +169,8 @@ class ReceiptForm extends ConsumerWidget {
             onChangedFn: (value) {
               formDataNotifier.updateProperties({discountKey: value});
               final subTotalAmount = formDataNotifier.getProperty(subTotalAmountKey);
-              final totalAmount = subTotalAmount - value;
+              // note that discount is added (not subtracted) to the subtotal
+              final totalAmount = subTotalAmount + value;
               final updatedProperties = {totalAmountKey: totalAmount, transactionTotalProfitKey: 0};
               formDataNotifier.updateProperties(updatedProperties);
               textEditingNotifier.updateControllers(updatedProperties);
