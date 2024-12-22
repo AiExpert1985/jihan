@@ -12,11 +12,16 @@ class SalesmanReportController {
   SalesmanReportController();
 
   void showDebtReport(BuildContext context, List<List<dynamic>> detailsList, String salesmanName) {
+    // filter debt to show only debts > zero
+    List<List<dynamic>> filteredList = detailsList.where((list) => list[1] > 0).toList();
     showReportDialog(
       context,
       _getDebtReportTitles(context),
-      detailsList,
+      filteredList,
       title: salesmanName,
+      sumIndex: 1,
+      dropdownLabel: S.of(context).customer,
+      dropdownIndex: 0,
     );
   }
 

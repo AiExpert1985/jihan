@@ -7,6 +7,7 @@ import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/common/widgets/report_dialog.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_data_notifier.dart';
+import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 
@@ -136,12 +137,14 @@ class CustomerReportController {
     screenDataController.setFeatureScreenData(context);
     final screenDataNotifier = ref.read(customerScreenDataNotifier.notifier);
     final screenData = screenDataNotifier.data;
+    final customerDbCache = ref.read(customerDbCacheProvider.notifier);
 
     List<List<dynamic>> debtList = [];
     for (var customerScreenData in screenData) {
       final name = customerScreenData[customerNameKey] as String;
+      final customerDbCacheData = customerDbCache.getItemByProperty('name', name);
       final salesman = customerScreenData[customerSalesmanKey] as String;
-      final region = (customerScreenData[customerRegionKey] ?? '');
+      final region = customerDbCacheData['region'] ?? '-';
       final totalDebt = customerScreenData[totalDebtKey] as double;
       final dueDebt = customerScreenData[dueDebtKey] as double;
       // only show customers with debt > 0
