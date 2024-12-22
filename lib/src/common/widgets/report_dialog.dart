@@ -219,7 +219,7 @@ class __DateFilterDialogState extends State<_DateFilterDialog> {
     }
     // filter the result of previous filter using first dropdown3 selection (if not null)
     if (widget.dropdown3Index != null) {
-      filteredList = filteredList.where((list) {
+      newList = newList.where((list) {
         String cellValue = list[widget.dropdown3Index!].toString();
         bool test = selectedDropdown3Values.isEmpty || selectedDropdown3Values.contains(cellValue);
         return test;
