@@ -261,5 +261,17 @@
     "balance": "الرصيد",
     "no_item_were_added_to_invoice": "لم يتم اضافة اي مادة للقائمة",
     "previous_item_quantity_is_zero": "لم يتم ادخال العدد للمادة السابقة",
-    "product_out_of_stock": "لا يوجد مخزون كافي من المادة"
+    "product_out_of_stock": "لا يوجد مخزون كافي من المادة",
+    "salesmen_debt_report": "ديون المندوبين",
+    "print_status": "حالة الطباعة",
+    "net_amount": "الصافي",
+    "sold": "المباع",
+    "returned": "المرجع",
+    "salesmen_sellings": "مبيعات المندوبين",
+    "salesman_selling_report": "مبيعات المندوب حسب المادة",
+    "for_the_duration": "للفترة",
+    "supervisor_salesmen_report": "تقرير المندوبين",
+    "supervisor_customer_report": "تقرير الزبائن",
+    "customer_matching": "كشف زبون",
+    "saleman_customers": "زبائن المندوب"
 }

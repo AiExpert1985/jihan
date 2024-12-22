@@ -6,11 +6,16 @@ import 'package:pdf/widgets.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/file_system_path.dart';
+import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/printing/customer_invoice_pdf.dart';
 import 'package:tablets/src/common/printing/customer_receipt_pdf.dart';
 import 'package:tablets/src/common/printing/customer_return.dart';
+import 'package:tablets/src/common/printing/damaged_items_pdf.dart';
 import 'package:tablets/src/common/printing/expendure_pdf.dart';
+import 'package:tablets/src/common/printing/print_report.dart';
+import 'package:tablets/src/common/printing/vendor_invoice_pdf.dart';
 import 'package:tablets/src/common/printing/vendor_receipt_pdf.dart';
+import 'package:tablets/src/common/printing/vendor_return_pdf.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:printing/printing.dart';
 import 'package:flutter/services.dart';
@@ -35,7 +40,7 @@ Future<void> _printPDf(Document pdf, int numCopies) async {
   }
 }
 
-Future<void> printDocument(
+Future<void> printForm(
   BuildContext context,
   WidgetRef ref,
   Map<String, dynamic> transactionData,
@@ -62,6 +67,32 @@ Future<void> printDocument(
   }
 }
 
+Future<void> printReport(
+    BuildContext context,
+    WidgetRef ref,
+    List<List<dynamic>> reportData,
+    String title,
+    List<String> listTitles,
+    String? startDate,
+    String? endDate,
+    num summaryValue,
+    String summaryTitle) async {
+  try {
+    final image = await loadImage('assets/images/invoice_logo.PNG');
+    final filePath = gePdfpath('test_file');
+    if (context.mounted) {
+      final pdf = await getReportPdf(context, ref, reportData, image, title, listTitles, startDate,
+          endDate, doubleToStringWithComma(summaryValue), summaryTitle);
+      if (filePath == null) return;
+      final file = File(filePath);
+      await file.writeAsBytes(await pdf.save());
+      _printPDf(pdf, 1);
+    }
+  } catch (e) {
+    debugLog('Pdf creation failed - ($e)');
+  }
+}
+
 Future<pw.ImageProvider> loadImage(String path) async {
   final ByteData bytes = await rootBundle.load(path);
   final Uint8List list = bytes.buffer.asUint8List();
@@ -82,6 +113,12 @@ Future<Document> getPdfFile(BuildContext context, WidgetRef ref,
     return getExpenditurePdf(context, ref, transactionData, image);
   } else if (type == TransactionType.customerReturn.name) {
     return getCustomerReturnPdf(context, ref, transactionData, image);
+  } else if (type == TransactionType.vendorInvoice.name) {
+    return getVendorInvoicePdf(context, ref, transactionData, image);
+  } else if (type == TransactionType.vendorReturn.name) {
+    return getVendorReturnPdf(context, ref, transactionData, image);
+  } else if (type == TransactionType.damagedItems.name) {
+    return getDamagedItemsPdf(context, ref, transactionData, image);
   }
   return getEmptyPdf();
 }
@@ -144,7 +181,7 @@ pw.Widget footerBar(
       pw.SizedBox(width: 14),
     ],
   );
-  return coloredContainer(childWidget, 555, height: 22, bgColor: darkBgColor);
+  return coloredContainer(childWidget, 580, height: 22, bgColor: darkBgColor);
 }
 
 pw.Widget coloredContainer(pw.Widget childWidget, double width,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/common/functions/transaction_type_drowdop_list.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/widgets/report_dialog.dart';
 
@@ -15,11 +14,10 @@ class ProductReportController {
       BuildContext context, List<List<dynamic>> productTransactions, String title) {
     //last two indexes (profit & commission) are not needed in this report
     final trimmedList = trimLastXIndicesFromInnerLists(productTransactions, 2);
-    final selectionList = getTransactionTypeDropList(context);
+
     showReportDialog(context, _getHistoryTitles(context), trimmedList,
         dropdownIndex: 1,
         dropdownLabel: S.of(context).transaction_type,
-        dropdownList: selectionList,
         dateIndex: 3,
         title: title,
         sumIndex: 4,
@@ -30,11 +28,10 @@ class ProductReportController {
       BuildContext context, List<List<dynamic>> productTransactions, String title) {
     //last two indexes (profit & commission) are not needed in this report
     final trimmedList = removeIndicesFromInnerLists(productTransactions, [4, 6]);
-    final selectionList = getTransactionTypeDropList(context);
+
     showReportDialog(context, _getProfitTitles(context), trimmedList,
         dropdownIndex: 1,
         dropdownLabel: S.of(context).transaction_type,
-        dropdownList: selectionList,
         dateIndex: 3,
         title: title,
         sumIndex: 4,

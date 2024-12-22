@@ -5,6 +5,7 @@ import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/screen_data_notifier.dart';
 import 'package:tablets/src/common/values/constants.dart';
+import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart' as cust;
 import 'package:tablets/src/features/customers/controllers/customer_screen_data_notifier.dart';
@@ -13,6 +14,7 @@ import 'package:tablets/src/features/customers/repository/customer_db_cache_prov
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_data_notifier.dart';
 import 'package:tablets/src/features/salesmen/model/salesman.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 
@@ -111,9 +113,12 @@ class SalesmanScreenController implements ScreenDataController {
   }
 
   List<List<dynamic>> _getCommissions(
-      Map<String, List<List<dynamic>>> processedTransactionsMap, String name) {
-    final transactions = processedTransactionsMap[name] ?? [[]];
-    return removeIndicesFromInnerLists(transactions, [4, 5]);
+    Map<String, List<List<dynamic>>> processedTransactionsMap,
+  ) {
+    final invoices = processedTransactionsMap['invoicesList'] ?? [[]];
+    final returns = processedTransactionsMap['returnsList'] ?? [[]];
+    final commissionedInvoices = [...invoices, ...returns];
+    return removeIndicesFromInnerLists(commissionedInvoices, [4, 5]);
   }
 
   @override
@@ -136,8 +141,8 @@ class SalesmanScreenController implements ScreenDataController {
     final salesman = Salesman.fromMap(salesmanData);
     // create customer screen data for all customers to fetch from it invoices status
     // and customers debt
-    final customersInfo = _getCustomersInfo(salesmanCustomers);
-    final customersBasicData = customersInfo['customersData'] as List<List<String>>;
+    final customersInfo = getCustomersInfo(salesmanCustomers, salesmanTransactions);
+    final customersBasicData = customersInfo['customersData'] as List<List<dynamic>>;
     final customersDbRef = customersInfo['customersDbRef'] as List<String>;
     _customerScreenController.setFeatureScreenData(context);
     final customersDebtInfo = _getCustomersDebtInfo(customersDbRef);
@@ -160,7 +165,7 @@ class SalesmanScreenController implements ScreenDataController {
     final returnsAmount = sumAtIndex(returns, 4);
     final profits = _getProfitableInvoices(processedTransactionsMap);
     final profitAmount = sumAtIndex(profits, 4);
-    final commissions = _getCommissions(processedTransactionsMap, 'invoicesList');
+    final commissions = _getCommissions(processedTransactionsMap);
     final commissionAmount = sumAtIndex(commissions, 4);
     Map<String, dynamic> newDataRow = {
       salesmanDbRefKey: salesman.dbRef,
@@ -253,11 +258,14 @@ class SalesmanScreenController implements ScreenDataController {
       } else if (transactionType == TransactionType.customerReceipt.name) {
         receiptsList.add(processedTransaction);
       } else if (transactionType == TransactionType.customerReturn.name) {
-        final profit = -1 * (processedTransaction[5] as double);
+        final profit = -1 * ((processedTransaction[5] ?? 0.0) as double);
+        final commission = -1 * ((processedTransaction[6] ?? 0.0) as double);
         processedTransaction[5] = profit;
+        processedTransaction[6] = commission;
         returnsList.add(processedTransaction);
       }
     }
+
     return {
       'invoicesList': invoicesList,
       'reciptsList': receiptsList,
@@ -265,11 +273,19 @@ class SalesmanScreenController implements ScreenDataController {
     };
   }
 
-  Map<String, dynamic> _getCustomersInfo(List<Customer> salesmanCustomers) {
-    List<List<String>> customerData = [];
+  Map<String, dynamic> getCustomersInfo(
+      List<Customer> salesmanCustomers, List<Transaction> salesmanTransactions) {
+    List<List<dynamic>> customerData = [];
     List<String> customerDbRef = [];
     for (var customer in salesmanCustomers) {
-      customerData.add([customer.name, customer.region]);
+      int numInvoices = 0;
+      for (var trans in salesmanTransactions) {
+        if (trans.transactionType == TransactionType.customerInvoice.name &&
+            trans.nameDbRef == customer.dbRef) {
+          numInvoices++;
+        }
+      }
+      customerData.add([customer.name, customer.region, numInvoices]);
       customerDbRef.add(customer.dbRef);
     }
     return {
@@ -309,5 +325,74 @@ class SalesmanScreenController implements ScreenDataController {
       openInvoicesDetailsKey: sortListOfListsByNumber(invoicesDetails, 1)
     };
     return debtInfo;
+  }
+
+  /// filter transactions base on salesman & date from / to
+  List<Map<String, dynamic>> filterTransactions(List<Map<String, dynamic>> allTransactions,
+      DateTime? startDate, DateTime? endDate, String salesmanDbRef) {
+    return allTransactions.where((transaction) {
+      DateTime transactionDate =
+          transaction['date'] is DateTime ? transaction['date'] : transaction['date'].toDate();
+      bool isAfterStartDate = startDate == null || transactionDate.isAfter(startDate);
+      bool isBeforeEndDate = endDate == null || transactionDate.isBefore(endDate);
+      return salesmanDbRef == transaction['salesmanDbRef'] && isAfterStartDate && isBeforeEndDate;
+    }).toList();
+  }
+
+  List<List<dynamic>> salesmanItemsSold(
+    String salesmanDbRef,
+    num salesmanCommission,
+    DateTime? startDate,
+    DateTime? endDate,
+  ) {
+    // separate salesman transactions
+    List<Map<String, dynamic>> fliteredTransactions =
+        filterTransactions(_transactionDbCache.data, startDate, endDate, salesmanDbRef);
+
+    Map<String, Map<String, num>> summary = {};
+
+    // Process each transaction
+    for (var transaction in fliteredTransactions) {
+      for (var item in transaction[itemsKey]) {
+        String itemName = item[itemNameKey];
+        num soldQuantity = 0;
+        num giftQuantity = 0;
+        num returnedQuanity = 0;
+        if (transaction[transactionTypeKey] == TransactionType.customerInvoice.name) {
+          soldQuantity = item[itemSoldQuantityKey] ?? 0;
+          giftQuantity = item[itemGiftQuantityKey] ?? 0;
+        } else if (transaction[transactionTypeKey] == TransactionType.customerReturn.name) {
+          returnedQuanity = item[itemSoldQuantityKey] ?? 0;
+        }
+        if (!summary.containsKey(itemName)) {
+          summary[itemName] = {
+            itemSoldQuantityKey: 0,
+            itemGiftQuantityKey: 0,
+            'returnedQuantity': 0,
+          };
+        }
+        summary[itemName]![itemSoldQuantityKey] =
+            summary[itemName]![itemSoldQuantityKey]! + soldQuantity;
+        summary[itemName]![itemGiftQuantityKey] =
+            summary[itemName]![itemGiftQuantityKey]! + giftQuantity;
+        summary[itemName]!['returnedQuantity'] =
+            summary[itemName]!['returnedQuantity']! + returnedQuanity;
+      }
+    }
+
+    // Convert the summary map to a List<List<dynamic>>
+    List<List<dynamic>> result = [];
+    summary.forEach((itemName, quantities) {
+      result.add([
+        itemName,
+        quantities[itemSoldQuantityKey],
+        quantities[itemGiftQuantityKey],
+        quantities['returnedQuantity'],
+        quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!,
+        salesmanCommission,
+        salesmanCommission * (quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!)
+      ]);
+    });
+    return result;
   }
 }

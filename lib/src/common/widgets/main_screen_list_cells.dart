@@ -46,7 +46,10 @@ class MainScreenTextCell extends StatelessWidget {
               fontSize: 16,
               fontWeight: FontWeight.bold,
             )
-          : TextStyle(fontSize: 16, color: _getCellColor(isWarning, isHighlighted), fontWeight: FontWeight.bold),
+          : TextStyle(
+              fontSize: 16,
+              color: _getCellColor(isWarning, isHighlighted),
+              fontWeight: FontWeight.bold),
     );
     if (isExpanded) {
       cell = Expanded(child: cell);
@@ -140,8 +143,9 @@ class MainScreenNumberedEditButton extends StatelessWidget {
     return InkWell(
         onTap: onTap,
         child: Container(
-          width: 28.0, // Width of the circle
-          height: 28.0, // Height of the circle
+          margin: const EdgeInsets.only(left: 4),
+          width: 32.0, // Width of the circle
+          height: 32.0, // Height of the circle
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle, // Makes the container circular
@@ -216,7 +220,8 @@ class SortableMainScreenHeaderCell extends StatelessWidget {
   final String _propertyName;
   final String _title;
 
-  const SortableMainScreenHeaderCell(this._screenDataNotifier, this._propertyName, this._title, {super.key});
+  const SortableMainScreenHeaderCell(this._screenDataNotifier, this._propertyName, this._title,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {

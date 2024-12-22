@@ -45,7 +45,6 @@ class CustomerDebtNotifier extends StateNotifier<CustomerDebtState> {
   void update(BuildContext context, Map<String, dynamic> customerData) {
     Map<String, dynamic> customerScreenData =
         customerScreenController.getItemScreenData(context, customerData);
-
     String totalDebt = doubleToStringWithComma(customerScreenData[totalDebtKey]);
     String dueDebt = doubleToStringWithComma(customerScreenData[dueDebtKey]);
 

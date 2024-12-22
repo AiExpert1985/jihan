@@ -58,6 +58,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("خصومات و هدايا"),
         "customer_invoice_profit":
             MessageLookupByLibrary.simpleMessage("ارباح قوائم الزبون"),
+        "customer_matching": MessageLookupByLibrary.simpleMessage("كشف زبون"),
         "customer_name": MessageLookupByLibrary.simpleMessage("الأسم"),
         "customer_search": MessageLookupByLibrary.simpleMessage("بحث الزبائن"),
         "customers": MessageLookupByLibrary.simpleMessage("الزبائن"),
@@ -106,6 +107,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("حدث خطأ اثناء استيراد الصور"),
         "failure": MessageLookupByLibrary.simpleMessage("فشل"),
         "first": MessageLookupByLibrary.simpleMessage("الاول"),
+        "for_the_duration": MessageLookupByLibrary.simpleMessage("للفترة"),
         "from": MessageLookupByLibrary.simpleMessage("من"),
         "from_date": MessageLookupByLibrary.simpleMessage("من تاريخ"),
         "go_home_page":
@@ -190,6 +192,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "monthly_profit_report":
             MessageLookupByLibrary.simpleMessage("تقرير الارباح الشهرية"),
         "name": MessageLookupByLibrary.simpleMessage("الاسم"),
+        "net_amount": MessageLookupByLibrary.simpleMessage("الصافي"),
         "new_item": MessageLookupByLibrary.simpleMessage("جديد"),
         "next": MessageLookupByLibrary.simpleMessage("التالي"),
         "no": MessageLookupByLibrary.simpleMessage("لا"),
@@ -228,6 +231,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "previous_item_quantity_is_zero": MessageLookupByLibrary.simpleMessage(
             "لم يتم ادخال العدد للمادة السابقة"),
         "print": MessageLookupByLibrary.simpleMessage("طباعة"),
+        "print_status": MessageLookupByLibrary.simpleMessage("حالة الطباعة"),
         "printed": MessageLookupByLibrary.simpleMessage("مطبوع"),
         "printing_transactions":
             MessageLookupByLibrary.simpleMessage("طباعة التعاملات"),
@@ -283,16 +287,25 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("اعادة تحميل الصفحة"),
         "remaining_amount": MessageLookupByLibrary.simpleMessage("المتبقى "),
         "reports": MessageLookupByLibrary.simpleMessage("تقارير"),
+        "returned": MessageLookupByLibrary.simpleMessage("المرجع"),
         "returns_amount":
             MessageLookupByLibrary.simpleMessage("مبلغ الارجاعات"),
         "returns_number": MessageLookupByLibrary.simpleMessage("عدد الارجاعات"),
         "salary": MessageLookupByLibrary.simpleMessage("المستحقات"),
+        "saleman_customers":
+            MessageLookupByLibrary.simpleMessage("زبائن المندوب"),
         "salesman_name": MessageLookupByLibrary.simpleMessage("الأسم"),
         "salesman_search":
             MessageLookupByLibrary.simpleMessage("بحث المندوبين"),
         "salesman_selection": MessageLookupByLibrary.simpleMessage("المندوب"),
+        "salesman_selling_report":
+            MessageLookupByLibrary.simpleMessage("مبيعات المندوب حسب المادة"),
         "salesmen": MessageLookupByLibrary.simpleMessage("المندوبين"),
+        "salesmen_debt_report":
+            MessageLookupByLibrary.simpleMessage("ديون المندوبين"),
         "salesmen_movement": MessageLookupByLibrary.simpleMessage("المندوبين"),
+        "salesmen_sellings":
+            MessageLookupByLibrary.simpleMessage("مبيعات المندوبين"),
         "save": MessageLookupByLibrary.simpleMessage("حفظ"),
         "save_changes": MessageLookupByLibrary.simpleMessage("حفظ التعديلات"),
         "save_data_backup":
@@ -325,10 +338,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "signup": MessageLookupByLibrary.simpleMessage("انشاء حساب"),
         "slogan":
             MessageLookupByLibrary.simpleMessage("الواح  ...  حساباتك اسهل"),
+        "sold": MessageLookupByLibrary.simpleMessage("المباع"),
         "stock": MessageLookupByLibrary.simpleMessage("المخزون"),
         "success": MessageLookupByLibrary.simpleMessage("نجاح"),
         "sum_of_commissions":
             MessageLookupByLibrary.simpleMessage("مجموع العمولات"),
+        "supervisor_customer_report":
+            MessageLookupByLibrary.simpleMessage("تقرير الزبائن"),
+        "supervisor_salesmen_report":
+            MessageLookupByLibrary.simpleMessage("تقرير المندوبين"),
         "there_is_no_customer_receipt":
             MessageLookupByLibrary.simpleMessage("لا يوجد"),
         "to": MessageLookupByLibrary.simpleMessage("الى"),

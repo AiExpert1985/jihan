@@ -59,6 +59,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Customer gifts and discounts"),
         "customer_invoice_profit": MessageLookupByLibrary.simpleMessage(
             "Customer profit from invoices"),
+        "customer_matching":
+            MessageLookupByLibrary.simpleMessage("Customer matching"),
         "customer_name": MessageLookupByLibrary.simpleMessage("Name"),
         "customer_search":
             MessageLookupByLibrary.simpleMessage("Customers search"),
@@ -107,6 +109,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "An error happend while importing images"),
         "failure": MessageLookupByLibrary.simpleMessage("Failure"),
         "first": MessageLookupByLibrary.simpleMessage("First"),
+        "for_the_duration":
+            MessageLookupByLibrary.simpleMessage("for the period"),
         "from": MessageLookupByLibrary.simpleMessage("From"),
         "from_date": MessageLookupByLibrary.simpleMessage("From date"),
         "go_home_page":
@@ -199,6 +203,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "monthly_profit_report":
             MessageLookupByLibrary.simpleMessage("Monthly profit report"),
         "name": MessageLookupByLibrary.simpleMessage("Name"),
+        "net_amount": MessageLookupByLibrary.simpleMessage("Net amount"),
         "new_item": MessageLookupByLibrary.simpleMessage("New"),
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "no": MessageLookupByLibrary.simpleMessage("No"),
@@ -235,6 +240,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "previous_item_quantity_is_zero": MessageLookupByLibrary.simpleMessage(
             "Previous item has zero quantity"),
         "print": MessageLookupByLibrary.simpleMessage("Print"),
+        "print_status": MessageLookupByLibrary.simpleMessage("Print status"),
         "printed": MessageLookupByLibrary.simpleMessage("Printed"),
         "printing_transactions":
             MessageLookupByLibrary.simpleMessage("Printing transactions"),
@@ -297,18 +303,27 @@ class MessageLookup extends MessageLookupByLibrary {
         "remaining_amount":
             MessageLookupByLibrary.simpleMessage("Remaining amount"),
         "reports": MessageLookupByLibrary.simpleMessage("Reports"),
+        "returned": MessageLookupByLibrary.simpleMessage("Returned"),
         "returns_amount":
             MessageLookupByLibrary.simpleMessage("Returns amount"),
         "returns_number":
             MessageLookupByLibrary.simpleMessage("Returns number"),
         "salary": MessageLookupByLibrary.simpleMessage("Salary"),
+        "saleman_customers":
+            MessageLookupByLibrary.simpleMessage("Salesman customers"),
         "salesman_name": MessageLookupByLibrary.simpleMessage("Name"),
         "salesman_search":
             MessageLookupByLibrary.simpleMessage("Salesmen search"),
         "salesman_selection":
             MessageLookupByLibrary.simpleMessage("Salesman selection"),
+        "salesman_selling_report":
+            MessageLookupByLibrary.simpleMessage("Salesman items sold"),
         "salesmen": MessageLookupByLibrary.simpleMessage("Salesmen"),
+        "salesmen_debt_report":
+            MessageLookupByLibrary.simpleMessage("Salesmen debt report"),
         "salesmen_movement": MessageLookupByLibrary.simpleMessage("Salesmen"),
+        "salesmen_sellings":
+            MessageLookupByLibrary.simpleMessage("Salesmen sellings"),
         "save": MessageLookupByLibrary.simpleMessage("Save"),
         "save_changes": MessageLookupByLibrary.simpleMessage("Save changes"),
         "save_data_backup":
@@ -341,10 +356,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "signup": MessageLookupByLibrary.simpleMessage("Sign up"),
         "slogan": MessageLookupByLibrary.simpleMessage(
             "Tablets, where accounting started"),
+        "sold": MessageLookupByLibrary.simpleMessage("Sold"),
         "stock": MessageLookupByLibrary.simpleMessage("Stock"),
         "success": MessageLookupByLibrary.simpleMessage("Success"),
         "sum_of_commissions":
             MessageLookupByLibrary.simpleMessage("Commissions_sum"),
+        "supervisor_customer_report":
+            MessageLookupByLibrary.simpleMessage("Supervisor customer report"),
+        "supervisor_salesmen_report":
+            MessageLookupByLibrary.simpleMessage("Supervisor salesmen report"),
         "there_is_no_customer_receipt":
             MessageLookupByLibrary.simpleMessage("no receipt"),
         "to": MessageLookupByLibrary.simpleMessage("To"),

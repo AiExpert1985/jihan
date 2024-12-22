@@ -8,7 +8,9 @@ import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
+import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
+import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
@@ -46,6 +48,21 @@ class TransactionShowForm {
     if (!isEditMode) {
       // if the transaction is new, we save it directly with empty data
       TransactionForm.saveTransaction(context, ref, formDataNotifier.data, false);
+    }
+
+    // if we are loading a transaction (not new) for (customer invoices only) we update the debt info
+    final customerName = formDataNotifier.data[nameKey];
+    if (transactionType == TransactionType.customerInvoice.name &&
+        customerName is String &&
+        customerName.isNotEmpty) {
+      try {
+        final customerDbCache = ref.read(customerDbCacheProvider.notifier);
+        final customerData = customerDbCache.getItemByProperty('name', customerName);
+        final customerDebtInfo = ref.read(customerDebtNotifierProvider.notifier);
+        customerDebtInfo.update(context, customerData);
+      } catch (e) {
+        errorPrint('unable to load debt info for $customerName - $e');
+      }
     }
 
     Navigator.push(
@@ -158,8 +175,8 @@ class TransactionShowForm {
         transactions.where((transaction) => transaction[transactionTypeKey] == type);
     if (filteredTransactions.isEmpty) return 1;
     // Step 2: Extract the transaction numbers and convert them to integers
-    final transactionNumbers =
-        filteredTransactions.map((transaction) => transaction[numberKey] as int?);
+    final transactionNumbers = filteredTransactions.map((transaction) =>
+        transaction[numberKey] is int ? transaction[numberKey] : transaction[numberKey].toInt());
     // Step 3: Find the maximum transaction number
     int maxNumber = transactionNumbers
             .reduce((a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??

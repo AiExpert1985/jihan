@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
+import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tablets/src/common/providers/background_color.dart';
@@ -122,6 +123,7 @@ class ListHeaders extends ConsumerWidget {
             screenDataNotifier, transactionSalesmanKey, S.of(context).salesman_selection),
         SortableMainScreenHeaderCell(
             screenDataNotifier, transactionTotalAmountKey, S.of(context).transaction_amount),
+        MainScreenHeaderCell(S.of(context).print_status),
         SortableMainScreenHeaderCell(screenDataNotifier, transactionNotesKey, S.of(context).notes),
       ],
     );
@@ -144,6 +146,11 @@ class DataRow extends ConsumerWidget {
         Transaction.fromMap({...transactionData, transactionTypeKey: translatedTransactionType});
     final date = transactionScreenData[transactionDateKey].toDate();
     final color = _getSequnceColor(transaction.transactionType);
+    final transactionType = transactionScreenData[transactionTypeKey];
+    bool isWarning = transactionType.contains(S.of(context).transaction_type_customer_receipt) ||
+        transactionType.contains(S.of(context).transaction_type_customer_return);
+    final printStatus =
+        transactionScreenData[isPrintedKey] ? S.of(context).printed : S.of(context).not_printed;
     return Column(
       children: [
         Padding(
@@ -156,13 +163,18 @@ class DataRow extends ConsumerWidget {
                 () => _showEditTransactionForm(context, ref, transaction),
                 color: color,
               ),
-              MainScreenTextCell(transactionScreenData[transactionTypeKey]),
-              MainScreenTextCell(transactionScreenData[transactionNumberKey]),
-              MainScreenTextCell(date),
-              MainScreenTextCell(transactionScreenData[transactionNameKey]),
-              MainScreenTextCell(transactionScreenData[transactionSalesmanKey]),
-              MainScreenTextCell(transactionScreenData[transactionTotalAmountKey]),
-              MainScreenTextCell(transactionScreenData[transactionNotesKey]),
+              MainScreenTextCell(transactionScreenData[transactionTypeKey], isWarning: isWarning),
+              // we don't add thousand separators to transaction number, so I made it String here
+              MainScreenTextCell(transactionScreenData[transactionNumberKey].round().toString(),
+                  isWarning: isWarning),
+              MainScreenTextCell(date, isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNameKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionSalesmanKey],
+                  isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionTotalAmountKey],
+                  isWarning: isWarning),
+              MainScreenTextCell(printStatus, isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNotesKey], isWarning: isWarning),
             ],
           ),
         ),
@@ -191,22 +203,16 @@ class DataRow extends ConsumerWidget {
   }
 
   Color _getSequnceColor(String transactionType) {
-    if (transactionType == TransactionType.customerInvoice.name ||
-        transactionType == TransactionType.customerReturn.name ||
-        transactionType == TransactionType.customerReceipt.name ||
-        transactionType == TransactionType.gifts.name) {
-      return const Color.fromARGB(255, 75, 63, 141); // use default color
+    if (transactionType == TransactionType.customerReturn.name ||
+        transactionType == TransactionType.customerReceipt.name) {
+      return Colors.red; // use default color
     }
     if (transactionType == TransactionType.vendorInvoice.name ||
         transactionType == TransactionType.vendorReceipt.name ||
         transactionType == TransactionType.vendorReturn.name) {
       return Colors.green;
     }
-    if (transactionType == TransactionType.expenditures.name ||
-        transactionType == TransactionType.damagedItems.name) {
-      return Colors.red;
-    }
-    return Colors.red;
+    return const Color.fromARGB(255, 75, 63, 141);
   }
 }
 

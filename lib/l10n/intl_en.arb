@@ -261,5 +261,17 @@
     "balance": "Balance",
     "no_item_were_added_to_invoice": "No item were added to invoice",
     "previous_item_quantity_is_zero": "Previous item has zero quantity",
-    "product_out_of_stock": "Product is out of stock"
+    "product_out_of_stock": "Product is out of stock",
+    "salesmen_debt_report": "Salesmen debt report",
+    "print_status": "Print status",
+    "net_amount": "Net amount",
+    "sold": "Sold",
+    "returned": "Returned",
+    "salesmen_sellings": "Salesmen sellings",
+    "salesman_selling_report": "Salesman items sold",
+    "for_the_duration": "for the period",
+    "supervisor_salesmen_report": "Supervisor salesmen report",
+    "supervisor_customer_report": "Supervisor customer report",
+    "customer_matching": "Customer matching",
+    "saleman_customers": "Salesman customers"
 }

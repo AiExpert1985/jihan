@@ -18,7 +18,7 @@ Future<Document> getVendorReceiptPdf(BuildContext context, WidgetRef ref,
   final vendorDbCache = ref.read(vendorDbCacheProvider.notifier);
   final vendorData = vendorDbCache.getItemByDbRef(transactionData['nameDbRef']);
   final type = translateDbTextToScreenText(context, transactionData['transactionType']);
-  final number = transactionData['number'].toString();
+  final number = transactionData['number'].round().toString();
   final name = transactionData['name'];
   final date = formatDate(transactionData['date']);
   final subtotalAmount = doubleToStringWithComma(transactionData['subTotalAmount']);

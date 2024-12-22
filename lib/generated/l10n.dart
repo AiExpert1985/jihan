@@ -2679,6 +2679,126 @@ class S {
       args: [],
     );
   }
+
+  /// `Salesmen debt report`
+  String get salesmen_debt_report {
+    return Intl.message(
+      'Salesmen debt report',
+      name: 'salesmen_debt_report',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Print status`
+  String get print_status {
+    return Intl.message(
+      'Print status',
+      name: 'print_status',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Net amount`
+  String get net_amount {
+    return Intl.message(
+      'Net amount',
+      name: 'net_amount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sold`
+  String get sold {
+    return Intl.message(
+      'Sold',
+      name: 'sold',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Returned`
+  String get returned {
+    return Intl.message(
+      'Returned',
+      name: 'returned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Salesmen sellings`
+  String get salesmen_sellings {
+    return Intl.message(
+      'Salesmen sellings',
+      name: 'salesmen_sellings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Salesman items sold`
+  String get salesman_selling_report {
+    return Intl.message(
+      'Salesman items sold',
+      name: 'salesman_selling_report',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `for the period`
+  String get for_the_duration {
+    return Intl.message(
+      'for the period',
+      name: 'for_the_duration',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Supervisor salesmen report`
+  String get supervisor_salesmen_report {
+    return Intl.message(
+      'Supervisor salesmen report',
+      name: 'supervisor_salesmen_report',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Supervisor customer report`
+  String get supervisor_customer_report {
+    return Intl.message(
+      'Supervisor customer report',
+      name: 'supervisor_customer_report',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Customer matching`
+  String get customer_matching {
+    return Intl.message(
+      'Customer matching',
+      name: 'customer_matching',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Salesman customers`
+  String get saleman_customers {
+    return Intl.message(
+      'Salesman customers',
+      name: 'saleman_customers',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

@@ -15,6 +15,7 @@ import 'package:tablets/src/features/customers/model/customer.dart';
 const customerDbRefKey = 'dbRef';
 const customerNameKey = 'name';
 const customerSalesmanKey = 'salesman';
+const customerRegionKey = 'region';
 const totalDebtKey = 'totalDebt';
 const totalDebtDetailsKey = 'totalDebtDetails';
 const openInvoicesKey = 'openInvoices';
@@ -459,7 +460,7 @@ List<List<dynamic>> getCustomerProcessedInvoices(
       final receiptDate = formatDate(receipt.date);
       amountLeft -= receipt.amountUsed;
       receiptInfo =
-          '$receiptInfo $receiptType (${receipt.number}) $receiptDate (${receipt.amountUsed}) ';
+          '$receiptInfo $receiptType (${receipt.number}) $receiptDate (${doubleToStringWithComma(receipt.amountUsed)}) ';
       // add line only if there are more receipts to be added
       if (i + 1 < invoice.receiptsUsed.length) {
         receiptInfo = '$receiptInfo \n';

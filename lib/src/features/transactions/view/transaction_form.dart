@@ -216,7 +216,7 @@ class TransactionForm extends ConsumerWidget {
     // also, as a policy, I want always to save before print, because I want to ensure always the transaction in
     // database matches the printed transaction.
     saveTransaction(context, ref, formDataNotifier.data, true);
-    printDocument(context, ref, formDataNotifier.data);
+    printForm(context, ref, formDataNotifier.data);
     formDataNotifier.updateProperties({isPrintedKey: true});
   }
 
@@ -429,6 +429,7 @@ class CustomerDebtReview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final customerDebtInfo = ref.read(customerDebtNotifierProvider);
     ref.watch(customerDebtNotifierProvider);
+    bool showDebtInfo = transactionType == TransactionType.customerInvoice.name;
     return Container(
       width: 300,
       padding: const EdgeInsets.only(left: 20),
@@ -436,15 +437,17 @@ class CustomerDebtReview extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const PrintStatus(),
-          if (transactionType.contains('customer')) VerticalGap.l,
-          if (transactionType.contains('customer'))
-            ReviewRow(S.of(context).last_receipt_date, customerDebtInfo.lastReceiptDate),
-          VerticalGap.l,
-          if (transactionType.contains('customer'))
-            ReviewRow(S.of(context).total_debt, customerDebtInfo.totalDebt),
-          VerticalGap.l,
-          if (transactionType.contains('customer'))
-            ReviewRow(S.of(context).due_debt_amount, customerDebtInfo.dueDebt, isWarning: true),
+          if (showDebtInfo)
+            Column(
+              children: [
+                VerticalGap.l,
+                ReviewRow(S.of(context).last_receipt_date, customerDebtInfo.lastReceiptDate),
+                VerticalGap.l,
+                ReviewRow(S.of(context).total_debt, customerDebtInfo.totalDebt),
+                VerticalGap.l,
+                ReviewRow(S.of(context).due_debt_amount, customerDebtInfo.dueDebt, isWarning: true),
+              ],
+            )
         ],
       ),
     );

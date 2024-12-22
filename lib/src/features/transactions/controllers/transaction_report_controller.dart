@@ -2,7 +2,6 @@ import 'package:anydrawer/anydrawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/common/functions/transaction_type_drowdop_list.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/widgets/report_dialog.dart';
@@ -133,7 +132,6 @@ class TransactionReportController {
     List<List<dynamic>> processedTransactions =
         _getProcessedTransactions(context, allTransactions, filters, isProfitReport, includeNotes);
     List<String> reportTitles = _getReportTitles(context, includeNotes);
-    List<String> transactionTypeDropdown = getTransactionTypeDropList(context);
     return InkWell(
       child: ReportButton(title),
       onTap: () {
@@ -147,7 +145,6 @@ class TransactionReportController {
           title: title,
           dateIndex: 2,
           sumIndex: 6,
-          dropdownList: transactionTypeDropdown,
           dropdownLabel: S.of(context).transaction_type,
           dropdownIndex: 1,
           useOriginalTransaction: true,

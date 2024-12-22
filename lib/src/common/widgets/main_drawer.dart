@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/database_backup.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
-import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/interfaces/screen_controller.dart';
-import 'package:tablets/src/common/providers/daily_backup_provider.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
 import 'package:tablets/src/common/values/gaps.dart';
@@ -61,25 +59,10 @@ class MainDrawer extends ConsumerWidget {
   }
 }
 
-/// every time app runs, I create backup. if backup is done, it will not updated
-/// unless user manually modify it through pressing backup button
-void _autoDatabaseBackup(BuildContext context, WidgetRef ref) async {
-  try {
-    final dailyBackupNotifier = ref.read(dailyDatabaseBackupNotifier.notifier);
-    final dailyBackupStatus = dailyBackupNotifier.state;
-    if (!dailyBackupStatus) {
-      await backupDataBase(context, ref);
-      dailyBackupNotifier.update((state) => true);
-    }
-  } catch (e) {
-    errorPrint('Error during database auto backup (e)');
-  }
-}
-
 /// initialize all dbCaches and settings, and move on the the target page
 void processAndMoveToTargetPage(BuildContext context, WidgetRef ref,
     ScreenDataController screenController, String route, String pageTitle) async {
-  _autoDatabaseBackup(context, ref);
+  await autoDatabaseBackup(context, ref);
   final pageTitleNotifier = ref.read(pageTitleProvider.notifier);
   final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
   // page is loading only used to show a loading spinner (better user experience)
@@ -88,7 +71,9 @@ void processAndMoveToTargetPage(BuildContext context, WidgetRef ref,
   pageLoadingNotifier.state = true;
   // note that dbCaches are only used for mirroring the database, all the data used in the
   // app in the screenData, which is a processed version of dbCache
-  await initializeAllDbCaches(context, ref);
+  if (context.mounted) {
+    await initializeAllDbCaches(context, ref);
+  }
   // we inialize settings
   if (context.mounted) {
     initializeSettings(context, ref);
@@ -424,7 +409,7 @@ class BackupButton extends ConsumerWidget {
       height: 150,
       child: InkWell(
         onTap: () async {
-          backupDataBase(context, ref);
+          await backupDataBase(context, ref);
         },
         child: Card(
           elevation: 4,

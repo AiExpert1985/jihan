@@ -16,7 +16,6 @@ import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provi
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
-import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider.dart';
@@ -72,7 +71,6 @@ class ReceiptForm extends ConsumerWidget {
       bool isVendor,
       FromNavigator formNavigator,
       WidgetRef ref) {
-    final customerDebtInfo = ref.read(customerDebtNotifierProvider.notifier);
     return Row(
       children: [
         DropDownWithSearchFormField(
@@ -88,10 +86,6 @@ class ReceiptForm extends ConsumerWidget {
               salesmanDbRefKey: item['salesmanDbRef']
             };
             formDataNotifier.updateProperties(properties);
-            // update customerDebtInfo so that it will be used to show preview of customer debt in form screen
-            if (!isVendor) {
-              customerDebtInfo.update(context, item);
-            }
           },
         ),
         if (!isVendor) HorizontalGap.l,

@@ -100,3 +100,18 @@ Future<void> _saveDbFiles(BuildContext context, WidgetRef ref,
     errorPrint('backup database failed -- $e');
   }
 }
+
+/// every time app runs, I create backup. if backup is done, it will not updated
+/// unless user manually modify it through pressing backup button
+Future<void> autoDatabaseBackup(BuildContext context, WidgetRef ref) async {
+  try {
+    final dailyBackupNotifier = ref.read(dailyDatabaseBackupNotifier.notifier);
+    final dailyBackupStatus = dailyBackupNotifier.state;
+    if (!dailyBackupStatus) {
+      await backupDataBase(context, ref);
+      dailyBackupNotifier.update((state) => true);
+    }
+  } catch (e) {
+    errorPrint('Error during database auto backup (e)');
+  }
+}
