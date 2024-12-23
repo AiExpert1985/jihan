@@ -273,5 +273,6 @@
     "supervisor_salesmen_report": "Supervisor salesmen report",
     "supervisor_customer_report": "Supervisor customer report",
     "customer_matching": "Customer matching",
-    "saleman_customers": "Salesman customers"
+    "saleman_customers": "Salesman customers",
+    "hide_from_special_reports": "Hide from special reports"
 }

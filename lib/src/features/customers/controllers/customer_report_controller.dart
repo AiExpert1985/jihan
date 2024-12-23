@@ -154,6 +154,11 @@ class CustomerReportController {
       }
     }
 
+    // sort by region
+    debtList.sort((a, b) {
+      return a[2].compareTo(b[2]);
+    });
+
     showReportDialog(
       context,
       _getAllCustomersColumnTitles(context),

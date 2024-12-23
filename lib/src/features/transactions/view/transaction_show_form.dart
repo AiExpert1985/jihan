@@ -52,7 +52,8 @@ class TransactionShowForm {
 
     // if we are loading a transaction (not new) for (customer invoices only) we update the debt info
     final customerName = formDataNotifier.data[nameKey];
-    if (transactionType == TransactionType.customerInvoice.name &&
+    if ((transactionType == TransactionType.customerInvoice.name ||
+            transactionType == TransactionType.customerReceipt.name) &&
         customerName is String &&
         customerName.isNotEmpty) {
       try {

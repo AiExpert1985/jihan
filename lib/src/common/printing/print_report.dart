@@ -10,6 +10,9 @@ import 'package:flutter/services.dart';
 
 double pageWidth = 580;
 List<bool> isWideField = [];
+const minStringLengthForLargeField = 20;
+const numItemsInFirstPage = 20;
+const numItemsInSecondPage = 30;
 
 Future<Document> getReportPdf(
   BuildContext context,
@@ -30,8 +33,8 @@ Future<Document> getReportPdf(
   final arabicFont =
       pw.Font.ttf(await rootBundle.load("assets/fonts/NotoSansArabic-VariableFont_wdth,wght.ttf"));
   _setFieldsSizes(reportData, listTitles);
-  int numItemsInFirstPage = 20;
 
+// add first page manually
   pdf.addPage(pw.Page(
     margin: pw.EdgeInsets.zero,
     build: (pw.Context ctx) {
@@ -41,19 +44,28 @@ Future<Document> getReportPdf(
         image,
         reportTitle,
         listTitles,
-        reportData.sublist(
-            0, reportData.length < numItemsInFirstPage ? reportData.length : numItemsInFirstPage),
+        reportData
+            .sublist(0,
+                reportData.length < numItemsInFirstPage ? reportData.length : numItemsInFirstPage)
+            .toList(),
         startDate,
         endDate,
         printingDate,
         printingTime,
         summaryValue,
         summaryTitle,
+        0,
         includeSummary: reportData.length <= numItemsInFirstPage,
       );
     },
   ));
-  if (reportData.length > numItemsInFirstPage) {
+  // then keep adding pages (until more than thousand items are add, which I don't think they will exceed!)
+  for (var i = 0; i < 30; i++) {
+    if (reportData.length < (numItemsInFirstPage + (i * numItemsInSecondPage))) {
+      // if data length is less than previous max items, it means we are done, so break
+      break;
+    }
+
     pdf.addPage(pw.Page(
       margin: pw.EdgeInsets.zero,
       build: (pw.Context ctx) {
@@ -63,15 +75,24 @@ Future<Document> getReportPdf(
           image,
           reportTitle,
           listTitles,
-          reportData.sublist(numItemsInFirstPage),
+          reportData
+              .sublist(
+                (numItemsInFirstPage + (i * numItemsInSecondPage)),
+                reportData.length < (numItemsInFirstPage + ((i + 1) * numItemsInSecondPage))
+                    ? reportData.length
+                    : (numItemsInFirstPage + ((i + 1) * numItemsInSecondPage)),
+              )
+              .toList(),
           startDate,
           endDate,
           printingDate,
           printingTime,
           summaryValue,
           summaryTitle,
+          (numItemsInFirstPage + (i * numItemsInSecondPage)),
           includeImage: false,
           includeTitle: false,
+          includeSummary: reportData.length < (numItemsInFirstPage + (i * numItemsInSecondPage)),
         );
       },
     ));
@@ -91,7 +112,7 @@ void _setFieldsSizes(List<List<dynamic>> reportData, List<String> reportHeaders)
   for (List item in reportData) {
     item = item.reversed.toList();
     for (var i = 0; i < item.length; i++) {
-      if (item[i] is String && item[i].length > 15) {
+      if (item[i] is String && item[i].length > minStringLengthForLargeField) {
         isWideField[i] = true;
       }
     }
@@ -119,7 +140,8 @@ pw.Widget _reportPage(
   String printingDate,
   String printingTime,
   String summaryValue,
-  String summaryTitle, {
+  String summaryTitle,
+  int index, {
   bool includeSummary = true,
   bool includeImage = true,
   bool includeTitle = true,
@@ -133,7 +155,7 @@ pw.Widget _reportPage(
       pw.SizedBox(height: 5),
       _buildListTitles(arabicFont, listTitles),
       pw.SizedBox(height: 10),
-      _buildDataList(arabicFont, dataList),
+      _buildDataList(arabicFont, dataList, index),
       pw.SizedBox(height: 10),
       if (includeSummary) _buildSummary(arabicFont, summaryValue, summaryTitle),
       pw.Spacer(),
@@ -206,6 +228,10 @@ pw.Widget _buildListTitles(Font arabicFont, List<dynamic> titlesList) {
   for (int i = 0; i < titlesList.length; i++) {
     itemsList.add(_buildHeaderCell(arabicFont, titlesList[i], i));
   }
+  itemsList.add(pw.Container(
+      width: 25,
+      padding: const pw.EdgeInsets.all(1),
+      child: arabicText(arabicFont, 'ت', isTitle: true, textColor: PdfColors.white)));
   pw.Widget titlesContainer = pw.Container(
     child: pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
@@ -220,21 +246,25 @@ pw.Widget _buildListTitles(Font arabicFont, List<dynamic> titlesList) {
   );
 }
 
-pw.Widget _buildDataList(Font arabicFont, List<List<dynamic>> dataList) {
+pw.Widget _buildDataList(Font arabicFont, List<List<dynamic>> dataList, int index) {
   List<pw.Widget> itemsList = [];
   for (int i = 0; i < dataList.length; i++) {
-    itemsList.add(_buildItem(arabicFont, dataList[i]));
+    int sequence = index + i + 1;
+    itemsList.add(_buildItem(arabicFont, dataList[i], sequence));
   }
-
   return pw.Container(child: pw.Column(children: itemsList));
 }
 
-pw.Widget _buildItem(Font arabicFont, List<dynamic> dataRow) {
+pw.Widget _buildItem(Font arabicFont, List<dynamic> dataRow, int sequence) {
   List<pw.Widget> item = [];
   dataRow = dataRow.reversed.toList();
   for (int i = 0; i < dataRow.length; i++) {
     item.add(_buildDataCell(arabicFont, dataRow[i], i));
   }
+  item.add(pw.Container(
+      width: 25,
+      padding: const pw.EdgeInsets.all(1),
+      child: arabicText(arabicFont, sequence.toString(), isBordered: true)));
   return pw.Container(
     padding: const pw.EdgeInsets.symmetric(horizontal: 8),
     child: pw.Row(

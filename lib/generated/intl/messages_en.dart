@@ -122,6 +122,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "hide Transaction Amount As Text"),
         "hide_customer_profit":
             MessageLookupByLibrary.simpleMessage("Hide customer profit"),
+        "hide_from_special_reports":
+            MessageLookupByLibrary.simpleMessage("Hide from special reports"),
         "hide_product_buying_price":
             MessageLookupByLibrary.simpleMessage("hide product buying price"),
         "hide_product_profit":

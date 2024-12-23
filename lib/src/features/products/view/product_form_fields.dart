@@ -76,6 +76,8 @@ class ProductFormFields extends ConsumerWidget {
           _createFormField('notes', FieldDataType.text, S.of(context).notes, formDataNotifier,
               isRequired: false),
         ]),
+        VerticalGap.m,
+        const HideProductCheckBox(),
       ],
     );
   }
@@ -126,5 +128,30 @@ class ProductFormFields extends ConsumerWidget {
         formDataNotifier.updateProperties({'initialDate': Timestamp.fromDate(date!)});
       },
     );
+  }
+}
+
+class HideProductCheckBox extends ConsumerWidget {
+  const HideProductCheckBox({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final formDataNotifier = ref.read(productFormDataProvider.notifier);
+    ref.watch(productFormDataProvider);
+    return Container(
+        padding: const EdgeInsets.all(0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(S.of(context).hide_from_special_reports),
+            HorizontalGap.l,
+            Checkbox(
+              value: formDataNotifier.getProperty('isHiddenInSpecialReports') ?? false,
+              onChanged: (value) {
+                formDataNotifier.updateProperties({'isHiddenInSpecialReports': value});
+              },
+            ),
+          ],
+        ));
   }
 }

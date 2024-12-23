@@ -19,6 +19,7 @@ import 'package:tablets/src/features/customers/controllers/customer_report_contr
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
 import 'package:tablets/src/features/customers/model/customer.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_report_controller.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_controller.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
@@ -491,6 +492,8 @@ Widget buildSoldItemsButton(BuildContext context, WidgetRef ref, {bool isSupervi
   final salesmanReportController = ref.read(salesmanReportControllerProvider);
   final salesmanScreenController = ref.read(salesmanScreenControllerProvider);
   final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);
+  // productDbCache is used for hidding items not be shown for the supervisore
+  final productDbCache = ref.read(productDbCacheProvider.notifier);
   return FastAccessReportsButton(
     // name depends whether the report is for supervisor
     S.of(context).salesmen_sellings,
@@ -508,14 +511,27 @@ Widget buildSoldItemsButton(BuildContext context, WidgetRef ref, {bool isSupervi
         // dates can be null, which means to take all the duration
         final startDate = nameAndDates[1];
         final endDate = nameAndDates[2];
-        const salesmanCommission = 70;
         String reportTitle = '';
         if (context.mounted) {
           reportTitle =
               '${S.of(context).salesman_selling_report} \n ${salesmanData['name']} \n ${S.of(context).for_the_duration} ${formatDate(startDate ?? DateTime.parse("2024-12-01T14:30:00"))} - ${formatDate(endDate ?? DateTime.now())}';
         }
-        final soldItemsList = salesmanScreenController.salesmanItemsSold(
-            salesmanData['dbRef'], salesmanCommission, startDate, endDate);
+        List<List<dynamic>> soldItemsList = salesmanScreenController.salesmanItemsSold(
+            salesmanData['dbRef'], startDate, endDate, ref);
+
+        if (isSupervisor) {
+          // filter items not to show for the supervisor
+          soldItemsList = soldItemsList.where((item) {
+            final dbItem = productDbCache.getItemByProperty('name', item[0]);
+            // only keep products that are not hidden from special reports
+            return dbItem['isHiddenInSpecialReports'] == null ||
+                !dbItem['isHiddenInSpecialReports'];
+          }).toList();
+        }
+        // sort by product name
+        soldItemsList.sort((a, b) {
+          return a[0].compareTo(b[0]);
+        });
         if (context.mounted) {
           salesmanReportController.showSoldItemsReport(
               context, soldItemsList, reportTitle, isSupervisor);

@@ -51,7 +51,7 @@ class ProductForm extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(0),
             width: 800,
-            height: 550,
+            height: 600,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -63,8 +63,8 @@ class ProductForm extends ConsumerWidget {
             ),
           ),
         ),
-        buttons:
-            _actionButtons(context, formController, formDataNotifier, formImagesNotifier, dbCache, screenController),
+        buttons: _actionButtons(context, formController, formDataNotifier, formImagesNotifier,
+            dbCache, screenController),
         width: productFormWidth,
         height: productFormHeight,
       ),
@@ -82,16 +82,16 @@ class ProductForm extends ConsumerWidget {
     return [
       IconButton(
         onPressed: () {
-          _onSavePressed(
-              context, formController, formDataNotifier, formImagesNotifier, transactionDbCache, screenController);
+          _onSavePressed(context, formController, formDataNotifier, formImagesNotifier,
+              transactionDbCache, screenController);
         },
         icon: const SaveIcon(),
       ),
       if (isEditMode)
         IconButton(
           onPressed: () {
-            _onDeletePressed(
-                context, formDataNotifier, formImagesNotifier, formController, transactionDbCache, screenController);
+            _onDeletePressed(context, formDataNotifier, formImagesNotifier, formController,
+                transactionDbCache, screenController);
           },
           icon: const DeleteIcon(),
         ),
@@ -135,7 +135,8 @@ class ProductForm extends ConsumerWidget {
     DbCache dbCache,
     ProductScreenController screenController,
   ) async {
-    final confirmation = await showDeleteConfirmationDialog(context: context, message: formDataNotifier.data['name']);
+    final confirmation = await showDeleteConfirmationDialog(
+        context: context, message: formDataNotifier.data['name']);
     final formData = formDataNotifier.data;
     if (confirmation != null) {
       final imageUrls = formImagesNotifier.saveChanges();

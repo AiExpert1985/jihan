@@ -243,8 +243,6 @@ class TransactionForm extends ConsumerWidget {
     // now load the target transaction into the form, whether it is navigated or new transaction
     // note that navigatorFormData shouldn't be null if isNewTransaction is false
     if (isNewTransaction) {
-      final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
-      backgroundColorNofifier.state = normalColor!;
       TransactionShowForm.showForm(
         context,
         ref,
@@ -274,6 +272,8 @@ class TransactionForm extends ConsumerWidget {
         formType: formType,
       );
     }
+    final backgroundColorNofifier = ref.read(backgroundColorProvider.notifier);
+    backgroundColorNofifier.state = normalColor!;
   }
 
   /// this function is called when navigating away from current transaction
@@ -429,7 +429,9 @@ class CustomerDebtReview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final customerDebtInfo = ref.read(customerDebtNotifierProvider);
     ref.watch(customerDebtNotifierProvider);
-    bool showDebtInfo = transactionType == TransactionType.customerInvoice.name;
+    // show debt review for customer invoices & receipts
+    bool showDebtInfo = transactionType == TransactionType.customerInvoice.name ||
+        transactionType == TransactionType.customerReceipt.name;
     return Container(
       width: 300,
       padding: const EdgeInsets.only(left: 20),

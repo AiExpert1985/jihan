@@ -2799,6 +2799,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Hide from special reports`
+  String get hide_from_special_reports {
+    return Intl.message(
+      'Hide from special reports',
+      name: 'hide_from_special_reports',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

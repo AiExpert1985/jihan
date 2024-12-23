@@ -119,6 +119,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("اخفاء حقل كتابة المبلغ"),
         "hide_customer_profit":
             MessageLookupByLibrary.simpleMessage("اخفاء ارباح الزبون"),
+        "hide_from_special_reports":
+            MessageLookupByLibrary.simpleMessage("اخفاء في التقارير الخاصة"),
         "hide_product_buying_price":
             MessageLookupByLibrary.simpleMessage("اخفاء سعر شراء المادة"),
         "hide_product_profit":

@@ -23,6 +23,7 @@ class Product implements BaseItem {
   int initialQuantity;
   DateTime initialDate;
   String? notes;
+  bool? isHiddenInSpecialReports;
 
   Product({
     required this.dbRef,
@@ -42,6 +43,7 @@ class Product implements BaseItem {
     required this.categoryDbRef,
     required this.initialQuantity,
     required this.initialDate,
+    this.isHiddenInSpecialReports, //TODO make it required later
     this.notes,
   });
 
@@ -69,6 +71,7 @@ class Product implements BaseItem {
       'initialQuantity': initialQuantity,
       'initialDate': initialDate,
       'notes': notes,
+      'isHiddenInSpecialReports': isHiddenInSpecialReports,
     };
   }
 
@@ -93,6 +96,7 @@ class Product implements BaseItem {
       initialDate:
           map['initialDate'] is Timestamp ? map['initialDate'].toDate() : map['initialDate'],
       notes: map['notes'] ?? '',
+      isHiddenInSpecialReports: map['isHiddenInSpecialReports'] ?? false,
     );
   }
 

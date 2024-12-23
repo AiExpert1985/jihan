@@ -11,6 +11,7 @@ import 'package:tablets/src/features/customers/controllers/customer_screen_contr
 import 'package:tablets/src/features/customers/controllers/customer_screen_data_notifier.dart';
 import 'package:tablets/src/features/customers/model/customer.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_data_notifier.dart';
 import 'package:tablets/src/features/salesmen/model/salesman.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
@@ -279,13 +280,18 @@ class SalesmanScreenController implements ScreenDataController {
     List<String> customerDbRef = [];
     for (var customer in salesmanCustomers) {
       int numInvoices = 0;
+      num numItems = 0;
       for (var trans in salesmanTransactions) {
         if (trans.transactionType == TransactionType.customerInvoice.name &&
             trans.nameDbRef == customer.dbRef) {
           numInvoices++;
+          final items = trans.items ?? [];
+          for (var i = 0; i < items.length; i++) {
+            numItems += items[i][itemSoldQuantityKey];
+          }
         }
       }
-      customerData.add([customer.name, customer.region, numInvoices]);
+      customerData.add([customer.name, customer.region, customer.phone, numInvoices, numItems]);
       customerDbRef.add(customer.dbRef);
     }
     return {
@@ -333,18 +339,23 @@ class SalesmanScreenController implements ScreenDataController {
     return allTransactions.where((transaction) {
       DateTime transactionDate =
           transaction['date'] is DateTime ? transaction['date'] : transaction['date'].toDate();
-      bool isAfterStartDate = startDate == null || transactionDate.isAfter(startDate);
-      bool isBeforeEndDate = endDate == null || transactionDate.isBefore(endDate);
+      // I need to subtract one day for start date to make the searched date included
+      bool isAfterStartDate =
+          startDate == null || transactionDate.isAfter(startDate.subtract(const Duration(days: 1)));
+      // I need to add one day to the end date to make the searched date included
+      bool isBeforeEndDate =
+          endDate == null || transactionDate.isBefore(endDate.add(const Duration(days: 1)));
       return salesmanDbRef == transaction['salesmanDbRef'] && isAfterStartDate && isBeforeEndDate;
     }).toList();
   }
 
   List<List<dynamic>> salesmanItemsSold(
     String salesmanDbRef,
-    num salesmanCommission,
     DateTime? startDate,
     DateTime? endDate,
+    WidgetRef ref,
   ) {
+    final productDbCache = ref.read(productDbCacheProvider.notifier);
     // separate salesman transactions
     List<Map<String, dynamic>> fliteredTransactions =
         filterTransactions(_transactionDbCache.data, startDate, endDate, salesmanDbRef);
@@ -383,14 +394,16 @@ class SalesmanScreenController implements ScreenDataController {
     // Convert the summary map to a List<List<dynamic>>
     List<List<dynamic>> result = [];
     summary.forEach((itemName, quantities) {
+      final product = productDbCache.getItemByProperty('name', itemName);
+      final commission = product['salesmanCommission'];
       result.add([
         itemName,
         quantities[itemSoldQuantityKey],
         quantities[itemGiftQuantityKey],
         quantities['returnedQuantity'],
         quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!,
-        salesmanCommission,
-        salesmanCommission * (quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!)
+        commission,
+        commission * (quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!)
       ]);
     });
     return result;
