@@ -92,7 +92,8 @@ Future<Document> getReportPdf(
           (numItemsInFirstPage + (i * numItemsInSecondPage)),
           includeImage: false,
           includeTitle: false,
-          includeSummary: reportData.length < (numItemsInFirstPage + (i * numItemsInSecondPage)),
+          includeSummary:
+              reportData.length < (numItemsInFirstPage + ((i + 1) * numItemsInSecondPage)),
         );
       },
     ));
