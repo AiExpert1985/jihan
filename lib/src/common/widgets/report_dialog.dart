@@ -117,13 +117,13 @@ class __DateFilterDialogState extends State<_DateFilterDialog> {
 // all other fields (except sequence which has fixed width)
   void _setFieldsSizes() {
     List<List<dynamic>> dataListCopy = [...widget.dataList];
-    if (widget.useOriginalTransaction) {
+    if (widget.useOriginalTransaction && dataListCopy.isNotEmpty) {
       dataListCopy = removeIndicesFromInnerLists(dataListCopy, [0]);
     }
     // first we need to clear previous values from other reports
     isWideField = [];
     // first we assume all cells are normal size
-    for (var _ in dataListCopy[0]) {
+    for (var _ in widget.titleList) {
       isWideField.add(false);
     }
 
