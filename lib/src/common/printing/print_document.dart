@@ -6,7 +6,6 @@ import 'package:pdf/widgets.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/file_system_path.dart';
-import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/printing/customer_invoice_pdf.dart';
 import 'package:tablets/src/common/printing/customer_receipt_pdf.dart';
 import 'package:tablets/src/common/printing/customer_return.dart';
@@ -68,21 +67,36 @@ Future<void> printForm(
 }
 
 Future<void> printReport(
-    BuildContext context,
-    WidgetRef ref,
-    List<List<dynamic>> reportData,
-    String title,
-    List<String> listTitles,
-    String? startDate,
-    String? endDate,
-    num summaryValue,
-    String summaryTitle) async {
+  BuildContext context,
+  WidgetRef ref,
+  List<List<dynamic>> reportData,
+  String title, // report tiltle
+  List<String> listTitles,
+  String? startDate,
+  String? endDate,
+  List<String> summaryList,
+  List<String> filter1Values, // value selected in filter 1
+  List<String> filter2Values, // value selected in filter 2
+  List<String> filter3Values, // value selected in filter 3
+) async {
   try {
     final image = await loadImage('assets/images/invoice_logo.PNG');
     final filePath = gePdfpath('test_file');
     if (context.mounted) {
-      final pdf = await getReportPdf(context, ref, reportData, image, title, listTitles, startDate,
-          endDate, doubleToStringWithComma(summaryValue), summaryTitle);
+      final pdf = await getReportPdf(
+        context,
+        ref,
+        reportData,
+        image,
+        title,
+        listTitles,
+        startDate,
+        endDate,
+        summaryList,
+        filter1Values,
+        filter2Values,
+        filter3Values,
+      );
       if (filePath == null) return;
       final file = File(filePath);
       await file.writeAsBytes(await pdf.save());

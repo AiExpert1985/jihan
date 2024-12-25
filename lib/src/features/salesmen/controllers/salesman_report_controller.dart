@@ -19,7 +19,8 @@ class SalesmanReportController {
       _getDebtReportTitles(context),
       filteredList,
       title: salesmanName,
-      sumIndex: 1,
+      // this index is after removing first column of transaction (i.e it is accually [2])
+      summaryIndexes: [1, 2],
       dropdownLabel: S.of(context).customer,
       dropdownIndex: 0,
     );
@@ -32,18 +33,31 @@ class SalesmanReportController {
       _getOpenInvoicesReportTitles(context),
       detailsList,
       title: salesmanName,
+      // this index is after removing first column of transaction (i.e it is accually [2, 3])
+      summaryIndexes: [1, 2],
     );
   }
 
   void showSoldItemsReport(
       BuildContext context, List<List<dynamic>> detailsList, String title, bool isSupervisor) {
     if (!isSupervisor) {
-      showReportDialog(context, _getSoldItemsReportTitles(context), detailsList,
-          title: title, sumIndex: 6);
+      showReportDialog(
+        context,
+        _getSoldItemsReportTitles(context),
+        detailsList,
+        title: title,
+        // this index is after removing first column of transaction (i.e it is accually [5, 7])
+        summaryIndexes: [4, 6],
+      );
     } else {
-      showReportDialog(context, _getSoldItemsReportTitles(context).sublist(0, 5),
-          trimLastXIndicesFromInnerLists(detailsList, 2),
-          title: title, sumIndex: 4);
+      showReportDialog(
+        context,
+        _getSoldItemsReportTitles(context).sublist(0, 5),
+        trimLastXIndicesFromInnerLists(detailsList, 2),
+        title: title,
+        // this index is after removing first column of transaction (i.e it is accually 5)
+        summaryIndexes: [4],
+      );
     }
   }
 
@@ -53,7 +67,6 @@ class SalesmanReportController {
     String salesmanName, {
     int? sumIndex,
     bool isProfit = false,
-    bool isCount = false,
   }) {
     showReportDialog(
       context,
@@ -62,8 +75,8 @@ class SalesmanReportController {
       dateIndex: 2,
       title: salesmanName,
       useOriginalTransaction: true,
-      sumIndex: sumIndex,
-      isCount: isCount,
+      // this index is after removing first column of transaction (i.e it is accually sumIndex + 1)
+      summaryIndexes: sumIndex == null ? [] : [sumIndex],
     );
   }
 
@@ -75,14 +88,14 @@ class SalesmanReportController {
           S.of(context).region_name,
           S.of(context).phone,
           S.of(context).invoices_number,
-          S.of(context).item_sold_quantity
+          S.of(context).package_number
         ],
         detailsList,
         title: salesmanName,
-        targetedWidth: 800,
         dropdownLabel: S.of(context).regions,
         dropdownIndex: 1,
-        sumIndex: 3);
+        // this index is after removing first column of transaction (i.e it is accually [4, 5])
+        summaryIndexes: [3, 4]);
   }
 
   List<String> _getTransactionsReportTitles(BuildContext context, {bool isProfit = false}) {

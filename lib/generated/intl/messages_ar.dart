@@ -217,6 +217,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "number": MessageLookupByLibrary.simpleMessage("رقم"),
         "open_invoices":
             MessageLookupByLibrary.simpleMessage("القوائم المفتوحة"),
+        "package_number": MessageLookupByLibrary.simpleMessage("عدد الكراتين"),
         "page_not_found": MessageLookupByLibrary.simpleMessage(
             "لم يتم العثور على الصفحة المطلوبة"),
         "paid_amount":
@@ -296,6 +297,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "salary": MessageLookupByLibrary.simpleMessage("المستحقات"),
         "saleman_customers":
             MessageLookupByLibrary.simpleMessage("زبائن المندوب"),
+        "salesman": MessageLookupByLibrary.simpleMessage("المندوب"),
         "salesman_name": MessageLookupByLibrary.simpleMessage("الأسم"),
         "salesman_search":
             MessageLookupByLibrary.simpleMessage("بحث المندوبين"),
@@ -304,7 +306,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("مبيعات المندوب حسب المادة"),
         "salesmen": MessageLookupByLibrary.simpleMessage("المندوبين"),
         "salesmen_debt_report":
-            MessageLookupByLibrary.simpleMessage("ديون المندوبين"),
+            MessageLookupByLibrary.simpleMessage("تقرير الديون"),
         "salesmen_movement": MessageLookupByLibrary.simpleMessage("المندوبين"),
         "salesmen_sellings":
             MessageLookupByLibrary.simpleMessage("مبيعات المندوبين"),

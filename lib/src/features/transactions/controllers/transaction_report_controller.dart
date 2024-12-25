@@ -144,7 +144,8 @@ class TransactionReportController {
           processedTransactions,
           title: title,
           dateIndex: 2,
-          sumIndex: 6,
+          // this index is after removing first column of transaction (i.e it is accually 6)
+          summaryIndexes: [5],
           dropdownLabel: S.of(context).transaction_type,
           dropdownIndex: 1,
           useOriginalTransaction: true,

@@ -221,7 +221,7 @@ class DataRow extends ConsumerWidget {
           MainScreenClickableCell(
             commission,
             () => reportController.showTransactionReport(context, commissionDetails, name,
-                sumIndex: 4),
+                sumIndex: 3),
           ),
           MainScreenClickableCell(
             numCustomers,
@@ -237,33 +237,33 @@ class DataRow extends ConsumerWidget {
           ),
           MainScreenClickableCell(
             numReceipts,
-            () => reportController.showTransactionReport(context, receipts, name, isCount: true),
+            () => reportController.showTransactionReport(context, receipts, name),
           ),
           MainScreenClickableCell(
             receiptAmount,
-            () => reportController.showTransactionReport(context, receipts, name, sumIndex: 4),
+            () => reportController.showTransactionReport(context, receipts, name, sumIndex: 3),
           ),
           MainScreenClickableCell(
             numInvoices,
-            () => reportController.showTransactionReport(context, invoices, name, isCount: true),
+            () => reportController.showTransactionReport(context, invoices, name),
           ),
           MainScreenClickableCell(
             invoicesAmount,
-            () => reportController.showTransactionReport(context, invoices, name, sumIndex: 4),
+            () => reportController.showTransactionReport(context, invoices, name, sumIndex: 3),
           ),
           MainScreenClickableCell(
             numReturns,
-            () => reportController.showTransactionReport(context, returns, name, isCount: true),
+            () => reportController.showTransactionReport(context, returns, name),
           ),
           MainScreenClickableCell(
             returnsAmount,
-            () => reportController.showTransactionReport(context, returns, name, sumIndex: 4),
+            () => reportController.showTransactionReport(context, returns, name, sumIndex: 3),
           ),
           if (!hideSalesmanProfit)
             MainScreenClickableCell(
               profit,
               () => reportController.showTransactionReport(context, profitTransactions, name,
-                  isProfit: true),
+                  sumIndex: 3, isProfit: true),
             ),
         ],
       ),

@@ -17,7 +17,8 @@ class VendorReportController {
         title: title,
         dropdownIndex: 1,
         dropdownLabel: S.of(context).transaction_type,
-        sumIndex: 4,
+        // this index is after removing first column of transaction (i.e it is accually 4)
+        summaryIndexes: [3],
         useOriginalTransaction: true);
   }
 

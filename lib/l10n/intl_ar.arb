@@ -262,7 +262,7 @@
     "no_item_were_added_to_invoice": "لم يتم اضافة اي مادة للقائمة",
     "previous_item_quantity_is_zero": "لم يتم ادخال العدد للمادة السابقة",
     "product_out_of_stock": "لا يوجد مخزون كافي من المادة",
-    "salesmen_debt_report": "ديون المندوبين",
+    "salesmen_debt_report": "تقرير الديون",
     "print_status": "حالة الطباعة",
     "net_amount": "الصافي",
     "sold": "المباع",
@@ -274,5 +274,7 @@
     "supervisor_customer_report": "تقرير الزبائن",
     "customer_matching": "كشف زبون",
     "saleman_customers": "زبائن المندوب",
-    "hide_from_special_reports": "اخفاء في التقارير الخاصة"
+    "hide_from_special_reports": "اخفاء في التقارير الخاصة",
+    "salesman": "المندوب",
+    "package_number": "عدد الكراتين"
 }
