@@ -276,5 +276,7 @@
     "saleman_customers": "زبائن المندوب",
     "hide_from_special_reports": "اخفاء في التقارير الخاصة",
     "salesman": "المندوب",
-    "package_number": "عدد الكراتين"
+    "package_number": "عدد الكراتين",
+    "deleted_transactions": "التعاملات المحذوفة",
+    "deletion_time": "وقت الحذف"
 }

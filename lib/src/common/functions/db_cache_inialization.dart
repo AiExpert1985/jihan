@@ -6,6 +6,8 @@ import 'package:tablets/src/features/categories/repository/category_db_cache_pro
 import 'package:tablets/src/features/categories/repository/category_repository_provider.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/customers/repository/customer_repository_provider.dart';
+import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
+import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_repository_provider.dart';
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/products/repository/product_repository_provider.dart';
 import 'package:tablets/src/features/regions/repository/region_db_cache_provider.dart';
@@ -64,6 +66,9 @@ Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   }
   if (context.mounted) {
     await _initializeSettingsDbCache(context, ref);
+  }
+  if (context.mounted) {
+    await _initializeDeletedTransactionsDbCache(context, ref);
   }
 }
 
@@ -131,6 +136,14 @@ Future<void> _initializeSettingsDbCache(BuildContext context, WidgetRef ref) asy
   }
 }
 
+Future<void> _initializeDeletedTransactionsDbCache(BuildContext context, WidgetRef ref) async {
+  final dbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
+  if (dbCache.data.isEmpty) {
+    final settingsData = await ref.read(deletedTransactionRepositoryProvider).fetchItemListAsMaps();
+    dbCache.set(settingsData);
+  }
+}
+
 List<Map<String, dynamic>> getTransactionDbCacheData(WidgetRef ref) {
   final transactionsDbCache = ref.read(transactionDbCacheProvider.notifier);
   return transactionsDbCache.data;
@@ -168,5 +181,10 @@ List<Map<String, dynamic>> getRegionsDbCacheData(WidgetRef ref) {
 
 List<Map<String, dynamic>> getSettingsDbCacheData(WidgetRef ref) {
   final dbCache = ref.read(settingsDbCacheProvider.notifier);
+  return dbCache.data;
+}
+
+List<Map<String, dynamic>> getDeletedTransactionsDbCacheData(WidgetRef ref) {
+  final dbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
   return dbCache.data;
 }

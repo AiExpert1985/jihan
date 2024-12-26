@@ -14,6 +14,7 @@ class MainScreenTextCell extends StatelessWidget {
   final bool isWarning;
   final bool isColumnTotal;
   final bool isHighlighted;
+  final bool showTime;
 
   const MainScreenTextCell(
     this.data, {
@@ -23,6 +24,7 @@ class MainScreenTextCell extends StatelessWidget {
     this.isWarning = false,
     this.isColumnTotal = false,
     this.isHighlighted = false,
+    this.showTime = false,
   });
 
   @override
@@ -32,7 +34,11 @@ class MainScreenTextCell extends StatelessWidget {
       processedData = doubleToStringWithComma(data);
       if (isColumnTotal) processedData = '($processedData)';
     } else if (data is DateTime) {
-      processedData = formatDate(data);
+      if (showTime) {
+        processedData = formatDateTime(data);
+      } else {
+        processedData = formatDate(data);
+      }
     } else if (data is String) {
       processedData = data;
     } else {
@@ -231,8 +237,12 @@ class SortableMainScreenHeaderCell extends StatelessWidget {
           _title,
           isExpanded: false,
         ),
-        onDoubleTap: () => _screenDataNotifier.sortDataByProperty(_propertyName),
-        onTap: () => _screenDataNotifier.sortDataByProperty(_propertyName, isAscending: true),
+        onDoubleTap: () {
+          _screenDataNotifier.sortDataByProperty(_propertyName);
+        },
+        onTap: () {
+          _screenDataNotifier.sortDataByProperty(_propertyName, isAscending: true);
+        },
       ),
     );
   }

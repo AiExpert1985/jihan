@@ -73,7 +73,9 @@ class ScreenDataNotifier extends StateNotifier<Map<String, dynamic>> {
   }
 
   void sortDataByProperty(String propertyName, {bool isAscending = false}) {
-    if (!state['data'][0].containsKey(propertyName)) return;
+    if (!state['data'][0].containsKey(propertyName)) {
+      return;
+    }
     List<Map<String, dynamic>> stateData = [...data];
     sortMapsByProperty(stateData, propertyName, isAscending: isAscending);
     state = {...state, 'data': stateData};

@@ -100,6 +100,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "Document was updated successfully "),
         "debts": MessageLookupByLibrary.simpleMessage("Debts"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
+        "deleted_transactions":
+            MessageLookupByLibrary.simpleMessage("Deleted transactions"),
+        "deletion_time": MessageLookupByLibrary.simpleMessage("Deletion time"),
         "downloaded_backup_file_name":
             MessageLookupByLibrary.simpleMessage("Tablets database"),
         "due_debt_amount": MessageLookupByLibrary.simpleMessage("Due debt"),

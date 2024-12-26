@@ -97,6 +97,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("تم التعديل بنجاح"),
         "debts": MessageLookupByLibrary.simpleMessage("الديون"),
         "delete": MessageLookupByLibrary.simpleMessage("حذف"),
+        "deleted_transactions":
+            MessageLookupByLibrary.simpleMessage("التعاملات المحذوفة"),
+        "deletion_time": MessageLookupByLibrary.simpleMessage("وقت الحذف"),
         "downloaded_backup_file_name":
             MessageLookupByLibrary.simpleMessage("قاعدة بيانات برنامج الواح"),
         "due_debt_amount":

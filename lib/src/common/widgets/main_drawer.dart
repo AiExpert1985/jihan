@@ -9,11 +9,10 @@ import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/features/categories/controllers/category_screen_controller.dart';
-import 'package:tablets/src/features/categories/controllers/category_screen_data_notifier.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
+import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
 import 'package:tablets/src/features/regions/controllers/region_screen_controller.dart';
-import 'package:tablets/src/features/regions/controllers/region_screen_data_notifier.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_controller.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_controller.dart';
@@ -316,12 +315,14 @@ class SettingsDialog extends ConsumerWidget {
       S.of(context).categories,
       S.of(context).regions,
       S.of(context).settings,
+      S.of(context).deleted_transactions,
     ];
 
     final List<String> routes = [
       AppRoute.categories.name,
       AppRoute.regions.name,
       AppRoute.settings.name,
+      AppRoute.deletedTransactions.name,
     ];
 
     return AlertDialog(
@@ -330,7 +331,7 @@ class SettingsDialog extends ConsumerWidget {
       content: Container(
         padding: const EdgeInsets.all(25),
         width: 300,
-        height: 650,
+        height: 800,
         child: Column(
           children: [
             Expanded(
@@ -363,18 +364,15 @@ class SettingChildButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pageTitleNotifier = ref.read(pageTitleProvider.notifier);
     final categoryScreenController = ref.read(categoryScreenControllerProvider);
-    final categoryScreenData = ref.read(categoryScreenDataNotifier.notifier);
     final regionScreenController = ref.read(regionScreenControllerProvider);
-    final regionScreenData = ref.read(regionScreenDataNotifier.notifier);
+    final deletedTransactionScreenController = ref.read(deletedTransactionScreenControllerProvider);
 
     return InkWell(
       onTap: () {
-        if (categoryScreenData.data.isEmpty) {
-          categoryScreenController.setFeatureScreenData(context);
-        }
-        if (regionScreenData.data.isEmpty) {
-          regionScreenController.setFeatureScreenData(context);
-        }
+        categoryScreenController.setFeatureScreenData(context);
+        regionScreenController.setFeatureScreenData(context);
+        deletedTransactionScreenController.setFeatureScreenData(context);
+
         pageTitleNotifier.state = name;
         if (context.mounted) {
           context.goNamed(route);

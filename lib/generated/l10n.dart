@@ -2829,6 +2829,26 @@ class S {
       args: [],
     );
   }
+
+  /// `Deleted transactions`
+  String get deleted_transactions {
+    return Intl.message(
+      'Deleted transactions',
+      name: 'deleted_transactions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deletion time`
+  String get deletion_time {
+    return Intl.message(
+      'Deletion time',
+      name: 'deletion_time',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

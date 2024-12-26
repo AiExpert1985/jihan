@@ -160,7 +160,8 @@ class SecondRow extends ConsumerWidget {
     return Row(
       children: [
         FormInputField(
-          isReadOnly: formNavigator.isReadOnly,
+          isReadOnly:
+              formNavigator.isReadOnly || transactionType == TransactionType.customerInvoice.name,
           isDisabled: formNavigator.isReadOnly,
           dataType: constants.FieldDataType.num,
           name: numberKey,

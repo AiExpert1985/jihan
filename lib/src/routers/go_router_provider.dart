@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tablets/src/features/deleted_transactions/view/deleted_transaction_screen.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/features/categories/view/category_screen.dart';
 import 'package:tablets/src/features/customers/view/customer_screen.dart';
@@ -30,6 +31,7 @@ enum AppRoute {
   customers,
   vendors,
   regions,
+  deletedTransactions
 }
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
@@ -118,6 +120,11 @@ final goRouterProvider = Provider<GoRouter>(
           path: '/regions',
           name: AppRoute.regions.name,
           builder: (BuildContext context, GoRouterState state) => const RegionsScreen(),
+        ),
+        GoRoute(
+          path: '/deleted-transactions',
+          name: AppRoute.deletedTransactions.name,
+          builder: (BuildContext context, GoRouterState state) => const DeletedTransactionsScreen(),
         ),
       ],
       errorBuilder: (context, state) => const NotFoundScreen(),

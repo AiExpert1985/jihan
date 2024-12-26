@@ -24,6 +24,9 @@ import 'package:tablets/src/common/widgets/form_frame.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/values/form_dimenssions.dart';
 import 'package:tablets/src/common/widgets/form_title.dart';
+import 'package:tablets/src/features/deleted_transactions/model/deleted_transactions.dart';
+import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
+import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_repository_provider.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
@@ -345,6 +348,11 @@ class TransactionForm extends ConsumerWidget {
     final transaction = Transaction.fromMap(itemData);
     if (context.mounted) {
       formController.deleteItemFromDb(context, transaction, keepDialogOpen: true);
+      if (dialogOn && itemData['name'].isNotEmpty) {
+        // if dialog is on, it means this is real transaction deletion (i.e. user pressed delete button)
+        // not automatic delete for empty transaction (when no name entered and we leave the form)
+        addToDeletedTransactionsDb(ref, itemData);
+      }
     }
     // update the bdCache (database mirror) so that we don't need to fetch data from db
     const operationType = DbCacheOperationTypes.delete;
@@ -367,6 +375,30 @@ class TransactionForm extends ConsumerWidget {
       );
     }
     return true;
+  }
+
+  static void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
+    itemData = removeEmptyRows(itemData);
+    final deletionItemData = {...itemData, 'deleteDateTime': DateTime.now()};
+    final deletedTransaction = DeletedTransaction.fromMap(deletionItemData);
+    final deletedTransactionRepository = ref.read(deletedTransactionRepositoryProvider);
+    deletedTransactionRepository.addItem(deletedTransaction);
+    final deletedTransactionsDbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
+    // update the bdCache (database mirror) so that we don't need to fetch data from db
+    if (deletionItemData[transactionDateKey] is DateTime) {
+      // in our form the data type usually is DateTime, but the date type in dbCache should be
+      // Timestamp, as to mirror the datatype of firebase
+      deletionItemData[transactionDateKey] =
+          firebase.Timestamp.fromDate(deletionItemData[transactionDateKey]);
+    }
+    // update the bdCache (database mirror) so that we don't need to fetch data from db
+    if (deletionItemData['deleteDateTime'] is DateTime) {
+      // in our form the data type usually is DateTime, but the date type in dbCache should be
+      // Timestamp, as to mirror the datatype of firebase
+      deletionItemData['deleteDateTime'] =
+          firebase.Timestamp.fromDate(deletionItemData['deleteDateTime']);
+    }
+    deletedTransactionsDbCache.update(deletionItemData, DbCacheOperationTypes.add);
   }
 
   static void saveTransaction(

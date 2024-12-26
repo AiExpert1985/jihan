@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
@@ -9,6 +11,7 @@ import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
 import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
@@ -39,6 +42,7 @@ class TransactionShowForm {
       formDataNotifier,
       settingsDataNotifier,
       transactionType,
+      ref,
       transaction: transaction,
       transactionDbCache: transactionDbCache,
     );
@@ -75,7 +79,7 @@ class TransactionShowForm {
   }
 
   static void initializeFormData(BuildContext context, ItemFormData formDataNotifier,
-      ItemFormData settingsDataNotifier, String transactionType,
+      ItemFormData settingsDataNotifier, String transactionType, WidgetRef ref,
       {Transaction? transaction, DbCache? transactionDbCache}) {
     // note here if transaction is null, it it equivalent to calling
     // formDataNotifier.intialize();
@@ -101,7 +105,7 @@ class TransactionShowForm {
         S.of(context).transaction_payment_Dinar;
     final transactionsData = transactionDbCache?.data;
     int? transactionNumber =
-        getHighestTransactionNumber(context, transactionsData!, transactionType);
+        getNextTransactionNumber(context, transactionsData!, transactionType, ref);
     formDataNotifier.updateProperties({
       currencyKey: translateDbTextToScreenText(context, currenctyType),
       paymentTypeKey: translateDbTextToScreenText(context, paymentType),
@@ -168,13 +172,22 @@ class TransactionShowForm {
     }
   }
 
+// here I am giving the next number after the maximumn number previously given in both transactions & deleted
+// transactions
+  static int getNextTransactionNumber(
+      BuildContext context, List<Map<String, dynamic>> transactions, String type, WidgetRef ref) {
+    int maxDeletedNumber = getHighestDeletedTransactionNumber(ref, type) ?? 0;
+    int maxTransactionNumber = getHighestTransactionNumber(context, transactions, type) ?? 0;
+    return max(maxDeletedNumber, maxTransactionNumber) + 1;
+  }
+
   // for every different transaction, we calculate the next number which is the last reached +1
   static int? getHighestTransactionNumber(
       BuildContext context, List<Map<String, dynamic>> transactions, String type) {
     // Step 1: Filter the list for the given transaction type
     final filteredTransactions =
         transactions.where((transaction) => transaction[transactionTypeKey] == type);
-    if (filteredTransactions.isEmpty) return 1;
+    if (filteredTransactions.isEmpty) return 0;
     // Step 2: Extract the transaction numbers and convert them to integers
     final transactionNumbers = filteredTransactions.map((transaction) =>
         transaction[numberKey] is int ? transaction[numberKey] : transaction[numberKey].toInt());
@@ -182,6 +195,23 @@ class TransactionShowForm {
     int maxNumber = transactionNumbers
             .reduce((a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??
         0;
-    return maxNumber + 1;
+    return maxNumber;
+  }
+
+  static int? getHighestDeletedTransactionNumber(WidgetRef ref, String type) {
+    final dbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
+    final dbCacheData = dbCache.data;
+    // Step 1: Filter the list for the given transaction type
+    final filteredTransactions =
+        dbCacheData.where((transaction) => transaction[transactionTypeKey] == type);
+    if (filteredTransactions.isEmpty) return 0;
+    // Step 2: Extract the transaction numbers and convert them to integers
+    final transactionNumbers = filteredTransactions.map((transaction) =>
+        transaction[numberKey] is int ? transaction[numberKey] : transaction[numberKey].toInt());
+    // Step 3: Find the maximum transaction number
+    int maxNumber = transactionNumbers
+            .reduce((a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??
+        0;
+    return maxNumber;
   }
 }
