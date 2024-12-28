@@ -278,5 +278,6 @@
     "salesman": "Salesman",
     "package_number": "Packages number",
     "deleted_transactions": "Deleted transactions",
-    "deletion_time": "Deletion time"
+    "deletion_time": "Deletion time",
+    "alert_before_signout": "Do you want to signout"
 }

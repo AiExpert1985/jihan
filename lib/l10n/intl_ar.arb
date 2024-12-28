@@ -278,5 +278,6 @@
     "salesman": "المندوب",
     "package_number": "عدد الكراتين",
     "deleted_transactions": "التعاملات المحذوفة",
-    "deletion_time": "وقت الحذف"
+    "deletion_time": "وقت الحذف",
+    "alert_before_signout": "هل ترغب بالخروج من البرنامج"
 }

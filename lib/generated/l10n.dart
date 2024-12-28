@@ -2849,6 +2849,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Do you want to signout`
+  String get alert_before_signout {
+    return Intl.message(
+      'Do you want to signout',
+      name: 'alert_before_signout',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

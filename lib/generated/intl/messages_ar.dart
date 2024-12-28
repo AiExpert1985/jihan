@@ -31,6 +31,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "address": MessageLookupByLibrary.simpleMessage("اقرب نقطة دالة"),
         "alert_before_delete":
             MessageLookupByLibrary.simpleMessage("هل ترغب بحذف"),
+        "alert_before_signout":
+            MessageLookupByLibrary.simpleMessage("هل ترغب بالخروج من البرنامج"),
         "amount": MessageLookupByLibrary.simpleMessage("المبلغ"),
         "approve": MessageLookupByLibrary.simpleMessage("موافق"),
         "average_invoice_closing_duration":

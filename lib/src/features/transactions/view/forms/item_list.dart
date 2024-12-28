@@ -25,13 +25,13 @@ import 'package:tablets/src/features/transactions/controllers/transaction_form_d
 import 'package:tablets/src/features/transactions/controllers/transaction_utils_controller.dart';
 import 'package:tablets/src/features/transactions/view/transaction_form.dart';
 
-const double codeColumnWidth = customerInvoiceFormWidth * 0.07;
-const double sequenceColumnWidth = customerInvoiceFormWidth * 0.055;
-const double nameColumnWidth = customerInvoiceFormWidth * 0.33;
-const double priceColumnWidth = customerInvoiceFormWidth * 0.14;
-const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.09;
-const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.09;
-const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.14;
+const double codeColumnWidth = customerInvoiceFormWidth * 0.075;
+const double sequenceColumnWidth = customerInvoiceFormWidth * 0.06;
+const double nameColumnWidth = customerInvoiceFormWidth * 0.4;
+const double priceColumnWidth = customerInvoiceFormWidth * 0.145;
+const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.15;
+const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.15;
+const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.15;
 
 class ItemsList extends ConsumerWidget {
   const ItemsList(this.hideGifts, this.hidePrice, this.transactionType, {super.key});
@@ -200,7 +200,9 @@ Widget _buildDeleteItemButton(
         onPressed: () async {
           // show confirmation dialog before deleting
           final confirmation = await showDeleteConfirmationDialog(
-              context: context, message: formDataNotifier.data[itemsKey][index][itemNameKey]);
+              context: context,
+              messagePart1: S.of(context).alert_before_delete,
+              messagePart2: formDataNotifier.data[itemsKey][index][itemNameKey]);
           if (confirmation == null) return;
 
           final items = formDataNotifier.getProperty(itemsKey) as List<Map<String, dynamic>>;

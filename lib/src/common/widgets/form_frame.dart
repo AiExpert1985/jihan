@@ -23,8 +23,8 @@ class FormFrame extends StatelessWidget {
     return Center(
       child: Container(
         padding: const EdgeInsets.all(0),
-        width: 1000,
-        // height: height,
+        width: width,
+        height: height,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [

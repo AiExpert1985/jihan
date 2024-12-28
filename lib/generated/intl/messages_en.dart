@@ -30,6 +30,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "address": MessageLookupByLibrary.simpleMessage("Address"),
         "alert_before_delete":
             MessageLookupByLibrary.simpleMessage("Do you want to delete"),
+        "alert_before_signout":
+            MessageLookupByLibrary.simpleMessage("Do you want to signout"),
         "amount": MessageLookupByLibrary.simpleMessage("Amount"),
         "approve": MessageLookupByLibrary.simpleMessage("Yes"),
         "average_invoice_closing_duration":

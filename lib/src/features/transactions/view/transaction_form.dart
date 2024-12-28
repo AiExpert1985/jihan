@@ -22,7 +22,6 @@ import 'package:tablets/src/common/widgets/custome_appbar_for_back_return.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/form_frame.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
-import 'package:tablets/src/common/values/form_dimenssions.dart';
 import 'package:tablets/src/common/widgets/form_title.dart';
 import 'package:tablets/src/features/deleted_transactions/model/deleted_transactions.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
@@ -43,11 +42,38 @@ import 'package:tablets/src/features/transactions/view/transaction_show_form.dar
 import 'package:tablets/src/routers/go_router_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
 
+final Map<String, dynamic> transactionFormDimenssions = {
+  TransactionType.customerInvoice.name: {'height': 1100, 'width': 900},
+  TransactionType.vendorInvoice.name: {'height': 1000, 'width': 800},
+  TransactionType.customerReturn.name: {'height': 750, 'width': 800},
+  TransactionType.vendorReturn.name: {'height': 750, 'width': 800},
+  TransactionType.damagedItems.name: {'height': 650, 'width': 550},
+  TransactionType.gifts.name: {'height': 650, 'width': 550},
+  TransactionType.customerReceipt.name: {'height': 400, 'width': 800},
+  TransactionType.vendorReceipt.name: {'height': 400, 'width': 800},
+  TransactionType.expenditures.name: {'height': 500, 'width': 800},
+};
+
 class TransactionForm extends ConsumerWidget {
   const TransactionForm(this.isEditMode, this.transactionType, {super.key});
   final bool isEditMode; // used by formController to decide whether to save or update in db
   final String transactionType;
   // used to validate wether customer can buy new invoice (if he didn't exceed limits)
+
+  Map<String, double>? _getFormDimenssions(String transactionType) {
+    final dimenssions = {
+      TransactionType.customerInvoice.name: {'height': 1200.0, 'width': 1100.0},
+      TransactionType.vendorInvoice.name: {'height': 1000.0, 'width': 1000.0},
+      TransactionType.customerReturn.name: {'height': 1000.0, 'width': 1000.0},
+      TransactionType.vendorReturn.name: {'height': 900.0, 'width': 1000.0},
+      TransactionType.damagedItems.name: {'height': 900.0, 'width': 750.0},
+      TransactionType.gifts.name: {'height': 900.0, 'width': 750.0},
+      TransactionType.customerReceipt.name: {'height': 700.0, 'width': 800.0},
+      TransactionType.vendorReceipt.name: {'height': 700.0, 'width': 800.0},
+      TransactionType.expenditures.name: {'height': 700.0, 'width': 800.0},
+    };
+    return dimenssions[transactionType];
+  }
 
   Widget _getFormWidget(BuildContext context, String transactionType, WidgetRef ref) {
     final titles = {
@@ -111,8 +137,11 @@ class TransactionForm extends ConsumerWidget {
     ref.watch(imagePickerProvider);
     ref.watch(transactionFormDataProvider);
     ref.watch(textFieldsControllerProvider);
-    final height = transactionFormDimenssions[transactionType]['height'];
-    final width = transactionFormDimenssions[transactionType]['width'];
+    final formDimenssions = _getFormDimenssions(transactionType);
+    final height = formDimenssions?['height'] ?? 1000;
+    tempPrint(height);
+    final width = formDimenssions?['width'] ?? 1000;
+    tempPrint(width);
 
     return Scaffold(
       appBar: buildArabicAppBar(context, () async {
@@ -138,8 +167,8 @@ class TransactionForm extends ConsumerWidget {
             fields: _getFormWidget(context, transactionType, ref),
             buttons: _actionButtons(context, formController, formDataNotifier, formImagesNotifier,
                 dbCache, screenController, formNavigation, ref),
-            width: width is double ? width : width.toDouble(),
-            height: height is double ? height : height.toDouble(),
+            width: width,
+            height: height,
           ),
           // customer debt info only show for customer transactions
 
@@ -336,7 +365,8 @@ class TransactionForm extends ConsumerWidget {
     if (dialogOn) {
       final confirmation = await showDeleteConfirmationDialog(
           context: context,
-          message:
+          messagePart1: S.of(context).alert_before_delete,
+          messagePart2:
               '${translateDbTextToScreenText(context, formDataNotifier.data[transTypeKey])}  ${formDataNotifier.data[numberKey]}');
       if (confirmation == null) return false;
     }

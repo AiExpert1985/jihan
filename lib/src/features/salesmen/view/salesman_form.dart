@@ -61,14 +61,14 @@ class SalesmanForm extends ConsumerWidget {
         ),
         buttons: [
           IconButton(
-            onPressed: () =>
-                _onSavePress(context, formDataNotifier, formImagesNotifier, formController, dbCache, screenController),
+            onPressed: () => _onSavePress(context, formDataNotifier, formImagesNotifier,
+                formController, dbCache, screenController),
             icon: const SaveIcon(),
           ),
           if (isEditMode)
             IconButton(
-              onPressed: () => _onDeletePressed(
-                  context, formDataNotifier, formImagesNotifier, formController, dbCache, screenController),
+              onPressed: () => _onDeletePressed(context, formDataNotifier, formImagesNotifier,
+                  formController, dbCache, screenController),
               icon: const DeleteIcon(),
             ),
         ],
@@ -110,7 +110,10 @@ class SalesmanForm extends ConsumerWidget {
     DbCache dbCache,
     SalesmanScreenController screenController,
   ) async {
-    final confiramtion = await showDeleteConfirmationDialog(context: context, message: formDataNotifier.data['name']);
+    final confiramtion = await showDeleteConfirmationDialog(
+        context: context,
+        messagePart1: S.of(context).alert_before_delete,
+        messagePart2: formDataNotifier.data['name']);
     if (confiramtion != null) {
       final formData = formDataNotifier.data;
       final imageUrls = formImagesNotifier.saveChanges();

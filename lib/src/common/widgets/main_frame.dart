@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
+import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/main_drawer.dart';
 
 class AppScreenFrame extends ConsumerWidget {
@@ -31,7 +32,15 @@ class AppScreenFrame extends ConsumerWidget {
             ),
             actions: [
               TextButton.icon(
-                onPressed: () => FirebaseAuth.instance.signOut(), //signout(ref),
+                onPressed: () async {
+                  final confiramtion = await showDeleteConfirmationDialog(
+                      context: context,
+                      messagePart1: "",
+                      messagePart2: S.of(context).alert_before_signout);
+                  if (confiramtion != null) {
+                    FirebaseAuth.instance.signOut();
+                  }
+                }, //signout(ref),
                 icon: const LocaleAwareLogoutIcon(),
                 label: Text(
                   S.of(context).logout,

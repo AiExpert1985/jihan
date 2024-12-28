@@ -124,7 +124,9 @@ class CustomerForm extends ConsumerWidget {
     CustomerScreenController screenController,
   ) async {
     final confiramtion = await showDeleteConfirmationDialog(
-        context: context, message: formDataNotifier.data['name']);
+        context: context,
+        messagePart1: S.of(context).alert_before_delete,
+        messagePart2: formDataNotifier.data['name']);
     if (confiramtion != null) {
       final formData = formDataNotifier.data;
       final imageUrls = formImagesNotifier.saveChanges();
