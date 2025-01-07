@@ -17,12 +17,14 @@ import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/form_fields/drop_down_with_search.dart';
 import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
+import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/products/repository/product_repository_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_utils_controller.dart';
+import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/view/transaction_form.dart';
 
 const double codeColumnWidth = customerInvoiceFormWidth * 0.075;
@@ -101,8 +103,8 @@ List<Widget> _buildDataRows(
                 isReadOnly: formNavigator.isReadOnly,
                 isDisabled: formNavigator.isReadOnly,
                 isFirst: true),
-            _buildDropDownWithSearch(formDataNotifier, textEditingNotifier, index, nameColumnWidth,
-                productDbCache, productScreenController, context, items.length,
+            _buildDropDownWithSearch(ref, formDataNotifier, textEditingNotifier, index,
+                nameColumnWidth, productDbCache, productScreenController, context, items.length,
                 isReadOnly: formNavigator.isReadOnly),
             TransactionFormInputField(
                 index, soldQuantityColumnWidth, itemsKey, itemSoldQuantityKey, transactionType,
@@ -223,7 +225,7 @@ Widget _buildDeleteItemButton(
           double itemsTotalProfit = formDataNotifier.getProperty(itemsTotalProfitKey);
           final itemProfit = deletedItem[itemTotalProfitKey];
           itemsTotalProfit -= itemProfit;
-          final transactionTotalProfit = itemsTotalProfit - discount - totalSalesmanCommission;
+          final transactionTotalProfit = itemsTotalProfit - discount;
           formDataNotifier.updateProperties({
             subTotalAmountKey: subTotalAmount,
             totalAmountKey: totalAmount,
@@ -320,6 +322,7 @@ dynamic _getTotal(ItemFormData formDataNotifier, String property, String subProp
 }
 
 Widget _buildDropDownWithSearch(
+    WidgetRef ref,
     ItemFormData formDataNotifier,
     TextControllerNotifier textEditingNotifier,
     int index,
@@ -357,7 +360,7 @@ Widget _buildDropDownWithSearch(
           itemDbRefKey: item['dbRef'],
           itemSellingPriceKey: _getItemPrice(context, formDataNotifier, item),
           itemWeightKey: item['packageWeight'],
-          itemBuyingPriceKey: item['buyingPrice'],
+          itemBuyingPriceKey: getBuyingPrice(ref, productQuantity, item['dbRef']),
           itemSalesmanCommissionKey: item['salesmanCommission'],
           itemStockQuantityKey: productQuantity,
         };
@@ -523,7 +526,7 @@ class CodeFormInputField extends ConsumerWidget {
               itemDbRefKey: productData['dbRef'],
               itemSellingPriceKey: _getItemPrice(context, formDataNotifier, productData),
               itemWeightKey: productData['packageWeight'],
-              itemBuyingPriceKey: productData['buyingPrice'],
+              itemBuyingPriceKey: getBuyingPrice(ref, productQuantity, productData['dbRef']),
               itemSalesmanCommissionKey: productData['salesmanCommission'],
               itemStockQuantityKey: productQuantity,
             };
@@ -588,4 +591,36 @@ double _getItemPrice(
       ? item['sellRetailPrice']
       : item['sellWholePrice'];
   return price;
+}
+
+// the idea is to create a stack for vendor invoices where top invoice is the newest, and compare the remaining
+// amount with top invoice if the quanity is bigger, then pop the invoice from the stack and reduce its amount
+// from the quanitity, and repeat until quanitity is <= zero. in that way we get the proper buying price for the item
+// we return the default price if there is no price detected in customer invoice (which is the price in product form)
+double getBuyingPrice(WidgetRef ref, num currentQuantity, String productDbRef) {
+  final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
+  final transactions = transactionDbCache.data;
+  List<Map<String, dynamic>> boughtItems = [];
+  for (var trans in transactions) {
+    if (trans[transactionTypeKey] == TransactionType.vendorInvoice.name && trans['items'] is List) {
+      for (var item in trans['items']) {
+        if (item['dbRef'] == productDbRef) {
+          boughtItems.add(item);
+        }
+      }
+    }
+  }
+  sortMapsByProperty(boughtItems, 'date');
+  for (var item in boughtItems) {
+    if (item[itemSoldQuantityKey] > currentQuantity) {
+      tempPrint('calculated buying price = ${item[itemSellingPriceKey]}');
+      return item[itemSellingPriceKey];
+    }
+    currentQuantity = item[itemSoldQuantityKey];
+  }
+  // if no item transaction found, return the default price (or initial quanity price)
+  final productDbCache = ref.read(productDbCacheProvider.notifier);
+  final productData = productDbCache.getItemByProperty('dbRef', productDbRef);
+  tempPrint('defalut buying price = ${productData['buyingPrice']}');
+  return productData['buyingPrice'];
 }

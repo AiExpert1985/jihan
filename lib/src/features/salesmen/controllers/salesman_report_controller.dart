@@ -103,6 +103,9 @@ class SalesmanReportController {
       S.of(context).transaction_type,
       S.of(context).transaction_date,
       S.of(context).transaction_name,
+      S.of(context).transaction_number,
+      S.of(context).transaction_subTotal_amount,
+      S.of(context).transaction_discount,
       isProfit ? S.of(context).profits : S.of(context).transaction_amount,
     ];
   }

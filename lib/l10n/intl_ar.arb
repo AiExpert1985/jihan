@@ -133,7 +133,7 @@
     "no": "لا",
     "vendors": "المجهزين",
     "vendor": "المجهز",
-    "transaction_subTotal_amount": "المبلغ المسدد",
+    "transaction_subTotal_amount": "المبلغ",
     "phone": "رقم الهاتف",
     "region_name": "اسم المنطقة",
     "regions": "المناطق",
@@ -156,7 +156,7 @@
     "receipt_date": "تاريخ التسديد",
     "receipt_amount": "مبلغ التسديد",
     "receipt_type": "نوع التسديد",
-    "due_debt_amount": "الدين المستحق",
+    "due_debt_amount": "دين مستحق",
     "num_due_invoices": "القوائم المتجاوزة",
     "previous_debt": "الدين قبل",
     "later_debt": "الدين بعد",
@@ -252,7 +252,7 @@
     "transaction_type_selection": "اختيار القائمة",
     "back": "رجوع",
     "new_item": "جديد",
-    "last_receipt_date": "اخر وصل تسديد",
+    "last_receipt_date": "اخر وصل",
     "total_debt": "الدين الكلي",
     "show_printed_only": "غير المطبوع",
     "show_all": "عرض الجميع",
@@ -279,5 +279,6 @@
     "package_number": "عدد الكراتين",
     "deleted_transactions": "التعاملات المحذوفة",
     "deletion_time": "وقت الحذف",
-    "alert_before_signout": "هل ترغب بالخروج من البرنامج"
+    "alert_before_signout": "هل ترغب بالخروج من البرنامج",
+    "last_invoice_date": "اخر قائمة تسديد"
 }

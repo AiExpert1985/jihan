@@ -221,7 +221,7 @@ class DataRow extends ConsumerWidget {
           MainScreenClickableCell(
             commission,
             () => reportController.showTransactionReport(context, commissionDetails, name,
-                sumIndex: 3),
+                sumIndex: 6, isProfit: true),
           ),
           MainScreenClickableCell(
             numCustomers,
@@ -241,7 +241,7 @@ class DataRow extends ConsumerWidget {
           ),
           MainScreenClickableCell(
             receiptAmount,
-            () => reportController.showTransactionReport(context, receipts, name, sumIndex: 3),
+            () => reportController.showTransactionReport(context, receipts, name, sumIndex: 6),
           ),
           MainScreenClickableCell(
             numInvoices,
@@ -249,7 +249,7 @@ class DataRow extends ConsumerWidget {
           ),
           MainScreenClickableCell(
             invoicesAmount,
-            () => reportController.showTransactionReport(context, invoices, name, sumIndex: 3),
+            () => reportController.showTransactionReport(context, invoices, name, sumIndex: 6),
           ),
           MainScreenClickableCell(
             numReturns,
@@ -257,13 +257,13 @@ class DataRow extends ConsumerWidget {
           ),
           MainScreenClickableCell(
             returnsAmount,
-            () => reportController.showTransactionReport(context, returns, name, sumIndex: 3),
+            () => reportController.showTransactionReport(context, returns, name, sumIndex: 6),
           ),
           if (!hideSalesmanProfit)
             MainScreenClickableCell(
               profit,
               () => reportController.showTransactionReport(context, profitTransactions, name,
-                  sumIndex: 3, isProfit: true),
+                  sumIndex: 6, isProfit: true),
             ),
         ],
       ),

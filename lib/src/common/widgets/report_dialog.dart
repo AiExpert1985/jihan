@@ -226,9 +226,8 @@ class __DateFilterDialogState extends State<_DateFilterDialog> {
           } catch (e) {
             return false;
           }
-          bool dateInRange =
-              (startDate == null || date.isAfter(startDate!.subtract(const Duration(days: 1)))) &&
-                  (endDate == null || date.isBefore(endDate!.add(const Duration(days: 1))));
+          bool dateInRange = (startDate == null || !date.isBefore(startDate!)) &&
+              (endDate == null || !date.isAfter(endDate!));
           return dateInRange;
         }
         return false;

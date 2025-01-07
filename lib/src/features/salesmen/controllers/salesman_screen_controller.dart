@@ -110,7 +110,7 @@ class SalesmanScreenController implements ScreenDataController {
     final invoices = processedTransactionsMap['invoicesList'] ?? [[]];
     final receipts = processedTransactionsMap['returnsList'] ?? [[]];
     final profitableInvoices = [...invoices, ...receipts];
-    return removeIndicesFromInnerLists(profitableInvoices, [4, 6]);
+    return removeIndicesFromInnerLists(profitableInvoices, [7, 9]);
   }
 
   List<List<dynamic>> _getCommissions(
@@ -119,7 +119,7 @@ class SalesmanScreenController implements ScreenDataController {
     final invoices = processedTransactionsMap['invoicesList'] ?? [[]];
     final returns = processedTransactionsMap['returnsList'] ?? [[]];
     final commissionedInvoices = [...invoices, ...returns];
-    return removeIndicesFromInnerLists(commissionedInvoices, [4, 5]);
+    return removeIndicesFromInnerLists(commissionedInvoices, [7, 8]);
   }
 
   @override
@@ -157,17 +157,17 @@ class SalesmanScreenController implements ScreenDataController {
     final processedTransactionsMap = _getProcessedTransactions(context, salesmanTransactions);
     final invoices = _getInvoices(processedTransactionsMap, 'invoicesList');
     final invoicesNumber = invoices.length;
-    final invoicesAmount = sumAtIndex(invoices, 4);
+    final invoicesAmount = sumAtIndex(invoices, 7);
     final receipts = _getInvoices(processedTransactionsMap, 'reciptsList');
     final receiptsNumber = receipts.length;
-    final receiptsAmount = sumAtIndex(receipts, 4);
+    final receiptsAmount = sumAtIndex(receipts, 7);
     final returns = _getInvoices(processedTransactionsMap, 'returnsList');
     final numReturns = returns.length;
-    final returnsAmount = sumAtIndex(returns, 4);
+    final returnsAmount = sumAtIndex(returns, 7);
     final profits = _getProfitableInvoices(processedTransactionsMap);
-    final profitAmount = sumAtIndex(profits, 4);
+    final profitAmount = sumAtIndex(profits, 7);
     final commissions = _getCommissions(processedTransactionsMap);
-    final commissionAmount = sumAtIndex(commissions, 4);
+    final commissionAmount = sumAtIndex(commissions, 7);
     Map<String, dynamic> newDataRow = {
       salesmanDbRefKey: salesman.dbRef,
       salesmanNameKey: salesman.name,
@@ -250,6 +250,9 @@ class SalesmanScreenController implements ScreenDataController {
         translateDbTextToScreenText(context, transactionType),
         transaction.date,
         transaction.name,
+        transaction.number,
+        transaction.subTotalAmount,
+        transaction.discount,
         transaction.totalAmount,
         transaction.transactionTotalProfit,
         transaction.salesmanTransactionComssion,
@@ -340,11 +343,9 @@ class SalesmanScreenController implements ScreenDataController {
       DateTime transactionDate =
           transaction['date'] is DateTime ? transaction['date'] : transaction['date'].toDate();
       // I need to subtract one day for start date to make the searched date included
-      bool isAfterStartDate =
-          startDate == null || transactionDate.isAfter(startDate.subtract(const Duration(days: 1)));
+      bool isAfterStartDate = startDate == null || !transactionDate.isBefore(startDate);
       // I need to add one day to the end date to make the searched date included
-      bool isBeforeEndDate =
-          endDate == null || transactionDate.isBefore(endDate.add(const Duration(days: 1)));
+      bool isBeforeEndDate = endDate == null || !transactionDate.isAfter(endDate);
       return salesmanDbRef == transaction['salesmanDbRef'] && isAfterStartDate && isBeforeEndDate;
     }).toList();
   }

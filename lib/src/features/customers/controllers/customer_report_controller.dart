@@ -133,7 +133,8 @@ class CustomerReportController {
       S.of(context).regions,
       S.of(context).due_debt_amount,
       S.of(context).total_debt,
-      S.of(context).last_receipt_date
+      S.of(context).last_receipt_date,
+      "اخر قائمة",
     ];
   }
 
@@ -155,7 +156,9 @@ class CustomerReportController {
       // only show customers with debt > 0
       if (totalDebt > 0) {
         final lastReceiptDate = lastCustomerReceipt(context, ref, customerScreenData);
-        debtList.add([name, salesman, region, dueDebt, totalDebt, lastReceiptDate]);
+        final lastInvoiceDate = lastCustomerInvoice(context, ref, customerScreenData);
+        debtList
+            .add([name, salesman, region, dueDebt, totalDebt, lastReceiptDate, lastInvoiceDate]);
       }
     }
 
@@ -187,6 +190,24 @@ class CustomerReportController {
     for (var transaction in allTransactions) {
       if (transaction[nameDbRefKey] == customerScreenData['dbRef'] &&
           transaction[transactionTypeKey] == TransactionType.customerReceipt.name) {
+        final date = transaction[dateKey];
+        receiptDates.add(date is DateTime ? date : date.toDate());
+      }
+    }
+    if (receiptDates.isNotEmpty) {
+      final newestDate = receiptDates.reduce((a, b) => a.isAfter(b) ? a : b);
+      return formatDate(newestDate);
+    }
+    return S.of(context).there_is_no_customer_receipt;
+  }
+
+  String lastCustomerInvoice(BuildContext context, WidgetRef ref, dynamic customerScreenData) {
+    final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
+    final allTransactions = transactionDbCache.data;
+    final receiptDates = [];
+    for (var transaction in allTransactions) {
+      if (transaction[nameDbRefKey] == customerScreenData['dbRef'] &&
+          transaction[transactionTypeKey] == TransactionType.customerInvoice.name) {
         final date = transaction[dateKey];
         receiptDates.add(date is DateTime ? date : date.toDate());
       }

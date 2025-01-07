@@ -139,9 +139,7 @@ class TransactionForm extends ConsumerWidget {
     ref.watch(textFieldsControllerProvider);
     final formDimenssions = _getFormDimenssions(transactionType);
     final height = formDimenssions?['height'] ?? 1000;
-    tempPrint(height);
     final width = formDimenssions?['width'] ?? 1000;
-    tempPrint(width);
 
     return Scaffold(
       appBar: buildArabicAppBar(context, () async {

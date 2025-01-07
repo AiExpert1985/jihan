@@ -262,7 +262,7 @@ class MainDrawerHeader extends StatelessWidget {
                 end: Alignment.bottomRight,
                 colors: [
                   Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                  Theme.of(context).colorScheme.primary,
                 ],
               ),
             ),

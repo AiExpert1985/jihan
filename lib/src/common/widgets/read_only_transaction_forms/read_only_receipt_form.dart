@@ -80,7 +80,7 @@ class ReadOnlyTransactionReceipt extends ConsumerWidget {
         HorizontalGap.l,
         readOnlyTextFormField(transaction.currency, label: paymentTypeLabel),
         HorizontalGap.l,
-        readOnlyTextFormField(transaction.currency, label: dateLabel),
+        readOnlyTextFormField(transaction.date, label: dateLabel),
       ],
     );
   }
