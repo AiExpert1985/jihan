@@ -420,6 +420,11 @@ Widget buildCustomerMatchingButton(BuildContext context, WidgetRef ref,
         }
         final customerTransactions =
             customerScreenController.getCustomerTransactions(customerData['dbRef']);
+        final customer = Customer.fromMap(customerData);
+        if (customer.initialCredit > 0) {
+          final intialDebtTransaction = _createInitialDebtTransaction(customer);
+          customerTransactions.add(intialDebtTransaction);
+        }
         if (context.mounted) {
           final customerMatchingData =
               customerScreenController.customerMatching(context, customerTransactions);
@@ -429,6 +434,23 @@ Widget buildCustomerMatchingButton(BuildContext context, WidgetRef ref,
       }
     },
   );
+}
+
+/// creates a temp transaction using customer initial debt, the transaction is used in the
+/// calculation of customer debt
+Map<String, dynamic> _createInitialDebtTransaction(Customer customer) {
+  return Transaction(
+    dbRef: 'na',
+    name: customer.name,
+    imageUrls: ['na'],
+    number: 1000001,
+    date: customer.initialDate,
+    currency: 'na',
+    transactionType: TransactionType.initialCredit.name,
+    totalAmount: customer.initialCredit,
+    transactionTotalProfit: 0,
+    isPrinted: false,
+  ).toMap();
 }
 
 Widget buildSalesmanCustomersButton(BuildContext context, WidgetRef ref) {
