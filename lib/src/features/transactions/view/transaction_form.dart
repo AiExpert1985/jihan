@@ -675,6 +675,7 @@ class NavigationSearch extends ConsumerWidget {
         onFieldSubmitted: (value) {
           try {
             formNavigator.goTo(context, int.tryParse(value.trim()));
+            formNavigation.isReadOnly = true;
             // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
             // TODO later I might change formNavigation to StateNotifier and watch it in this widget
             TransactionForm.onNavigationPressed(
