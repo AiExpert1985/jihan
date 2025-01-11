@@ -512,6 +512,7 @@ class CodeFormInputField extends ConsumerWidget {
           isReadOnly: isReadOnly,
           dataType: constants.FieldDataType.num,
           name: subProperty,
+          isOnSubmit: true,
           onChangedFn: (value) {
             // calculate the quantity of the product
             final productData = productDbCache.getItemByProperty('code', value);
