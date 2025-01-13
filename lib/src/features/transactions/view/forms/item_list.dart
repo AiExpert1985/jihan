@@ -369,6 +369,10 @@ Widget _buildDropDownWithSearch(
         textEditingNotifier.updateSubControllers(
             itemsKey, {itemSellingPriceKey: price, itemCodeKey: item['code']},
             index: index);
+        // add new empty row if current row is last one, (always keep one empty row)
+        if (index == numRows - 1) {
+          addNewRow(formDataNotifier, textEditingNotifier);
+        }
       },
     ),
   );
@@ -536,7 +540,7 @@ class CodeFormInputField extends ConsumerWidget {
             textEditingNotifier.updateSubControllers(
                 itemsKey, {itemSellingPriceKey: price, itemCodeKey: productData['code']},
                 index: index);
-// add new empty row if current row is last one, (always keep one empty row)
+            // add new empty row if current row is last one, (always keep one empty row)
             if (index == numRows - 1) {
               addNewRow(formDataNotifier, textEditingNotifier);
             }
