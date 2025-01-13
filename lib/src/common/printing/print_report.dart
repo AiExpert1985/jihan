@@ -13,7 +13,7 @@ const minStringLengthForLargeField = 20;
 const numItemsInFirstPage = 20;
 const numItemsInSecondPage = 30;
 const double headerFontSize = 14;
-const double wideFieldWidth = 185;
+const double wideFieldWidth = 155;
 
 Future<pw.Document> getReportPdf(
   BuildContext context,
@@ -210,7 +210,7 @@ pw.Widget _buildReportHeader(
   List<String> filter3Values,
 ) {
   return pw.Container(
-    padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+    padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 2),
     child: pw.Column(
       mainAxisAlignment: pw.MainAxisAlignment.center,
       children: [
@@ -305,7 +305,7 @@ pw.Widget _buildItem(pw.Font arabicFont, List<dynamic> dataRow, int sequence) {
       padding: const pw.EdgeInsets.all(1),
       child: arabicText(arabicFont, sequence.toString(), isBordered: true)));
   return pw.Container(
-    padding: const pw.EdgeInsets.symmetric(horizontal: 8),
+    padding: const pw.EdgeInsets.symmetric(horizontal: 1),
     child: pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
       children: item,

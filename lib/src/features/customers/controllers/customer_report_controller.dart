@@ -131,7 +131,7 @@ class CustomerReportController {
       S.of(context).customers,
       S.of(context).salesmen,
       S.of(context).regions,
-      S.of(context).due_debt_amount,
+      "المستحق",
       S.of(context).total_debt,
       S.of(context).last_receipt_date,
       "اخر قائمة",
