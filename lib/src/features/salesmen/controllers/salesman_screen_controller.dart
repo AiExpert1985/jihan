@@ -295,6 +295,11 @@ class SalesmanScreenController implements ScreenDataController {
         }
       }
       customerData.add([customer.name, customer.region, customer.phone, numInvoices, numItems]);
+      customerData.sort((a, b) {
+        final itemA = a[1];
+        final itemB = b[1];
+        return itemA.compareTo(itemB); // Descending order
+      });
       customerDbRef.add(customer.dbRef);
     }
     return {

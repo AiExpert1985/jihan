@@ -467,8 +467,11 @@ Widget buildSalesmanCustomersButton(BuildContext context, WidgetRef ref) {
       if (context.mounted) {
         final nameAndDates = await selectionDialog(
             context, ref, salesmanDbCache.data, S.of(context).salesmen,
-            includeDates: false);
+            includeDates: true);
         final salesmanData = nameAndDates[0];
+        // dates can be null, which means to take all the duration
+        final startDate = nameAndDates[1];
+        final endDate = nameAndDates[2];
         // salesman must be selected, otherwise we can't create report
         if (salesmanData == null) {
           return;
@@ -479,7 +482,15 @@ Widget buildSalesmanCustomersButton(BuildContext context, WidgetRef ref) {
         final salesmanCustomers =
             salesmanCustomerMaps.map((customerMap) => Customer.fromMap(customerMap)).toList();
         final salesmanTransactionMaps = transactionsDbCache.data.where((transaction) {
-          return transaction['salesmanDbRef'] == salesmanData['dbRef'];
+          DateTime transactionDate =
+              transaction['date'] is DateTime ? transaction['date'] : transaction['date'].toDate();
+          // I need to subtract one day for start date to make the searched date included
+          bool isAfterStartDate = startDate == null || !transactionDate.isBefore(startDate);
+          // I need to add one day to the end date to make the searched date included
+          bool isBeforeEndDate = endDate == null || !transactionDate.isAfter(endDate);
+          return transaction['salesmanDbRef'] == salesmanData['dbRef'] &&
+              isAfterStartDate &&
+              isBeforeEndDate;
         }).toList();
         final salesmanTransactions = salesmanTransactionMaps
             .map((transactionMap) => Transaction.fromMap(transactionMap))
