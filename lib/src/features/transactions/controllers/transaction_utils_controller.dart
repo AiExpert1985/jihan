@@ -21,7 +21,7 @@ class TransactionsUtils {
   double getTransactionProfit(ItemFormData formDataNotifier, String transactionType,
       double itemsTotalProfit, double discount, double salesmanTransactionComssion) {
     if (transactionType == TransactionType.customerInvoice.name) {
-      return itemsTotalProfit - discount - salesmanTransactionComssion;
+      return itemsTotalProfit - discount;
     }
     if (transactionType == TransactionType.customerReturn.name) {
       return itemsTotalProfit;
