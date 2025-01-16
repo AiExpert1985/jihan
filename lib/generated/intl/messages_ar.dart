@@ -104,8 +104,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "deletion_time": MessageLookupByLibrary.simpleMessage("وقت الحذف"),
         "downloaded_backup_file_name":
             MessageLookupByLibrary.simpleMessage("قاعدة بيانات برنامج الواح"),
-        "due_debt_amount":
-            MessageLookupByLibrary.simpleMessage("الدين المستحق"),
+        "due_debt_amount": MessageLookupByLibrary.simpleMessage("دين مستحق"),
         "edit": MessageLookupByLibrary.simpleMessage("تعديل"),
         "email": MessageLookupByLibrary.simpleMessage("البريد الالكتروني"),
         "error_importing_image":
@@ -183,8 +182,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "item_sold_quantity": MessageLookupByLibrary.simpleMessage("العدد"),
         "item_total_price": MessageLookupByLibrary.simpleMessage("السعر الكلي"),
         "last": MessageLookupByLibrary.simpleMessage("الاخير"),
-        "last_receipt_date":
-            MessageLookupByLibrary.simpleMessage("اخر وصل تسديد"),
+        "last_invoice_date":
+            MessageLookupByLibrary.simpleMessage("اخر قائمة تسديد"),
+        "last_receipt_date": MessageLookupByLibrary.simpleMessage("اخر وصل"),
         "later_debt": MessageLookupByLibrary.simpleMessage("الدين بعد"),
         "loading_data": MessageLookupByLibrary.simpleMessage("تحميل البيانات"),
         "login": MessageLookupByLibrary.simpleMessage("الدخول"),
@@ -415,7 +415,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "transaction_search":
             MessageLookupByLibrary.simpleMessage("بحث التعاملات"),
         "transaction_subTotal_amount":
-            MessageLookupByLibrary.simpleMessage("المبلغ المسدد"),
+            MessageLookupByLibrary.simpleMessage("المبلغ"),
         "transaction_total_amount_as_text":
             MessageLookupByLibrary.simpleMessage("المبلغ كتابة"),
         "transaction_type": MessageLookupByLibrary.simpleMessage("نوع التعامل"),

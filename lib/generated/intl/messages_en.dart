@@ -194,6 +194,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Sold Qtty."),
         "item_total_price": MessageLookupByLibrary.simpleMessage("Total"),
         "last": MessageLookupByLibrary.simpleMessage("Last"),
+        "last_invoice_date":
+            MessageLookupByLibrary.simpleMessage("Last invoice date"),
         "last_receipt_date":
             MessageLookupByLibrary.simpleMessage("Last receipt date"),
         "later_debt": MessageLookupByLibrary.simpleMessage("Later debt"),
