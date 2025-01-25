@@ -1,23 +1,33 @@
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/providers/storage_repository.dart';
 import 'package:tablets/src/common/functions/utils.dart' as utils;
 import 'package:tablets/src/common/values/constants.dart' as constants;
 import 'package:tablets/src/common/functions/debug_print.dart' as debug;
 
 class CustomImagePicker {
-  static Future<Uint8List?> selectImage({uploadingMethod, imageSource = 'gallery'}) async {
+  static Future<Uint8List?> selectImage() async {
     try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.any, allowMultiple: false);
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'png', 'jpeg', 'bmp', 'gif'], // Windows-specific extensions
+        allowMultiple: false,
+        withData: true, // Ensure file bytes are loaded
+      );
 
       if (result != null && result.files.isNotEmpty) {
-        Uint8List? image = result.files.first.bytes;
-        return utils.compressImage(image);
+        final file = result.files.first;
+        if (file.bytes == null) {
+          debug.errorPrint('File bytes are null');
+          return null;
+        }
+        return utils.compressImage(file.bytes!);
       }
-    } catch (e) {
-      debug.errorPrint(e, stackTrace: StackTrace.current);
-      return null;
+    } catch (e, stackTrace) {
+      debug.errorPrint('Image selection error: $e', stackTrace: stackTrace);
     }
     return null;
   }
@@ -35,7 +45,7 @@ class ImageSliderNotifier extends StateNotifier<List<String>> {
     removedUrls = [];
   }
 
-  void addImage() async {
+  void addImage(BuildContext context) async {
     String? newUrl;
     String imageName = utils.generateRandomString();
     Uint8List? imageFile = await CustomImagePicker.selectImage();
@@ -45,6 +55,9 @@ class ImageSliderNotifier extends StateNotifier<List<String>> {
     if (newUrl != null) {
       state = [...state, newUrl];
       addedUrls.add(newUrl);
+      if (context.mounted) {
+        successUserMessage(context, 'تم تحميل الصورة بنجاح');
+      }
       return;
     }
   }

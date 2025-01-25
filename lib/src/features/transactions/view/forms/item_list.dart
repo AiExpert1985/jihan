@@ -618,7 +618,6 @@ double getBuyingPrice(WidgetRef ref, num currentQuantity, String productDbRef) {
   sortMapsByProperty(boughtItems, 'date');
   for (var item in boughtItems) {
     if (item[itemSoldQuantityKey] > currentQuantity) {
-      tempPrint('calculated buying price = ${item[itemSellingPriceKey]}');
       return item[itemSellingPriceKey];
     }
     currentQuantity = item[itemSoldQuantityKey];
@@ -626,6 +625,5 @@ double getBuyingPrice(WidgetRef ref, num currentQuantity, String productDbRef) {
   // if no item transaction found, return the default price (or initial quanity price)
   final productDbCache = ref.read(productDbCacheProvider.notifier);
   final productData = productDbCache.getItemByProperty('dbRef', productDbRef);
-  tempPrint('defalut buying price = ${productData['buyingPrice']}');
   return productData['buyingPrice'];
 }

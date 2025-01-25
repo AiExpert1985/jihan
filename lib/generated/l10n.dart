@@ -2859,6 +2859,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Last invoice date`
+  String get last_invoice_date {
+    return Intl.message(
+      'Last invoice date',
+      name: 'last_invoice_date',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

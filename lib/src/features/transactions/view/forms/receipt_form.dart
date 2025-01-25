@@ -146,7 +146,7 @@ class ReceiptForm extends ConsumerWidget {
           label: S.of(context).transaction_subTotal_amount,
           onChangedFn: (value) {
             formDataNotifier.updateProperties({subTotalAmountKey: value});
-            final discount = formDataNotifier.getProperty(discountKey);
+            final discount = formDataNotifier.getProperty(discountKey) ?? 0;
             // note that discount is added (not subtracted) to the subtotal
             final totalAmount = value + discount;
             final updatedProperties = {totalAmountKey: totalAmount, transactionTotalProfitKey: 0};

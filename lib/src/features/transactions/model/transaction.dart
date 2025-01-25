@@ -20,12 +20,15 @@ class Transaction implements BaseItem {
   String dbRef;
   @override
   String name; // customer name, vendor name, expenditure name, ...etc name,
-  String? nameDbRef; // dbRef of customer and vendor
   @override
   List<String> imageUrls;
   int number; // receipt number, entered automatically (last_receipt + 1)
   DateTime date;
   String currency; // $ or ID
+  double transactionTotalProfit;
+  double totalAmount;
+  bool isPrinted;
+  String? nameDbRef; // dbRef of customer and vendor
   String? notes;
   String transactionType; // name of customer
   String? paymentType; // cash, debt
@@ -38,12 +41,9 @@ class Transaction implements BaseItem {
   String? salesmanDbRef;
   String? sellingPriceType;
   // all transaction must have profit, even if it is zero (for receipts, returns, ... etc)
-  double transactionTotalProfit;
   // the difference between selling price & buying price for all items sold
   double? itemsTotalProfit;
   double? salesmanTransactionComssion;
-  double totalAmount;
-  bool isPrinted;
   Transaction({
     //required for all classes (BaseItem implementation)
     required this.dbRef,

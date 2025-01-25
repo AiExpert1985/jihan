@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/values/constants.dart' as constants;
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,8 @@ class ImageSlider extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final updatedImageUrls = ref.watch(imagePickerProvider);
-    int displayedUrlIndex = updatedImageUrls.length - 1;
+    int displayedUrlIndex = updatedImageUrls.isNotEmpty ? updatedImageUrls.length - 1 : 0;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -26,9 +28,11 @@ class ImageSlider extends ConsumerWidget {
                   height: MediaQuery.of(context).size.height,
                   imageUrl: url,
                   progressIndicatorBuilder: (context, url, downloadProgress) =>
-                      // Image.memory(kTransparentImage),
                       CircularProgressIndicator(value: downloadProgress.progress),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  errorWidget: (context, url, error) {
+                    errorPrint('Error loading image: $error');
+                    return const Icon(Icons.error);
+                  },
                 ),
               )
               .toList(),
@@ -36,13 +40,13 @@ class ImageSlider extends ConsumerWidget {
             onPageChanged: (index, reason) => displayedUrlIndex = index,
             height: 150,
             autoPlay: false,
-            initialPage: -1, // initially display last image
+            initialPage: updatedImageUrls.isNotEmpty ? updatedImageUrls.length - 1 : 0,
           ),
         ),
         VerticalGap.m,
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           IconButton(
-            onPressed: () => ref.read(imagePickerProvider.notifier).addImage(),
+            onPressed: () => ref.read(imagePickerProvider.notifier).addImage(context),
             icon: const AddImageIcon(),
           ),
           IconButton(

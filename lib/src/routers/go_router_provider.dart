@@ -6,7 +6,7 @@ import 'package:tablets/src/features/deleted_transactions/view/deleted_transacti
 import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/features/categories/view/category_screen.dart';
 import 'package:tablets/src/features/customers/view/customer_screen.dart';
-import 'package:tablets/src/features/pending_transactions/pending_transactions.dart';
+import 'package:tablets/src/features/pending_transactions/view/pending_transaction_screen.dart';
 import 'package:tablets/src/features/products/view/product_screen.dart';
 import 'package:tablets/src/features/gps_locations/presentation/sales_men_live_location_screen.dart';
 import 'package:tablets/src/features/regions/view/regions_screen.dart';

@@ -8,6 +8,8 @@ import 'package:tablets/src/features/customers/repository/customer_db_cache_prov
 import 'package:tablets/src/features/customers/repository/customer_repository_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_repository_provider.dart';
+import 'package:tablets/src/features/pending_transactions/repository/pending_transaction_db_cache_provider.dart';
+import 'package:tablets/src/features/pending_transactions/repository/pending_transaction_repository_provider.dart';
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/products/repository/product_repository_provider.dart';
 import 'package:tablets/src/features/regions/repository/region_db_cache_provider.dart';
@@ -69,6 +71,9 @@ Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   }
   if (context.mounted) {
     await _initializeDeletedTransactionsDbCache(context, ref);
+  }
+  if (context.mounted) {
+    await _initializePendingTransactionsDbCache(context, ref);
   }
 }
 
@@ -139,9 +144,20 @@ Future<void> _initializeSettingsDbCache(BuildContext context, WidgetRef ref) asy
 Future<void> _initializeDeletedTransactionsDbCache(BuildContext context, WidgetRef ref) async {
   final dbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
   if (dbCache.data.isEmpty) {
-    final settingsData = await ref.read(deletedTransactionRepositoryProvider).fetchItemListAsMaps();
-    dbCache.set(settingsData);
+    final dbCacheData = await ref.read(deletedTransactionRepositoryProvider).fetchItemListAsMaps();
+    dbCache.set(dbCacheData);
   }
+}
+
+Future<void> _initializePendingTransactionsDbCache(BuildContext context, WidgetRef ref) async {
+  final dbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
+  final dbCacheData = await ref.read(pendingTransactionRepositoryProvider).fetchItemListAsMaps();
+  dbCache.set(dbCacheData);
+}
+
+List<Map<String, dynamic>> getPendingTransactionDbCacheData(WidgetRef ref) {
+  final dbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
+  return dbCache.data;
 }
 
 List<Map<String, dynamic>> getTransactionDbCacheData(WidgetRef ref) {

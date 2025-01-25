@@ -12,6 +12,7 @@ class SalesmanFormFields extends ConsumerWidget {
     final formDataNotifier = ref.watch(salesmanFormDataProvider.notifier);
     return Expanded(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           FormInputField(
             dataType: FieldDataType.text,

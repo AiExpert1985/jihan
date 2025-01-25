@@ -13,7 +13,7 @@ const minStringLengthForLargeField = 20;
 const numItemsInFirstPage = 20;
 const numItemsInSecondPage = 30;
 const double headerFontSize = 14;
-const double wideFieldWidth = 155;
+const double wideFieldWidth = 165;
 
 Future<pw.Document> getReportPdf(
   BuildContext context,

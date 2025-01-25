@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,11 +7,14 @@ import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
+import 'package:tablets/src/common/functions/file_system_path.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/printing/print_document.dart';
+import 'package:tablets/src/common/printing/print_report.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/show_transaction_dialog.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 List<bool> isWideField = [];
 const minStringLengthForLargeField = 20;
@@ -643,12 +648,23 @@ class __DateFilterDialogState extends State<_DateFilterDialog> {
                     ? []
                     : [...selectedDropdown3Values, '${widget.dropdown3Label}:']),
             HorizontalGap.m,
-            IconButton(
-              icon: const ShareIcon(),
-              onPressed: () {
-                // TODO: Implement share functionality
-              },
-            ),
+            WhatsappReportButton(
+                reportData,
+                reportTitle ?? '',
+                listTitles,
+                startDateString,
+                endDateString,
+                summaryList,
+                widget.useOriginalTransaction,
+                selectedDropdownValues.isEmpty
+                    ? []
+                    : [...selectedDropdownValues, '${widget.dropdownLabel}:'],
+                selectedDropdown2Values.isEmpty
+                    ? []
+                    : [...selectedDropdown2Values, '${widget.dropdown2Label}:'],
+                selectedDropdown3Values.isEmpty
+                    ? []
+                    : [...selectedDropdown3Values, '${widget.dropdown3Label}:']),
           ],
         ),
       ),
@@ -665,6 +681,59 @@ class __DateFilterDialogState extends State<_DateFilterDialog> {
             borderRadius: BorderRadius.circular(8.0),
             border: Border.all(color: Colors.grey.shade300)),
         child: childWidget);
+  }
+}
+
+void launchWhatsAppWeb() async {
+  // Replace with the actual phone number (including country code, but without +)
+  const String url = 'https://web.whatsapp.com/';
+
+  try {
+    // Launch WhatsApp Web with the specific chat
+    await launchUrlString(url);
+  } catch (e) {
+    errorPrint('Error launching WhatsApp Web: $e');
+  }
+}
+
+Future<void> createPdfWhatsapp(
+  BuildContext context,
+  WidgetRef ref,
+  List<List<dynamic>> reportData,
+  String title, // report tiltle
+  List<String> listTitles,
+  String? startDate,
+  String? endDate,
+  List<String> summaryList,
+  List<String> filter1Values, // value selected in filter 1
+  List<String> filter2Values, // value selected in filter 2
+  List<String> filter3Values, // value selected in filter 3
+) async {
+  try {
+    final image = await loadImage('assets/images/invoice_logo.PNG');
+    final filePath = gePdfpath('test_file');
+    if (context.mounted) {
+      final pdf = await getReportPdf(
+        context,
+        ref,
+        reportData,
+        image,
+        title,
+        listTitles,
+        startDate,
+        endDate,
+        summaryList,
+        filter1Values,
+        filter2Values,
+        filter3Values,
+      );
+      if (filePath == null) return;
+      final file = File(filePath);
+      await file.writeAsBytes(await pdf.save());
+      launchWhatsAppWeb();
+    }
+  } catch (e) {
+    debugLog('Pdf creation failed - ($e)');
   }
 }
 
@@ -705,6 +774,49 @@ class PrintReportButton extends ConsumerWidget {
       icon: const PrintIcon(),
       onPressed: () {
         printReport(context, ref, printingData, reportTitle, listTitles, startDate, endDate,
+            summaryList, filter1SelectedValues, filter2SelectedValues, filter3SelectedValues);
+      },
+    );
+  }
+}
+
+class WhatsappReportButton extends ConsumerWidget {
+  const WhatsappReportButton(
+      this.reportData,
+      this.reportTitle,
+      this.listTitles,
+      this.startDate,
+      this.endDate,
+      this.summaryList,
+      this.useOriginalTransaction,
+      this.filter1SelectedValues,
+      this.filter2SelectedValues,
+      this.filter3SelectedValues,
+      {super.key});
+
+  final List<List<dynamic>> reportData;
+  final String reportTitle;
+  final String? startDate;
+  final String? endDate;
+  final List<String> listTitles;
+  final List<String> summaryList;
+  final bool useOriginalTransaction;
+  final List<String> filter1SelectedValues;
+  final List<String> filter2SelectedValues;
+  final List<String> filter3SelectedValues;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    //if transaction is included, then we don't print it because it is only intended to show original transaction
+    List<List<dynamic>> printingData = [...reportData];
+    if (useOriginalTransaction) {
+      printingData = removeIndicesFromInnerLists(reportData, [0]);
+    }
+
+    return IconButton(
+      icon: const ShareIcon(),
+      onPressed: () {
+        createPdfWhatsapp(context, ref, printingData, reportTitle, listTitles, startDate, endDate,
             summaryList, filter1SelectedValues, filter2SelectedValues, filter3SelectedValues);
       },
     );
