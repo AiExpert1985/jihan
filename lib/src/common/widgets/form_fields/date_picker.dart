@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:intl/intl.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/form_validation.dart';
 import 'package:tablets/src/common/functions/utils.dart' as utils;
@@ -37,6 +38,7 @@ class FormDatePickerField extends StatelessWidget {
         inputType: InputType.date,
         onChanged: onChangedFn,
         validator: (value) => _validateDate(value, context),
+        format: DateFormat('dd-MM-yyyy', 'en_US'),
       ),
     );
   }

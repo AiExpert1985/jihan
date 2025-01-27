@@ -133,7 +133,7 @@ String numberToText(dynamic value) {
   return value.toString(); // Return as string if not an integer
 }
 
-String formatDate(DateTime date) => DateFormat('yyyy/MM/dd').format(date);
+String formatDate(DateTime date) => DateFormat('dd-MM-yyyy', 'en_US').format(date);
 String formatDateTime(DateTime date) => DateFormat('yyyy/MM/dd hh:mm a').format(date);
 
 // used to create thousand comma separators for numbers displayed in the UI

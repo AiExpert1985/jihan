@@ -397,7 +397,7 @@ class __DateFilterDialogState extends State<_DateFilterDialog> {
         ),
         initialValue: initialValue,
         inputType: InputType.date,
-        format: DateFormat('dd-MM-yyyy'),
+        format: DateFormat('dd-MM-yyyy', 'en_US'),
         onChanged: onChanged,
       ),
     );
