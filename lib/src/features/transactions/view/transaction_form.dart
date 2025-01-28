@@ -146,7 +146,7 @@ class TransactionForm extends ConsumerWidget {
         // back to transactions screen
         onLeavingTransaction(context, ref, formImagesNotifier);
         Navigator.pop(context);
-        context.goNamed(AppRoute.transactions.name);
+        // context.goNamed(AppRoute.transactions.name);
       }, () async {
         // back to home screen
         onLeavingTransaction(context, ref, formImagesNotifier);
