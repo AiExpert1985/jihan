@@ -32,6 +32,7 @@ const double sequenceColumnWidth = customerInvoiceFormWidth * 0.06;
 const double nameColumnWidth = customerInvoiceFormWidth * 0.4;
 const double priceColumnWidth = customerInvoiceFormWidth * 0.145;
 const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.15;
+const double stockColumnWidth = customerInvoiceFormWidth * 0.15;
 const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.15;
 const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.15;
 
@@ -67,6 +68,14 @@ class ItemsList extends ConsumerWidget {
       ),
     );
   }
+}
+
+num _calculateProductStock(BuildContext context, WidgetRef ref, String productDbRef) {
+  final productDbCache = ref.read(productDbCacheProvider.notifier);
+  final productData = productDbCache.getItemByDbRef(productDbRef);
+  final productScreenController = ref.read(productScreenControllerProvider);
+  final prodcutScreenData = productScreenController.getItemScreenData(context, productData);
+  return prodcutScreenData[productQuantityKey];
 }
 
 List<Widget> _buildDataRows(
@@ -134,10 +143,14 @@ List<Widget> _buildDataRows(
                   isReadOnly: true,
                   isDisabled: formNavigator.isReadOnly),
             buildDataCell(
-              soldQuantityColumnWidth,
+              stockColumnWidth,
+              // if we are loading item, then we calculate its current stock
+              // note that this is only activated when we are loading previous form, because if we have new form and select
+              // product, then its calculated in the on change function inside the drop down selection
               Text(
                 doubleToIntString(
-                    formDataNotifier.getSubProperty(itemsKey, index, itemStockQuantityKey)),
+                    formDataNotifier.getSubProperty(itemsKey, index, itemStockQuantityKey) ??
+                        _calculateProductStock(context, ref, items[index]['dbRef'])),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -341,14 +354,13 @@ Widget _buildDropDownWithSearch(
       dbCache: productDbCache,
       isRequired: false,
       onChangedFn: (item) {
+        // notify if previous item entered has zero quantity
         final items = formDataNotifier.getProperty(itemsKey);
         if (index > 1 && items[index - 1][itemSoldQuantityKey] == 0) {
           failureUserMessage(context, S.of(context).previous_item_quantity_is_zero);
         }
         // calculate the quantity of the product
-        final productData = productDbCache.getItemByDbRef(item['dbRef']);
-        final prodcutScreenData = productScreenController.getItemScreenData(context, productData);
-        final productQuantity = prodcutScreenData[productQuantityKey];
+        final productQuantity = _calculateProductStock(context, ref, item['dbRef']);
         if (productQuantity < 1) {
           failureUserMessage(context, S.of(context).product_out_of_stock);
         }

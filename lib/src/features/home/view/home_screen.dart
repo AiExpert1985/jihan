@@ -6,6 +6,7 @@ import 'package:search_choices/search_choices.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/database_backup.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/background_color.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
@@ -36,15 +37,8 @@ class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // we watch pageIsLoadingNotifier for one reason, which is that when we are
-    // in home page, and move to another page
-    // a load spinner will be shown in home until we move to target page
-    ref.watch(pageIsLoadingNotifier);
-    // initialize app data at the beginning of the app
     initializeAppData(context, ref);
-    final pageIsLoading = ref.read(pageIsLoadingNotifier);
-    final screenWidget = pageIsLoading ? const PageLoading() : const HomeScreenGreeting();
-    return AppScreenFrame(screenWidget);
+    return const AppScreenFrame(HomeScreenGreeting());
   }
 }
 
@@ -316,6 +310,18 @@ class FastAccessFormButton extends ConsumerWidget {
         ),
       ),
       onPressed: () async {
+        // first we set pageLoadingNotifier to true, to prevent any side bar button press
+        // until initialization is completed
+        final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
+        if (pageLoadingNotifier.state) {
+          // if pageLoadingNotifier.date = true, then it means another page is loading or data is initializing
+          // so, we return and not proceed
+          // this is done to fix the bug of pressing buttons multiple times at the very start of the app
+          // when the app is loading databases into dBCaches
+          failureUserMessage(context, "يرجى الانتظار حتى اكتمال تحميل بيانات البرنامج");
+          return;
+        }
+        pageLoadingNotifier.state = true;
         await initializeAppData(context, ref);
         backgroundColorNofifier.state = normalColor!;
         if (context.mounted) {
@@ -329,6 +335,7 @@ class FastAccessFormButton extends ConsumerWidget {
             formType: formType,
             transactionDbCache: transactionDbCache,
           );
+          pageLoadingNotifier.state = false;
         }
       },
       child: Container(

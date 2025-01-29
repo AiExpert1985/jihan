@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/database_backup.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
@@ -62,12 +63,20 @@ class MainDrawer extends ConsumerWidget {
 /// initialize all dbCaches and settings, and move on the the target page
 void processAndMoveToTargetPage(BuildContext context, WidgetRef ref,
     ScreenDataController screenController, String route, String pageTitle) async {
-  await autoDatabaseBackup(context, ref);
-  final pageTitleNotifier = ref.read(pageTitleProvider.notifier);
   final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
-  // page is loading only used to show a loading spinner (better user experience)
+  // page is loading used to show a loading spinner (better user experience)
   // before loading initializing dbCaches and settings we show loading spinner &
   // when done it is cleared using below pageLoadingNotifier.state = false;
+  if (pageLoadingNotifier.state) {
+    // if pageLoadingNotifier.date = true, then it means another page is loading or data is initializing
+    // so, we return and not proceed
+    // this is done to fix the bug of pressing buttons multiple times at the very start of the app
+    // when the app is loading databases into dBCaches
+    failureUserMessage(context, "يرجى الانتظار حتى اكتمال تحميل بيانات البرنامج");
+    return;
+  }
+  final pageTitleNotifier = ref.read(pageTitleProvider.notifier);
+  await autoDatabaseBackup(context, ref);
   pageLoadingNotifier.state = true;
   // note that dbCaches are only used for mirroring the database, all the data used in the
   // app in the screenData, which is a processed version of dbCache
@@ -102,6 +111,19 @@ class HomeButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pageTitleNotifier = ref.read(pageTitleProvider.notifier);
     return MainDrawerButton('home', S.of(context).home_page, () async {
+      final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
+      // page is loading used to show a loading spinner (better user experience)
+      // before loading initializing dbCaches and settings we show loading spinner &
+      // when done it is cleared using below pageLoadingNotifier.state = false;
+      if (pageLoadingNotifier.state) {
+        // if pageLoadingNotifier.date = true, then it means another page is loading or data is initializing
+        // so, we return and not proceed
+        // this is done to fix the bug of pressing buttons multiple times at the very start of the app
+        // when the app is loading databases into dBCaches
+        failureUserMessage(context, "يرجى الانتظار حتى اكتمال تحميل بيانات البرنامج");
+        return;
+      }
+      pageLoadingNotifier.state = true;
       await initializeAllDbCaches(context, ref);
       pageTitleNotifier.state = '';
       if (context.mounted) {
@@ -113,6 +135,7 @@ class HomeButton extends ConsumerWidget {
       // uploadDefaultSettings(ref);
       // importCustomerExcel(ref);
       // importProductExcel(ref);
+      pageLoadingNotifier.state = false;
     });
   }
 }
