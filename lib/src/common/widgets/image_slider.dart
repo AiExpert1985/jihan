@@ -38,8 +38,8 @@ class ImageSlider extends ConsumerWidget {
               .toList(),
           options: CarouselOptions(
             onPageChanged: (index, reason) => displayedUrlIndex = index,
-            height: 150,
-            autoPlay: false,
+            height: 200,
+            autoPlay: true,
             initialPage: updatedImageUrls.isNotEmpty ? updatedImageUrls.length - 1 : 0,
           ),
         ),

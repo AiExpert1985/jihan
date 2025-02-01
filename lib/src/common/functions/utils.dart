@@ -78,7 +78,7 @@ List<String> twoListsDifferences(List<String> list1, List<String> list2) =>
 // Default result image size is 50 k byte (reduce speed and the cost of firebase)
 // compression depends on image size, the larget image the more compression
 // if image size is small, it will not be compressed
-Uint8List? compressImage(Uint8List? image, {int targetImageSizeInBytes = 51200}) {
+Uint8List? compressImage(Uint8List? image, {int targetImageSizeInBytes = 5120}) {
   final quality = (image!.length / targetImageSizeInBytes).round();
   if (quality > 0) {
     image = img.encodeJpg(img.decodeImage(image)!, quality: quality);

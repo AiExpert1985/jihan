@@ -51,7 +51,7 @@ class ProductForm extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(0),
             width: 800,
-            height: 600,
+            height: 700,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
