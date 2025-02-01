@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
 import 'package:tablets/src/common/values/gaps.dart';
+import 'package:tablets/src/common/widgets/empty_screen.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
+import 'package:tablets/src/common/widgets/page_loading.dart';
 import 'package:tablets/src/features/products/controllers/product_drawer_provider.dart';
 import 'package:tablets/src/features/products/controllers/product_form_data_notifier.dart';
 import 'package:tablets/src/features/products/controllers/product_report_controller.dart';
@@ -104,30 +106,36 @@ class ListHeaders extends ConsumerWidget {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
     final hideProductProfit = settingsController.getProperty(hideProductProfitKey);
-    final hideMainScreenColumnTotals = settingsController.getProperty(hideMainScreenColumnTotalsKey);
+    final hideMainScreenColumnTotals =
+        settingsController.getProperty(hideMainScreenColumnTotalsKey);
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const MainScreenPlaceholder(width: 20, isExpanded: false),
-            SortableMainScreenHeaderCell(screenDataNotifier, productNameKey, S.of(context).product_name),
-            SortableMainScreenHeaderCell(screenDataNotifier, productCodeKey, S.of(context).product_code),
-            SortableMainScreenHeaderCell(screenDataNotifier, productCategoryKey, S.of(context).product_category),
             SortableMainScreenHeaderCell(
-                screenDataNotifier, productCommissionKey, S.of(context).product_salesman_commission),
+                screenDataNotifier, productNameKey, S.of(context).product_name),
+            SortableMainScreenHeaderCell(
+                screenDataNotifier, productCodeKey, S.of(context).product_code),
+            SortableMainScreenHeaderCell(
+                screenDataNotifier, productCategoryKey, S.of(context).product_category),
+            SortableMainScreenHeaderCell(screenDataNotifier, productCommissionKey,
+                S.of(context).product_salesman_commission),
             if (!hideProductBuyingPrice)
               SortableMainScreenHeaderCell(
                   screenDataNotifier, productBuyingPriceKey, S.of(context).product_buying_price),
+            SortableMainScreenHeaderCell(screenDataNotifier, productSellingWholeSaleKey,
+                S.of(context).product_sell_whole_price),
+            SortableMainScreenHeaderCell(screenDataNotifier, productSellingRetailKey,
+                S.of(context).product_sell_retail_price),
             SortableMainScreenHeaderCell(
-                screenDataNotifier, productSellingWholeSaleKey, S.of(context).product_sell_whole_price),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, productSellingRetailKey, S.of(context).product_sell_retail_price),
-            SortableMainScreenHeaderCell(screenDataNotifier, productQuantityKey, S.of(context).product_stock_quantity),
+                screenDataNotifier, productQuantityKey, S.of(context).product_stock_quantity),
             SortableMainScreenHeaderCell(
                 screenDataNotifier, productTotalStockPriceKey, S.of(context).product_stock_amount),
             if (!hideProductProfit)
-              SortableMainScreenHeaderCell(screenDataNotifier, productProfitKey, S.of(context).product_profits),
+              SortableMainScreenHeaderCell(
+                  screenDataNotifier, productProfitKey, S.of(context).product_profits),
           ],
         ),
         VerticalGap.m,

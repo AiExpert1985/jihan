@@ -73,6 +73,7 @@ dependencies:
   flutter_multi_formatter: ^2.13.0
   search_choices: ^2.3.1
   url_launcher: ^6.3.1
+  window_size: ^0.1.0
 
 dev_dependencies:
   flutter_test:

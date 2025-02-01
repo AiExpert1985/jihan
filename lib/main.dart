@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore:depend_on_referenced_packages
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:window_size/window_size.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,11 @@ void main() async {
 // Enable offline persistence (make firebase work offline)
   // FirebaseFirestore.instance.settings = const Settings();
   FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true);
+
+  // Set the window size at the beginning of the app, using window_size package
+  setWindowMinSize(const Size(800, 600)); // Set minimum size if needed
+  setWindowMaxSize(Size.infinite); // Allow the window to be maximized
+  setWindowFrame(const Rect.fromLTWH(0, 0, 1920, 1080)); // Set the initial size to full HD
 
   runApp(const ProviderScope(
     child: MyApp(),
