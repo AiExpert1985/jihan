@@ -13,7 +13,20 @@ class CustomImagePicker {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'png', 'jpeg', 'bmp', 'gif'], // Windows-specific extensions
+        allowedExtensions: [
+          'jpg',
+          'JPG',
+          'png',
+          'PNG',
+          'jpeg',
+          'JPEG',
+          'bmp',
+          'BMP',
+          'gif',
+          'GIF',
+          'webp',
+          'WEBP'
+        ], // Windows-specific extensions
         allowMultiple: false,
         withData: true, // Ensure file bytes are loaded
       );
