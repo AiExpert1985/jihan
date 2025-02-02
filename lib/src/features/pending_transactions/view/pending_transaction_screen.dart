@@ -7,7 +7,6 @@ import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
-import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
@@ -27,9 +26,7 @@ import 'package:tablets/src/features/pending_transactions/controllers/pending_tr
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_data_notifier.dart';
 import 'package:tablets/src/features/pending_transactions/repository/pending_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
-import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_controller.dart';
-import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/utils.dart';
@@ -37,7 +34,6 @@ import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
-import 'package:tablets/src/features/transactions/view/transaction_show_form.dart';
 
 class PendingTransactions extends ConsumerWidget {
   const PendingTransactions({super.key});
@@ -191,7 +187,7 @@ class DataRow extends ConsumerWidget {
               MainScreenTextCell(transactionScreenData[transactionNotesKey], isWarning: isWarning),
               IconButton(
                   onPressed: () {
-                    showEditTransactionForm(context, ref, transaction);
+                    approveTransaction(context, ref, transaction);
                   },
                   icon: const SaveIcon()),
               IconButton(
@@ -307,12 +303,7 @@ void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
   deletedTransactionsDbCache.update(deletionItemData, DbCacheOperationTypes.add);
 }
 
-void showEditTransactionForm(BuildContext context, WidgetRef ref, Transaction transaction) {
-  final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
-  final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
-  final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
-  final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
-  final formNavigator = ref.read(formNavigatorProvider);
+void approveTransaction(BuildContext context, WidgetRef ref, Transaction transaction) {
   // first of all, we delete the transaction (before changing its number)
   deletePendingTransaction(context, ref, transaction, addToDeletedTransaction: false);
   // then we udpate the transaction number if transaction is a customer invoice
@@ -322,22 +313,27 @@ void showEditTransactionForm(BuildContext context, WidgetRef ref, Transaction tr
     transaction.number = invoiceNumber;
   }
   // save transaction to transaction database
-  saveTransaction(context, ref, transaction);
-  // finally, we open it form edit (it opens unEditable, if user want he press the edit button)
-  formNavigator.isReadOnly = true;
-  TransactionShowForm.showForm(
-    context,
-    ref,
-    imagePickerNotifier,
-    formDataNotifier,
-    settingsDataNotifier,
-    textEditingNotifier,
-    transaction: transaction,
-    formType: transaction.transactionType,
-  );
+  saveToTransactionCollection(context, ref, transaction);
+  // // finally, we open it form edit (it opens unEditable, if user want he press the edit button)
+  // final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
+  // final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
+  // final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
+  // final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
+  // final formNavigator = ref.read(formNavigatorProvider);
+  // formNavigator.isReadOnly = true;
+  // TransactionShowForm.showForm(
+  //   context,
+  //   ref,
+  //   imagePickerNotifier,
+  //   formDataNotifier,
+  //   settingsDataNotifier,
+  //   textEditingNotifier,
+  //   transaction: transaction,
+  //   formType: transaction.transactionType,
+  // );
 }
 
-void saveTransaction(
+void saveToTransactionCollection(
   BuildContext context,
   WidgetRef ref,
   Transaction transaction,
@@ -346,8 +342,15 @@ void saveTransaction(
   final screenController = ref.read(transactionScreenControllerProvider);
   final dbCache = ref.read(transactionDbCacheProvider.notifier);
   formController.saveItemToDb(context, transaction, false, keepDialogOpen: true);
+  // update the bdCache (database mirror) so that we don't need to fetch data from db
+  final itemData = transaction.toMap();
+  if (itemData[transactionDateKey] is DateTime) {
+    // in our form the data type usually is DateTime, but the date type in dbCache should be
+    // Timestamp, as to mirror the datatype of firebase
+    itemData[transactionDateKey] = firebase.Timestamp.fromDate(itemData[transactionDateKey]);
+  }
   const operationType = DbCacheOperationTypes.add;
-  dbCache.update(transaction.toMap(), operationType);
+  dbCache.update(itemData, operationType);
   // redo screenData calculations
   if (context.mounted) {
     screenController.setFeatureScreenData(context);

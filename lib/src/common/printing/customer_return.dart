@@ -34,7 +34,7 @@ Future<Document> getCustomerReturnPdf(BuildContext context, WidgetRef ref,
   final now = DateTime.now();
   final printingDate = DateFormat.yMd('ar').format(now);
   final printingTime = DateFormat.jm('ar').format(now);
-  final notes = transactionData['notes'];
+  final notes = transactionData['notes'] ?? '';
   final totalNumOfItems = doubleToStringWithComma(_calculateTotalNumOfItems(items));
   final itemsWeigt = doubleToStringWithComma(transactionData['totalWeight']);
   final screenController = ref.read(customerScreenControllerProvider);

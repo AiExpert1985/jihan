@@ -28,7 +28,7 @@ Future<Document> getVendorInvoicePdf(BuildContext context, WidgetRef ref,
   final now = DateTime.now();
   final printingDate = DateFormat.yMd('ar').format(now);
   final printingTime = DateFormat.jm('ar').format(now);
-  final notes = transactionData['notes'];
+  final notes = transactionData['notes'] ?? '';
   final totalNumOfItems = doubleToStringWithComma(_calculateTotalNumOfItems(items));
   final itemsWeight = doubleToStringWithComma(transactionData['totalWeight']);
   final arabicFont =

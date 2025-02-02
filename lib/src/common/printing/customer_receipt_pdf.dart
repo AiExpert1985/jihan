@@ -28,7 +28,7 @@ Future<Document> getCustomerReceiptPdf(BuildContext context, WidgetRef ref,
   final now = DateTime.now();
   final printingDate = DateFormat.yMd('ar').format(now);
   final printingTime = DateFormat.jm('ar').format(now);
-  final notes = transactionData['notes'];
+  final notes = transactionData['notes'] ?? '';
   final customerScreenController = ref.read(customerScreenControllerProvider);
   final customerScreenData = customerScreenController.getItemScreenData(context, customerData);
   final debtAfter = doubleToStringWithComma(customerScreenData['totalDebt']);
