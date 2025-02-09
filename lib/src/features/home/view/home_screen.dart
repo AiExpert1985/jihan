@@ -398,7 +398,8 @@ Widget buildSalesmanCustomersButton(BuildContext context, WidgetRef ref) {
           // I need to subtract one day for start date to make the searched date included
           bool isAfterStartDate = startDate == null || !transactionDate.isBefore(startDate);
           // I need to add one day to the end date to make the searched date included
-          bool isBeforeEndDate = endDate == null || !transactionDate.isAfter(endDate);
+          bool isBeforeEndDate =
+              endDate == null || !transactionDate.isAfter(endDate.add(const Duration(days: 1)));
           return transaction['salesmanDbRef'] == salesmanData['dbRef'] &&
               isAfterStartDate &&
               isBeforeEndDate;
