@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/functions/db_cache_inialization.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
@@ -37,7 +38,12 @@ class AppScreenFrame extends ConsumerWidget {
                   leading: Builder(
                     builder: (context) => IconButton(
                       icon: const MainMenuIcon(),
-                      onPressed: () => Scaffold.of(context).openDrawer(),
+                      onPressed: () {
+                        // this function controlls what happened when the main drawer button is pressed
+                        Scaffold.of(context).openDrawer();
+                        // for the red circle indicates number of pending transactiosn in main menu
+                        initializePendingTransactionsDbCache(context, ref);
+                      },
                     ),
                   ),
                   actions: [

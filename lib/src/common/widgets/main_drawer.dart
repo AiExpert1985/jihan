@@ -9,10 +9,12 @@ import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
 import 'package:tablets/src/common/values/gaps.dart';
+import 'package:tablets/src/common/widgets/circled_container.dart';
 import 'package:tablets/src/features/categories/controllers/category_screen_controller.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
 import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_controller.dart';
+import 'package:tablets/src/features/pending_transactions/repository/pending_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
 import 'package:tablets/src/features/regions/controllers/region_screen_controller.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_controller.dart';
@@ -25,6 +27,7 @@ class MainDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(pendingTransactionDbCacheProvider);
     return const Drawer(
       width: 250,
       child: Column(
@@ -162,14 +165,30 @@ class PendingsButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pendingTransactions = ref.watch(pendingTransactionDbCacheProvider);
     final pendingScreenController = ref.read(pendingTransactionScreenControllerProvider);
 
     final route = AppRoute.pendingTransactions.name;
     final pageTitle = S.of(context).pending_transactions;
-    return MainDrawerButton(
-      'pending_transactions',
-      S.of(context).pending_transactions,
-      () async =>
+    const iconName = 'pending_transactions';
+    return ListTile(
+      leading: Image.asset(
+        'assets/icons/side_drawer/$iconName.png',
+        width: 30,
+        fit: BoxFit.scaleDown,
+      ),
+      title: Row(
+        children: [
+          Text(S.of(context).pending_transactions),
+          if (pendingTransactions.isNotEmpty) ...[
+            HorizontalGap.xl,
+            CircledContainer(
+                child: Text(pendingTransactions.length.toString(),
+                    textAlign: TextAlign.center, style: const TextStyle(color: Colors.white)))
+          ]
+        ],
+      ),
+      onTap: () async =>
           processAndMoveToTargetPage(context, ref, pendingScreenController, route, pageTitle),
     );
   }

@@ -14,9 +14,9 @@ import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
 import 'package:tablets/src/common/values/form_dimenssions.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
-import 'package:tablets/src/common/widgets/form_fields/drop_down_with_search.dart';
 import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
+import 'package:tablets/src/common/widgets/form_fields/products_dropdown.dart';
 import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
@@ -70,7 +70,7 @@ class ItemsList extends ConsumerWidget {
   }
 }
 
-num _calculateProductStock(BuildContext context, WidgetRef ref, String productDbRef) {
+num calculateProductStock(BuildContext context, WidgetRef ref, String productDbRef) {
   final productDbCache = ref.read(productDbCacheProvider.notifier);
   final productData = productDbCache.getItemByDbRef(productDbRef);
   final productScreenController = ref.read(productScreenControllerProvider);
@@ -150,7 +150,7 @@ List<Widget> _buildDataRows(
               Text(
                 doubleToIntString(
                     formDataNotifier.getSubProperty(itemsKey, index, itemStockQuantityKey) ??
-                        _calculateProductStock(context, ref, items[index]['dbRef'])),
+                        calculateProductStock(context, ref, items[index]['dbRef'])),
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -347,7 +347,7 @@ Widget _buildDropDownWithSearch(
     {bool isReadOnly = false}) {
   return buildDataCell(
     width,
-    DropDownWithSearchFormField(
+    ProductsDropDown(
       isReadOnly: isReadOnly,
       initialValue: formDataNotifier.getSubProperty(itemsKey, index, itemNameKey),
       hideBorders: true,
@@ -360,7 +360,7 @@ Widget _buildDropDownWithSearch(
           failureUserMessage(context, S.of(context).previous_item_quantity_is_zero);
         }
         // calculate the quantity of the product
-        final productQuantity = _calculateProductStock(context, ref, item['dbRef']);
+        final productQuantity = calculateProductStock(context, ref, item['dbRef']);
         if (productQuantity < 1) {
           failureUserMessage(context, S.of(context).product_out_of_stock);
         }

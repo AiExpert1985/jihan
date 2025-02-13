@@ -73,7 +73,7 @@ Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
     await _initializeDeletedTransactionsDbCache(context, ref);
   }
   if (context.mounted) {
-    await _initializePendingTransactionsDbCache(context, ref);
+    await initializePendingTransactionsDbCache(context, ref);
   }
 }
 
@@ -149,7 +149,7 @@ Future<void> _initializeDeletedTransactionsDbCache(BuildContext context, WidgetR
   }
 }
 
-Future<void> _initializePendingTransactionsDbCache(BuildContext context, WidgetRef ref) async {
+Future<void> initializePendingTransactionsDbCache(BuildContext context, WidgetRef ref) async {
   final dbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
   final dbCacheData = await ref.read(pendingTransactionRepositoryProvider).fetchItemListAsMaps();
   dbCache.set(dbCacheData);
