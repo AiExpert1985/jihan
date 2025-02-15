@@ -8,8 +8,8 @@ class CircledContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: 25.0, // Set the width of the circle
-        height: 25.0, // Set the height of the circle
+        width: 30.0, // Set the width of the circle
+        height: 30.0, // Set the height of the circle
         decoration: BoxDecoration(
           color: Colors.red, // Circle color
           shape: BoxShape.circle, // Make the shape a circle

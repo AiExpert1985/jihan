@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/main_drawer.dart';
@@ -17,6 +18,7 @@ class AppScreenFrame extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pageTitle = ref.watch(pageTitleProvider);
+    final user = ref.watch(userInfoProvider); // used to prevent Jihan supervisor from accessing
     ref.watch(settingsDbCacheProvider);
     // I used settingDbCache to check if settings is loaded, as and indicator of finishing database loading
     // because it is the last document loaded from database, if loaded, then I show the side drawer button
@@ -35,17 +37,19 @@ class AppScreenFrame extends ConsumerWidget {
               ? AppBar(
                   title: _buildPageTitle(context, pageTitle),
                   leadingWidth: 140,
-                  leading: Builder(
-                    builder: (context) => IconButton(
-                      icon: const MainMenuIcon(),
-                      onPressed: () {
-                        // this function controlls what happened when the main drawer button is pressed
-                        Scaffold.of(context).openDrawer();
-                        // for the red circle indicates number of pending transactiosn in main menu
-                        initializePendingTransactionsDbCache(context, ref);
-                      },
-                    ),
-                  ),
+                  leading: user.privilage != 'guest'
+                      ? Builder(
+                          builder: (context) => IconButton(
+                            icon: const MainMenuIcon(),
+                            onPressed: () {
+                              // this function controlls what happened when the main drawer button is pressed
+                              Scaffold.of(context).openDrawer();
+                              // for the red circle indicates number of pending transactiosn in main menu
+                              initializePendingTransactionsDbCache(context, ref);
+                            },
+                          ),
+                        )
+                      : Container(),
                   actions: [
                     TextButton.icon(
                       onPressed: () async {

@@ -80,7 +80,7 @@ class SalesmanReportController {
     );
   }
 
-  void showCustomers(BuildContext context, List<List<dynamic>> detailsList, String salesmanName) {
+  void showCustomers(BuildContext context, List<List<dynamic>> detailsList, String reportTitle) {
     showReportDialog(
         context,
         [
@@ -91,7 +91,7 @@ class SalesmanReportController {
           S.of(context).package_number
         ],
         detailsList,
-        title: salesmanName,
+        title: reportTitle,
         dropdownLabel: S.of(context).regions,
         dropdownIndex: 1,
         // this index is after removing first column of transaction (i.e it is accually [4, 5])

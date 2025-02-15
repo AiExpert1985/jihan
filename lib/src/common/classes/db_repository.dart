@@ -106,12 +106,12 @@ class DbRepository {
     }
   }
 
-  // Stream<List<Map<String, dynamic>>> watchItemListAsMaps() {
-  //   final ref = _firestore.collection(_collectionName);
-  //   return ref
-  //       .snapshots()
-  //       .map((snapshot) => snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
-  // }
+  Stream<List<Map<String, dynamic>>> watchItemListAsMaps() {
+    final ref = _firestore.collection(_collectionName);
+    return ref
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
+  }
 
   // /// below function was not tested
   // Stream<List<BaseItem>> watchItemListAsItems() {
