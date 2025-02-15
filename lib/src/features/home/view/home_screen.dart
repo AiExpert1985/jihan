@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,11 +65,10 @@ class _HomeScreenGreetingState extends ConsumerState<HomeScreenGreeting> {
     ref.watch(settingsDbCacheProvider);
     ref.watch(settingsFormDataProvider);
     final settingsDbCache = ref.read(settingsDbCacheProvider.notifier);
-    final userEmail = FirebaseAuth.instance.currentUser!.email;
     final userInfo = ref.watch(userInfoProvider);
     // since settings is the last doecument loaded from db, if it is being not empty means it finish loading
     Widget screenWidget = (settingsDbCache.data.isEmpty ||
-            (userEmail == 'jihansupervisor@gmail.com' && userInfo.dbRef.isEmpty) || //more protect
+            (userInfo.privilage == 'guest' && userInfo.dbRef.isEmpty) || //more protect
             (userInfo.isBlocked))
         ? const PageLoading()
         : Row(
