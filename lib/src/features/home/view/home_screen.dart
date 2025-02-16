@@ -6,6 +6,7 @@ import 'package:search_choices/search_choices.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/database_backup.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
+import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/background_color.dart';
@@ -19,6 +20,7 @@ import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/home_greetings.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:tablets/src/common/widgets/page_loading.dart';
+import 'package:tablets/src/common/widgets/ristricted_access_widget.dart';
 import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/features/authentication/repository/accounts_repository.dart';
 import 'package:tablets/src/features/customers/controllers/customer_report_controller.dart';
@@ -64,30 +66,29 @@ class _HomeScreenGreetingState extends ConsumerState<HomeScreenGreeting> {
   Widget build(BuildContext context) {
     ref.watch(settingsDbCacheProvider);
     ref.watch(settingsFormDataProvider);
+    ref.watch(userInfoProvider); // to update UI when user info finally loaded
     final settingsDbCache = ref.read(settingsDbCacheProvider.notifier);
-    final userInfo = ref.watch(userInfoProvider);
     // since settings is the last doecument loaded from db, if it is being not empty means it finish loading
-    Widget screenWidget = (settingsDbCache.data.isEmpty ||
-            (userInfo.privilage == 'guest' && userInfo.dbRef.isEmpty) || //more protect
-            (userInfo.isBlocked))
+    Widget screenWidget = (settingsDbCache.data.isEmpty)
         ? const PageLoading()
         : Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              userInfo.privilage != 'guest'
-                  ? Container(
-                      padding: const EdgeInsets.all(10),
-                      width: 200,
-                      child: const Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomerFastAccessButtons(),
-                          VendorFastAccessButtons(),
-                          InternalFastAccessButtons(),
-                        ],
-                      ),
-                    )
-                  : Container(),
+              RistrictedAccessWidget(
+                allowedPrivilages: const [],
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  width: 200,
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomerFastAccessButtons(),
+                      VendorFastAccessButtons(),
+                      InternalFastAccessButtons(),
+                    ],
+                  ),
+                ),
+              ),
               const HomeGreeting(),
               const FastReports()
             ],
@@ -278,50 +279,57 @@ class FastReports extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userInfoProvider);
-    return Container(
-        padding: const EdgeInsets.all(20),
-        width: 200,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            user.privilage != 'guest'
-                ? Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    ),
-                    child: Column(
-                      children: [
-                        buildAllDebtButton(context, ref),
-                        VerticalGap.xl,
-                        buildSoldItemsButton(context, ref),
-                        VerticalGap.xl,
-                        buildCustomerMatchingButton(context, ref),
-                      ],
-                    ),
-                  )
-                : Container(),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: const BorderRadius.all(Radius.circular(8)),
+    ref.watch(userInfoProvider);
+    return RistrictedAccessWidget(
+      allowedPrivilages: [UserPrivilage.guest.name],
+      child: Container(
+          padding: const EdgeInsets.all(20),
+          width: 200,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              RistrictedAccessWidget(
+                allowedPrivilages: const [],
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[300]!),
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                  ),
+                  child: Column(
+                    children: [
+                      buildAllDebtButton(context, ref),
+                      VerticalGap.xl,
+                      buildSoldItemsButton(context, ref),
+                      VerticalGap.xl,
+                      buildCustomerMatchingButton(context, ref),
+                    ],
+                  ),
+                ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  buildSoldItemsButton(context, ref, isSupervisor: true),
-                  VerticalGap.xl,
-                  buildSalesmanCustomersButton(context, ref),
-                  VerticalGap.xl,
-                  if (user.privilage != 'guest') const HideProductCheckBox(),
-                ],
-              ),
-            )
-          ],
-        ));
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    buildSoldItemsButton(context, ref, isSupervisor: true),
+                    VerticalGap.xl,
+                    buildSalesmanCustomersButton(context, ref),
+                    VerticalGap.xl,
+                    const RistrictedAccessWidget(
+                      allowedPrivilages: [],
+                      child: HideProductCheckBox(),
+                    ),
+                  ],
+                ),
+              )
+            ],
+          )),
+    );
   }
 }
 
@@ -668,6 +676,7 @@ class HideProductCheckBox extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(userInfoProvider);
     final supervisorAsyncValue = ref.watch(accountsStreamProvider);
 
     return Container(
@@ -681,11 +690,12 @@ class HideProductCheckBox extends ConsumerWidget {
           );
 
           // Check if the supervisor was found
-          final isBlocked = supervisor.isNotEmpty ? supervisor['isBlocked'] ?? false : false;
+          final hassAccess = supervisor.isNotEmpty ? supervisor['hasAccess'] ?? false : false;
 
           return Checkbox(
-            value: isBlocked,
+            value: hassAccess,
             onChanged: (value) {
+              tempPrint(value);
               // Update the user info and notify the state
               ref.read(accountsRepositoryProvider).updateItem(
                     UserAccount(
@@ -693,7 +703,7 @@ class HideProductCheckBox extends ConsumerWidget {
                       supervisor['dbRef'],
                       supervisor['email'],
                       supervisor['privilage'],
-                      isBlocked: value!,
+                      value!,
                     ),
                   );
             },

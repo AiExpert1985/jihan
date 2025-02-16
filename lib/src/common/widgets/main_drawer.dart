@@ -8,8 +8,10 @@ import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/providers/page_title_provider.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/circled_container.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/features/categories/controllers/category_screen_controller.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
 import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
@@ -443,10 +445,16 @@ class BackupButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
     return SizedBox(
       height: 150,
       child: InkWell(
         onTap: () async {
+          if (userInfo == null ||
+              !userInfo.hasAccess ||
+              userInfo.privilage != UserPrivilage.admin.name) {
+            return;
+          }
           await backupDataBase(context, ref);
         },
         child: Card(

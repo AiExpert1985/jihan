@@ -4,38 +4,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/features/authentication/repository/accounts_repository.dart';
 
-class UserInfoNotifier extends StateNotifier<UserAccount> {
-  UserInfoNotifier()
-      : super(UserAccount(
-            '', '', null, null)); // Initialize with null or a default SalesmanInfo instance
+class UserInfoNotifier extends StateNotifier<UserAccount?> {
+  UserInfoNotifier() : super(null);
 
-  void setDbRef(String value) {
-    state = UserAccount(state.name, value, state.email, state.privilage);
+  void setUserAccount(UserAccount userInfo) {
+    state = userInfo;
   }
 
-  void setName(String value) {
-    state = UserAccount(value, state.dbRef, state.email, state.privilage);
+  bool hasPermission(List<String> allowedPrivilages) {
+    if (state == null || !state!.hasAccess) {
+      return false;
+    }
+    return allowedPrivilages.contains(state!.privilage) ||
+        state!.privilage == UserPrivilage.admin.name;
   }
 
-  void setEmail(String value) {
-    state = UserAccount(state.name, state.dbRef, value, state.privilage);
+  void reset() {
+    state = null;
   }
-
-  void setPrivilage(String value) {
-    state = UserAccount(state.name, state.dbRef, state.email, value);
-  }
-
-  void setAccess(bool value) {
-    state = UserAccount(state.name, state.dbRef, state.email, state.privilage, isBlocked: value);
-  }
-
-  UserAccount get salesmanInfo => state;
-
-  UserAccount get data => state;
 }
 
 // Create a provider for the SalesmanInfoNotifier
-final userInfoProvider = StateNotifierProvider<UserInfoNotifier, UserAccount>((ref) {
+final userInfoProvider = StateNotifierProvider<UserInfoNotifier, UserAccount?>((ref) {
   return UserInfoNotifier();
 });
 
@@ -47,14 +37,11 @@ Future<void> loadUserInfo(WidgetRef ref) async {
   var matchingAccounts = accounts.where((account) => account['email'] == email);
   if (matchingAccounts.isNotEmpty) {
     final dbRef = matchingAccounts.first['dbRef'];
-    salesmanInfoNotifier.setDbRef(dbRef);
     final name = matchingAccounts.first['name'];
-    salesmanInfoNotifier.setName(name);
     final email = matchingAccounts.first['email'];
-    salesmanInfoNotifier.setEmail(email);
     final privilage = matchingAccounts.first['privilage'];
-    salesmanInfoNotifier.setPrivilage(privilage);
-    bool isBlocked = matchingAccounts.first['isBlocked'] ?? false;
-    salesmanInfoNotifier.setAccess(isBlocked);
+    final hasAccess = matchingAccounts.first['hasAccess'];
+    final userInfo = UserAccount(name, dbRef, email, privilage, hasAccess);
+    salesmanInfoNotifier.setUserAccount(userInfo);
   }
 }

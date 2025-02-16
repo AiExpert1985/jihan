@@ -8,6 +8,7 @@ import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/main_drawer.dart';
+import 'package:tablets/src/common/widgets/ristricted_access_widget.dart';
 import 'package:tablets/src/features/settings/repository/settings_db_cache_provider.dart';
 
 class AppScreenFrame extends ConsumerWidget {
@@ -18,7 +19,6 @@ class AppScreenFrame extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pageTitle = ref.watch(pageTitleProvider);
-    final user = ref.watch(userInfoProvider); // used to prevent Jihan supervisor from accessing
     ref.watch(settingsDbCacheProvider);
     // I used settingDbCache to check if settings is loaded, as and indicator of finishing database loading
     // because it is the last document loaded from database, if loaded, then I show the side drawer button
@@ -37,19 +37,20 @@ class AppScreenFrame extends ConsumerWidget {
               ? AppBar(
                   title: _buildPageTitle(context, pageTitle),
                   leadingWidth: 140,
-                  leading: user.privilage != 'guest'
-                      ? Builder(
-                          builder: (context) => IconButton(
-                            icon: const MainMenuIcon(),
-                            onPressed: () {
-                              // this function controlls what happened when the main drawer button is pressed
-                              Scaffold.of(context).openDrawer();
-                              // for the red circle indicates number of pending transactiosn in main menu
-                              initializePendingTransactionsDbCache(context, ref);
-                            },
-                          ),
-                        )
-                      : Container(),
+                  leading: Builder(
+                    builder: (context) => RistrictedAccessWidget(
+                      allowedPrivilages: const [],
+                      child: IconButton(
+                        icon: const MainMenuIcon(),
+                        onPressed: () {
+                          // this function controlls what happened when the main drawer button is pressed
+                          Scaffold.of(context).openDrawer();
+                          // for the red circle indicates number of pending transactiosn in main menu
+                          initializePendingTransactionsDbCache(context, ref);
+                        },
+                      ),
+                    ),
+                  ),
                   actions: [
                     TextButton.icon(
                       onPressed: () async {
@@ -58,6 +59,7 @@ class AppScreenFrame extends ConsumerWidget {
                             messagePart1: "",
                             messagePart2: S.of(context).alert_before_signout);
                         if (confiramtion != null) {
+                          ref.read(userInfoProvider.notifier).reset();
                           FirebaseAuth.instance.signOut();
                         }
                       }, //signout(ref),

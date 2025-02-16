@@ -1,15 +1,17 @@
 import 'package:tablets/src/common/interfaces/base_item.dart';
 
+enum UserPrivilage { admin, salesman, guest }
+
 class UserAccount implements BaseItem {
-  UserAccount(this.name, this.dbRef, this.email, this.privilage, {this.isBlocked = false});
+  UserAccount(this.name, this.dbRef, this.email, this.privilage, this.hasAccess);
 
   @override
   String name;
   @override
   String dbRef;
-  String? email;
-  String? privilage;
-  bool isBlocked;
+  String email;
+  String privilage;
+  bool hasAccess;
 
   @override
   String get coverImageUrl => '';
@@ -25,7 +27,7 @@ class UserAccount implements BaseItem {
       'imageUrls': imageUrls,
       'email': email,
       'privilage': privilage,
-      'isBlocked': isBlocked,
+      'hasAccess': hasAccess,
     };
   }
 }
