@@ -68,6 +68,13 @@ class MainDrawer extends ConsumerWidget {
 /// initialize all dbCaches and settings, and move on the the target page
 void processAndMoveToTargetPage(BuildContext context, WidgetRef ref,
     ScreenDataController screenController, String route, String pageTitle) async {
+  // update user info, so if the user is blocked by admin, while he uses the app he will be blocked
+  ref.read(userInfoProvider.notifier).loadUserInfo(ref);
+  final userInfo = ref.read(userInfoProvider);
+  if (userInfo == null || !userInfo.hasAccess || userInfo.privilage != UserPrivilage.admin.name) {
+    // only admin (who has access) can make backup
+    return;
+  }
   final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
   // page is loading used to show a loading spinner (better user experience)
   // before loading initializing dbCaches and settings we show loading spinner &
@@ -445,16 +452,10 @@ class BackupButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userInfo = ref.watch(userInfoProvider);
     return SizedBox(
       height: 150,
       child: InkWell(
         onTap: () async {
-          if (userInfo == null ||
-              !userInfo.hasAccess ||
-              userInfo.privilage != UserPrivilage.admin.name) {
-            return;
-          }
           await backupDataBase(context, ref);
         },
         child: Card(

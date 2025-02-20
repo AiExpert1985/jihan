@@ -22,26 +22,26 @@ class UserInfoNotifier extends StateNotifier<UserAccount?> {
   void reset() {
     state = null;
   }
+
+  Future<void> loadUserInfo(WidgetRef ref) async {
+    final accountsRepository = ref.read(accountsRepositoryProvider);
+    final email = FirebaseAuth.instance.currentUser!.email;
+    final accounts = await accountsRepository.fetchItemListAsMaps();
+    final salesmanInfoNotifier = ref.read(userInfoProvider.notifier);
+    var matchingAccounts = accounts.where((account) => account['email'] == email);
+    if (matchingAccounts.isNotEmpty) {
+      final dbRef = matchingAccounts.first['dbRef'];
+      final name = matchingAccounts.first['name'];
+      final email = matchingAccounts.first['email'];
+      final privilage = matchingAccounts.first['privilage'];
+      final hasAccess = matchingAccounts.first['hasAccess'];
+      final userInfo = UserAccount(name, dbRef, email, privilage, hasAccess);
+      salesmanInfoNotifier.setUserAccount(userInfo);
+    }
+  }
 }
 
 // Create a provider for the SalesmanInfoNotifier
 final userInfoProvider = StateNotifierProvider<UserInfoNotifier, UserAccount?>((ref) {
   return UserInfoNotifier();
 });
-
-Future<void> loadUserInfo(WidgetRef ref) async {
-  final accountsRepository = ref.read(accountsRepositoryProvider);
-  final email = FirebaseAuth.instance.currentUser!.email;
-  final accounts = await accountsRepository.fetchItemListAsMaps();
-  final salesmanInfoNotifier = ref.read(userInfoProvider.notifier);
-  var matchingAccounts = accounts.where((account) => account['email'] == email);
-  if (matchingAccounts.isNotEmpty) {
-    final dbRef = matchingAccounts.first['dbRef'];
-    final name = matchingAccounts.first['name'];
-    final email = matchingAccounts.first['email'];
-    final privilage = matchingAccounts.first['privilage'];
-    final hasAccess = matchingAccounts.first['hasAccess'];
-    final userInfo = UserAccount(name, dbRef, email, privilage, hasAccess);
-    salesmanInfoNotifier.setUserAccount(userInfo);
-  }
-}
