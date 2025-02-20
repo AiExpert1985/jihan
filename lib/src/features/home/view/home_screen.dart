@@ -388,6 +388,7 @@ Map<String, dynamic> _createInitialDebtTransaction(Customer customer) {
 }
 
 Widget buildSalesmanCustomersButton(BuildContext context, WidgetRef ref) {
+  updateUserInfo(ref);
   final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);
   final salesmanScreenController = ref.read(salesmanScreenControllerProvider);
   final salesmanReportController = ref.read(salesmanReportControllerProvider);
@@ -458,8 +459,15 @@ Widget buildAllDebtButton(BuildContext context, WidgetRef ref) {
   );
 }
 
+// this is used to update user info, so if the user is blocked by admin, while he uses the app
+// he will be blocked
+void updateUserInfo(WidgetRef ref) {
+  loadUserInfo(ref);
+}
+
 /// supervisor report differs in two things, (1) button name, (2) last two columns are empty in supervisor report
 Widget buildSoldItemsButton(BuildContext context, WidgetRef ref, {bool isSupervisor = false}) {
+  updateUserInfo(ref);
   final salesmanReportController = ref.read(salesmanReportControllerProvider);
   final salesmanScreenController = ref.read(salesmanScreenControllerProvider);
   final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);

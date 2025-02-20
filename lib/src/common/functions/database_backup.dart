@@ -10,8 +10,15 @@ import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:archive/archive.dart';
 import 'package:tablets/src/common/providers/daily_backup_provider.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 
 Future<void> backupDataBase(BuildContext context, WidgetRef ref) async {
+  final userInfo = ref.read(userInfoProvider);
+  if (userInfo == null || !userInfo.hasAccess || userInfo.privilage != UserPrivilage.admin.name) {
+    // only admin (who has access) can make backup
+    return;
+  }
   try {
     final dataBaseNames = _getDataBaseNames(context);
     final dataBaseMaps = await _getDataBaseMaps(context, ref);
