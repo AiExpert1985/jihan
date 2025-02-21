@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:search_choices/search_choices.dart';
 import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/functions/check_transaction_total.dart';
 import 'package:tablets/src/common/functions/database_backup.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
@@ -225,6 +226,7 @@ class FastAccessFormButton extends ConsumerWidget {
         ),
       ),
       onPressed: () async {
+        // checkTransactionsTotals(ref);
         // first we set pageLoadingNotifier to true, to prevent any side bar button press
         // until initialization is completed
         final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
