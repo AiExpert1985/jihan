@@ -602,7 +602,7 @@ Future<List<dynamic>> selectionDialog(BuildContext context, WidgetRef ref,
                   // padding is the only way I found to reduce the width of the search dialog
                   dropDownDialogPadding: const EdgeInsets.symmetric(
                     vertical: 120,
-                    horizontal: 700,
+                    horizontal: 600,
                   ),
                   closeButton: const SizedBox.shrink(),
                 ),
