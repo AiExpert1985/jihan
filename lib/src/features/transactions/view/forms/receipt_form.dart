@@ -78,7 +78,7 @@ class ReceiptForm extends ConsumerWidget {
           isReadOnly: formNavigator.isReadOnly,
           label: isVendor ? S.of(context).vendor : S.of(context).customer,
           initialValue: formDataNotifier.getProperty(nameKey),
-          dbCache: counterPartyDbCache,
+          itemsList: counterPartyDbCache.data,
           onChangedFn: (item) {
             final properties = {
               nameKey: item['name'],
@@ -100,7 +100,7 @@ class ReceiptForm extends ConsumerWidget {
             isReadOnly: formNavigator.isReadOnly,
             label: S.of(context).transaction_salesman,
             initialValue: formDataNotifier.getProperty(salesmanKey),
-            dbCache: salesmanDbCache,
+            itemsList: salesmanDbCache.data,
             onChangedFn: (item) {
               formDataNotifier.updateProperties({salesmanKey: item[nameKey]});
             },
@@ -206,6 +206,7 @@ class ReceiptForm extends ConsumerWidget {
           name: notesKey,
           label: S.of(context).transaction_notes,
           initialValue: formDataNotifier.getProperty(notesKey),
+          allowEmptyString: true,
           onChangedFn: (value) {
             formDataNotifier.updateProperties({notesKey: value});
           },

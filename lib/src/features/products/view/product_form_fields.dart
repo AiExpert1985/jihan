@@ -103,11 +103,11 @@ class ProductFormFields extends ConsumerWidget {
     );
   }
 
-  Widget _createDropdownField(String label, ItemFormData formDataNotifier, DbCache repository) {
+  Widget _createDropdownField(String label, ItemFormData formDataNotifier, DbCache dbCache) {
     return DropDownWithSearchFormField(
       label: label,
       initialValue: formDataNotifier.getProperty('category'),
-      dbCache: repository,
+      itemsList: dbCache.data,
       onChangedFn: (item) {
         formDataNotifier.updateProperties({
           'category': item['name'],

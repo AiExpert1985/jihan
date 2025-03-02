@@ -24,6 +24,7 @@ class FormInputField extends ConsumerWidget {
     this.textColor = Colors.black87,
     this.fontSize = 14,
     this.isOnSubmit = false, // if true, onChange will be executed only when user press enter
+    this.allowEmptyString = false,
   });
 
   final double fontSize;
@@ -43,6 +44,7 @@ class FormInputField extends ConsumerWidget {
   final bool isDisabled;
   final String name; // used by the widget, not used by me
   final bool isOnSubmit;
+  final bool allowEmptyString; // to allow onChange function to work even if value is empty
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,7 +96,7 @@ class FormInputField extends ConsumerWidget {
         onChangedFn(parsedValue);
         return;
       }
-      if (value.toString().isEmpty) return;
+      if (value.toString().isEmpty && !allowEmptyString) return;
       onChangedFn(value);
     } catch (e) {
       return;

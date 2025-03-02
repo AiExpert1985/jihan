@@ -71,7 +71,7 @@ class StatementForm extends ConsumerWidget {
           isReadOnly: formNavigator.isReadOnly,
           label: S.of(context).customer,
           initialValue: formDataNotifier.getProperty(nameKey),
-          dbCache: counterPartyDbCache,
+          itemsList: counterPartyDbCache.data,
           onChangedFn: (item) {
             formDataNotifier.updateProperties({
               if (isGift) nameDbRefKey: item['dbRef'],
@@ -86,7 +86,7 @@ class StatementForm extends ConsumerWidget {
           isReadOnly: formNavigator.isReadOnly,
           label: S.of(context).transaction_salesman,
           initialValue: formDataNotifier.getProperty(salesmanKey),
-          dbCache: salesmanDbCache,
+          itemsList: salesmanDbCache.data,
           onChangedFn: (item) {
             formDataNotifier.updateProperties({
               salesmanKey: item[nameKey],
@@ -143,6 +143,7 @@ class StatementForm extends ConsumerWidget {
           isRequired: false,
           dataType: constants.FieldDataType.text,
           name: notesKey,
+          allowEmptyString: true,
           label: S.of(context).transaction_notes,
           initialValue: formDataNotifier.getProperty(notesKey),
           onChangedFn: (value) {

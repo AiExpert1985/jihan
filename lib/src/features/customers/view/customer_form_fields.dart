@@ -39,7 +39,7 @@ class CustomerFormFields extends ConsumerWidget {
               DropDownWithSearchFormField(
                 label: S.of(context).salesman_selection,
                 initialValue: formDataNotifier.getProperty('salesman'),
-                dbCache: salesmanDbCache,
+                itemsList: salesmanDbCache.data,
                 onChangedFn: (item) {
                   formDataNotifier
                       .updateProperties({'salesman': item['name'], 'salesmanDbRef': item['dbRef']});
@@ -54,7 +54,7 @@ class CustomerFormFields extends ConsumerWidget {
                 DropDownWithSearchFormField(
                   label: S.of(context).region_name,
                   initialValue: formDataNotifier.getProperty('region'),
-                  dbCache: regionDbCache,
+                  itemsList: regionDbCache.data,
                   onChangedFn: (item) {
                     formDataNotifier
                         .updateProperties({'region': item['name'], 'regionDbRef': item['dbRef']});

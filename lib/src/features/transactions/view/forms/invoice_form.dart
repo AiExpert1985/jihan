@@ -89,7 +89,7 @@ class FirstRow extends ConsumerWidget {
           isReadOnly: formNavigator.isReadOnly,
           label: isVendor ? S.of(context).vendor : S.of(context).customer,
           initialValue: formDataNotifier.getProperty(nameKey),
-          dbCache: dbCache,
+          itemsList: dbCache.data,
           onChangedFn: (item) {
             // update customer field & related fields
             final properties = {
@@ -125,7 +125,7 @@ class FirstRow extends ConsumerWidget {
             isReadOnly: formNavigator.isReadOnly,
             label: S.of(context).transaction_salesman,
             initialValue: formDataNotifier.getProperty(salesmanKey),
-            dbCache: salesmanDbCache,
+            itemsList: salesmanDbCache.data,
             onChangedFn: (item) {
               formDataNotifier
                   .updateProperties({salesmanKey: item['name'], salesmanDbRefKey: item['dbRef']});
@@ -250,6 +250,7 @@ class ForthRow extends ConsumerWidget {
           // controller: textEditingNotifier.getController(notesKey),
           label: S.of(context).transaction_notes,
           initialValue: formDataNotifier.getProperty(notesKey),
+          allowEmptyString: true,
           onChangedFn: (value) {
             formDataNotifier.updateProperties({notesKey: value});
           },

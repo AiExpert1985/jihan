@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/functions/utils.dart' as utils;
 import 'package:tablets/src/common/functions/form_validation.dart' as validation;
+import 'package:tablets/src/common/functions/utils.dart';
 
 class DropDownWithSearchFormField extends ConsumerWidget {
   const DropDownWithSearchFormField(
@@ -13,17 +15,19 @@ class DropDownWithSearchFormField extends ConsumerWidget {
       this.label,
       this.isRequired = true,
       this.hideBorders = false,
-      required this.dbCache,
+      required this.itemsList,
+      // required this.dbCache,
       this.initialValue,
       this.isReadOnly = false,
       super.key});
 
-  final DbCache dbCache; // used to bring items (from database) shown in the list
+  // final DbCache dbCache; // used to bring items (from database) shown in the list
   final String? initialValue; // must contains 'name' property
   final String? label; // label shown on the cell
   final bool hideBorders; // hide borders in decoration, used if the field in sub list
   final bool isRequired; // if isRequired = false, then the field will not be validated
   final bool isReadOnly;
+  final List<Map<String, dynamic>> itemsList;
   final void Function(Map<String, dynamic>) onChangedFn;
 
   @override
@@ -38,7 +42,7 @@ class DropDownWithSearchFormField extends ConsumerWidget {
           decoration: utils.formFieldDecoration(label: label, hideBorders: hideBorders),
         ),
         selectedItem: initialValue != null ? {'name': initialValue} : null,
-        items: (filter, t) => dbCache.getSearchableList(filterKey: 'name', filterValue: filter),
+        items: (filter, t) => getSearchableList(filterKey: 'name', filterValue: filter),
         compareFn: (i, s) => i == s,
         popupProps: PopupProps.dialog(
           title: label != null
@@ -77,6 +81,17 @@ class DropDownWithSearchFormField extends ConsumerWidget {
       ),
     );
   }
+
+  // Function to convert List<Map<String, dynamic>> to FutureOr<List<Map<String, dynamic>>>
+  // it is used main for dropdown with search
+  FutureOr<List<Map<String, dynamic>>> getSearchableList(
+      {required String filterKey, required String filterValue}) {
+    List<Map<String, dynamic>> filteredList = deepCopyDbCache(itemsList);
+    if (filterValue != '') {
+      filteredList = filteredList.where((map) => map[filterKey].contains(filterValue)).toList();
+    }
+    return Future.value(filteredList);
+  }
 }
 
 Widget popUpItem(
@@ -96,12 +111,14 @@ Widget popUpItem(
         selected: isSelected,
         title: Text(item['name']),
         // subtitle: Text(item.code.toString()),
-        leading: CircleAvatar(
-          // radius: 70,
-          backgroundColor: Colors.white,
-          foregroundImage:
-              CachedNetworkImageProvider(item['imageUrls'][item['imageUrls'].length - 1]),
-        ),
+        leading: item['imageUrls'] != null
+            ? CircleAvatar(
+                // radius: 70,
+                backgroundColor: Colors.white,
+                foregroundImage:
+                    CachedNetworkImageProvider(item['imageUrls'][item['imageUrls'].length - 1]),
+              )
+            : null,
       ),
     ),
   );
