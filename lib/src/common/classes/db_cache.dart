@@ -36,6 +36,10 @@ class DbCache extends StateNotifier<List<Map<String, dynamic>>> {
     }
   }
 
+  void reset() {
+    state = [];
+  }
+
   /// set the whole dbCache
   void set(List<Map<String, dynamic>> newData) {
     state = newData;

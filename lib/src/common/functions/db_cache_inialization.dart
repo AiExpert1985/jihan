@@ -44,6 +44,19 @@ void initializeSettings(BuildContext context, WidgetRef ref) {
   }
 }
 
+Future<void> resetDbCaches(BuildContext context, WidgetRef ref) async {
+  ref.read(customerDbCacheProvider.notifier).reset();
+  ref.read(transactionDbCacheProvider.notifier).reset();
+  ref.read(productDbCacheProvider.notifier).reset();
+  ref.read(vendorDbCacheProvider.notifier).reset();
+  ref.read(salesmanDbCacheProvider.notifier).reset();
+  ref.read(categoryDbCacheProvider.notifier).reset();
+  ref.read(regionDbCacheProvider.notifier).reset();
+  ref.read(deletedTransactionDbCacheProvider.notifier).reset();
+  ref.read(pendingTransactionDbCacheProvider.notifier).reset();
+  await initializeAllDbCaches(context, ref);
+}
+
 Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   await _initializeTransactionDbCache(context, ref);
 

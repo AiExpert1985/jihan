@@ -290,7 +290,7 @@ class FastReports extends ConsumerWidget {
           padding: const EdgeInsets.all(20),
           width: 200,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               RistrictedAccessWidget(
                 allowedPrivilages: const [],
@@ -330,7 +330,8 @@ class FastReports extends ConsumerWidget {
                     ),
                   ],
                 ),
-              )
+              ),
+              const ReloadDbCacheData(),
             ],
           )),
     );
@@ -716,5 +717,42 @@ class HideProductCheckBox extends ConsumerWidget {
         error: (error, stack) => Text('Error: $error'), // Handle errors
       ),
     );
+  }
+}
+
+// re-load all dbcaches to get fresh copy of data
+// this is needed mainly for jihan supervisor
+class ReloadDbCacheData extends ConsumerStatefulWidget {
+  const ReloadDbCacheData({super.key});
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _MyStatefulConsumerWidgetState createState() => _MyStatefulConsumerWidgetState();
+}
+
+class _MyStatefulConsumerWidgetState extends ConsumerState<ReloadDbCacheData> {
+  bool reload = false; // Example state variable
+
+  void setLoadingStatus(bool loadingStatus) {
+    setState(() {
+      reload = loadingStatus;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      reload
+          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator())
+          : IconButton(
+              onPressed: () async {
+                setLoadingStatus(true);
+                await resetDbCaches(context, ref);
+                setLoadingStatus(false);
+              },
+              icon: const Icon(Icons.refresh),
+            ),
+      const Text(' مزامنة البيانات')
+    ]);
   }
 }

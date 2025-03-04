@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/utils.dart';
+import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/screen_data_notifier.dart';
-import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 
 // Enum for filter types
 enum QuickFilterType {
@@ -31,7 +31,7 @@ class QuickFilter {
 class ScreenDataQuickFilters extends StateNotifier<List<QuickFilter>> {
   ScreenDataQuickFilters(this._screenDataNotifier, this._screenController) : super([]);
   final ScreenDataNotifier _screenDataNotifier;
-  final TransactionScreenController _screenController;
+  final ScreenDataController _screenController;
 
   // Update or add a filter
   void updateFilters(QuickFilter newFilter) {

@@ -19,7 +19,17 @@ import 'package:tablets/src/common/widgets/show_transaction_dialog.dart';
 import 'package:tablets/src/features/deleted_transactions/model/deleted_transactions.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_repository_provider.dart';
-
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:intl/intl.dart';
+import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/classes/screen_quick_filter.dart';
+import 'package:tablets/src/common/functions/utils.dart';
+import 'package:tablets/src/common/values/gaps.dart';
+import 'package:tablets/src/common/widgets/form_fields/drop_down_with_search.dart';
+import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
+import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_quick_filter_controller.dart';
+import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_drawer_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_form_controller.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_controller.dart';
@@ -28,8 +38,6 @@ import 'package:tablets/src/features/pending_transactions/repository/pending_tra
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_controller.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
-import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
@@ -42,6 +50,7 @@ class PendingTransactions extends ConsumerWidget {
     ref.watch(pendingTransactionScreenDataNotifier);
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
     final settingsData = settingsDataNotifier.data;
+    ref.watch(pendingTransactionQuickFiltersProvider);
     // if settings data is empty it means user has refresh the web page &
     // didn't reach the page through pressing the page button
     // in this case he didn't load required dbCaches so, I should hide buttons because
@@ -74,6 +83,8 @@ class PendingTransactionsList extends ConsumerWidget {
             padding: EdgeInsets.all(16),
             child: Column(
               children: [
+                TransactionsFilters(),
+                VerticalGap.l,
                 ListHeaders(),
                 Divider(),
                 ListData(),
@@ -401,4 +412,228 @@ int? getHighestDeletedCustomerInvoiceNumber(WidgetRef ref) {
       transactionNumbers.reduce((a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??
           0;
   return maxNumber;
+}
+
+class TransactionsFilters extends ConsumerStatefulWidget {
+  const TransactionsFilters({super.key});
+
+  @override
+  ConsumerState<TransactionsFilters> createState() => _TransactionsFiltersState();
+}
+
+class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
+  late TextEditingController _dateController;
+  late TextEditingController _numberController;
+  late TextEditingController _notesController;
+  late TextEditingController _amountController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _dateController = TextEditingController();
+    _numberController = TextEditingController();
+    _notesController = TextEditingController();
+    _amountController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _dateController.dispose();
+    _numberController.dispose();
+    _notesController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Watch the provider to rebuild when the state changes
+
+    final quickFilters = ref.watch(pendingTransactionQuickFiltersProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          quickFilters.isNotEmpty ? _buildClearButton(context, ref) : const SizedBox(width: 40),
+          HorizontalGap.l,
+          _buildTypeQuickFilter(context, ref),
+          HorizontalGap.xxl,
+          _buildNumberQuickFilter(context, ref),
+          HorizontalGap.xxl,
+          _buildDateQuickFilter(context, ref),
+          HorizontalGap.xxl,
+          _buildCustomerQuickFilter(context, ref),
+          HorizontalGap.xxl,
+          _buildSalesmanQuickFilter(context, ref),
+          HorizontalGap.xxl,
+          _buildAmountQuickFilter(context, ref),
+          HorizontalGap.xxl,
+          _buildPrintStatusQuickFilter(context, ref),
+          HorizontalGap.xxl,
+          _buildNotesQuickFilter(context, ref),
+          const SizedBox(width: 110)
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClearButton(BuildContext context, WidgetRef ref) {
+    return IconButton(
+        onPressed: () {
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).reset(context);
+          _dateController.text = '';
+          _numberController.text = '';
+          _notesController.text = '';
+          _amountController.text = '';
+        },
+        icon: const Icon(
+          Icons.cancel_outlined,
+          color: Colors.red,
+        ));
+  }
+
+  Widget _buildCustomerQuickFilter(BuildContext context, WidgetRef ref) {
+    final dbCache = ref.read(customerDbCacheProvider.notifier);
+    const propertyName = 'name';
+    return DropDownWithSearchFormField(
+        initialValue:
+            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        onChangedFn: (customer) {
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, customer['name']);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+        },
+        itemsList: dbCache.data);
+  }
+
+  Widget _buildSalesmanQuickFilter(BuildContext context, WidgetRef ref) {
+    final dbCache = ref.read(salesmanDbCacheProvider.notifier);
+    const propertyName = 'salesman';
+    return DropDownWithSearchFormField(
+        initialValue:
+            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        onChangedFn: (salesman) {
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, salesman['name']);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+        },
+        itemsList: dbCache.data);
+  }
+
+  Widget _buildTypeQuickFilter(BuildContext context, WidgetRef ref) {
+    final typesList = [
+      translateDbTextToScreenText(context, TransactionType.customerInvoice.name),
+      translateDbTextToScreenText(context, TransactionType.customerReceipt.name),
+      translateDbTextToScreenText(context, TransactionType.customerReturn.name),
+      translateDbTextToScreenText(context, TransactionType.gifts.name),
+      translateDbTextToScreenText(context, TransactionType.vendorInvoice.name),
+      translateDbTextToScreenText(context, TransactionType.vendorReceipt.name),
+      translateDbTextToScreenText(context, TransactionType.vendorReturn.name),
+      translateDbTextToScreenText(context, TransactionType.expenditures.name),
+      translateDbTextToScreenText(context, TransactionType.damagedItems.name),
+    ];
+    final typesListMap = typesList.map((type) => {'name': type}).toList();
+    const propertyName = 'transactionType';
+    return DropDownWithSearchFormField(
+        initialValue:
+            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        onChangedFn: (type) {
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, type['name']);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+        },
+        itemsList: typesListMap);
+  }
+
+  Widget _buildPrintStatusQuickFilter(BuildContext context, WidgetRef ref) {
+    final printStatus = [S.of(context).printed, S.of(context).not_printed];
+    final printStatusMap = printStatus.map((type) => {'name': type}).toList();
+    const propertyName = 'isPrinted';
+    return DropDownWithSearchFormField(
+        initialValue:
+            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        onChangedFn: (type) {
+          final boolValue = type['name'] == S.of(context).printed ? true : false;
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, boolValue);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+        },
+        itemsList: printStatusMap);
+  }
+
+  Widget _buildNumberQuickFilter(BuildContext context, WidgetRef ref) {
+    const propertyName = 'number';
+    return FormInputField(
+      initialValue:
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      onChangedFn: (transactionNumber) {
+        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, transactionNumber);
+        ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+        ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+      },
+      controller: _numberController,
+      isOnSubmit: true,
+      dataType: FieldDataType.num,
+      name: 'number',
+    );
+  }
+
+  Widget _buildAmountQuickFilter(BuildContext context, WidgetRef ref) {
+    const propertyName = 'totalAmount';
+    return FormInputField(
+      initialValue:
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      onChangedFn: (amount) {
+        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, amount);
+        ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+        ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+      },
+      controller: _amountController,
+      isOnSubmit: true,
+      dataType: FieldDataType.num,
+      name: 'totalAmount',
+    );
+  }
+
+  Widget _buildNotesQuickFilter(BuildContext context, WidgetRef ref) {
+    const propertyName = 'notes';
+    return FormInputField(
+      initialValue:
+          ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      onChangedFn: (notes) {
+        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.contains, notes);
+        ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+        ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+      },
+      controller: _notesController,
+      isOnSubmit: true,
+      dataType: FieldDataType.text,
+      name: 'notes',
+    );
+  }
+
+  Widget _buildDateQuickFilter(BuildContext context, WidgetRef ref) {
+    const propertyName = 'date';
+    return Expanded(
+      child: FormBuilderDateTimePicker(
+        textAlign: TextAlign.center,
+        name: 'startDate',
+        decoration: formFieldDecoration(),
+        controller: _dateController,
+        inputType: InputType.date,
+        format: DateFormat('dd-MM-yyyy'),
+        onChanged: (date) {
+          if (date != null) {
+            QuickFilter filter = QuickFilter(propertyName, QuickFilterType.dateSameDay, date);
+            ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
+            ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+            // _dateController.text = DateFormat('dd-MM-yyyy').format(date);
+          }
+        },
+      ),
+    );
+  }
 }
