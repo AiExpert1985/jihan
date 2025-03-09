@@ -14,7 +14,8 @@ class DbRepository {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.wifi) ||
         connectivityResult.contains(ConnectivityResult.ethernet) ||
-        connectivityResult.contains(ConnectivityResult.vpn)) {
+        connectivityResult.contains(ConnectivityResult.vpn) ||
+        connectivityResult.contains(ConnectivityResult.mobile)) {
       // Device is connected to the internet
       try {
         await _firestore.collection(_collectionName).doc().set(item.toMap());
@@ -38,7 +39,8 @@ class DbRepository {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.wifi) ||
         connectivityResult.contains(ConnectivityResult.ethernet) ||
-        connectivityResult.contains(ConnectivityResult.vpn)) {
+        connectivityResult.contains(ConnectivityResult.vpn) ||
+        connectivityResult.contains(ConnectivityResult.mobile)) {
       // Device is connected to the internet
       try {
         final query = _firestore
@@ -74,7 +76,8 @@ class DbRepository {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.wifi) ||
         connectivityResult.contains(ConnectivityResult.ethernet) ||
-        connectivityResult.contains(ConnectivityResult.vpn)) {
+        connectivityResult.contains(ConnectivityResult.vpn) ||
+        connectivityResult.contains(ConnectivityResult.mobile)) {
       // Device is connected to the internet
       try {
         final querySnapshot = await _firestore
@@ -214,7 +217,8 @@ class DbRepository {
       final connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult.contains(ConnectivityResult.wifi) ||
           connectivityResult.contains(ConnectivityResult.ethernet) ||
-          connectivityResult.contains(ConnectivityResult.vpn)) {
+          connectivityResult.contains(ConnectivityResult.vpn) ||
+          connectivityResult.contains(ConnectivityResult.mobile)) {
         final snapshot = await query.get();
         tempPrint('data fetched from firebase ($_collectionName)live data');
         return snapshot.docs
