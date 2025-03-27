@@ -99,7 +99,7 @@ class _DateFilterDialog extends StatefulWidget {
     this.dropdown3Label,
     required this.summaryIndexes,
     required this.useOriginalTransaction,
-    // ignore: unused_element
+    // ignore: unused_element_parameter
     this.useAbsoluteNumbers = false,
   });
 

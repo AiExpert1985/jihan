@@ -20,6 +20,7 @@ import 'package:tablets/src/features/settings/controllers/settings_form_data_not
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
 import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/hide_profit_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_utils_controller.dart';
 import 'package:tablets/src/features/transactions/view/forms/item_list.dart';
@@ -302,8 +303,9 @@ class TotalsRow extends ConsumerWidget {
     // final customerScreenData = ref.read(customerScreenDataProvider);
     final transactionUtils = ref.read(transactionUtilsControllerProvider);
     final formNavigator = ref.read(formNavigatorProvider);
+    final isShowProfit = ref.watch(showProfitProvider);
     return SizedBox(
-        width: customerInvoiceFormWidth * 0.6,
+        width: customerInvoiceFormWidth * 0.8,
         child: Row(
           children: [
             FormInputField(
@@ -345,6 +347,24 @@ class TotalsRow extends ConsumerWidget {
                 formDataNotifier.updateProperties({totalWeightKey: value});
               },
             ),
+            if (isShowProfit) HorizontalGap.xxl,
+            if (isShowProfit)
+              FormInputField(
+                controller: textEditingNotifier.getController(transactionTotalProfitKey),
+                isReadOnly: true,
+                isDisabled: formNavigator.isReadOnly,
+                dataType: constants.FieldDataType.num,
+                label: S.of(context).invoice_profit,
+                name: transactionTotalProfitKey,
+                initialValue: formDataNotifier.getProperty(transactionTotalProfitKey),
+                onChangedFn: (value) {
+                  formDataNotifier.updateProperties({transactionTotalProfitKey: value});
+                },
+              ),
+            HorizontalGap.xl,
+            IconButton(
+                onPressed: () => ref.read(showProfitProvider.notifier).state = !isShowProfit,
+                icon: const Icon(Icons.password))
           ],
         ));
   }

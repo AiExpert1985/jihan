@@ -8,7 +8,7 @@ import 'package:tablets/src/features/categories/view/category_screen.dart';
 import 'package:tablets/src/features/customers/view/customer_screen.dart';
 import 'package:tablets/src/features/pending_transactions/view/pending_transaction_screen.dart';
 import 'package:tablets/src/features/products/view/product_screen.dart';
-import 'package:tablets/src/features/gps_locations/presentation/sales_men_live_location_screen.dart';
+import 'package:tablets/src/features/daily_tasks/view/tasks_screen.dart';
 import 'package:tablets/src/features/regions/view/regions_screen.dart';
 import 'package:tablets/src/features/salesmen/view/salesman_screen.dart';
 import 'package:tablets/src/features/settings/view/settings_screen.dart';
@@ -27,7 +27,7 @@ enum AppRoute {
   settings,
   categories,
   pendingTransactions,
-  gps,
+  tasks,
   customers,
   vendors,
   regions,
@@ -82,9 +82,8 @@ final goRouterProvider = Provider<GoRouter>(
         ),
         GoRoute(
           path: '/salesmen',
-          name: AppRoute.gps.name,
-          builder: (BuildContext context, GoRouterState state) =>
-              const SalesmenLiveLocationScreen(),
+          name: AppRoute.tasks.name,
+          builder: (BuildContext context, GoRouterState state) => const TasksScreen(),
         ),
         GoRoute(
           path: '/settings',

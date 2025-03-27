@@ -214,7 +214,6 @@ class FastAccessFormButton extends ConsumerWidget {
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
     final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
     final fromNavigator = ref.read(formNavigatorProvider);
-    fromNavigator.isReadOnly = false;
 
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
@@ -224,6 +223,7 @@ class FastAccessFormButton extends ConsumerWidget {
         ),
       ),
       onPressed: () async {
+        fromNavigator.isReadOnly = false;
         // checkTransactionsTotals(ref);
         // first we set pageLoadingNotifier to true, to prevent any side bar button press
         // until initialization is completed

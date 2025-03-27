@@ -14,6 +14,7 @@ import 'package:tablets/src/features/customers/repository/customer_db_cache_prov
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
 import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
@@ -30,6 +31,7 @@ class TransactionShowForm {
       {String? formType,
       Transaction? transaction,
       DbCache? transactionDbCache}) {
+    tempPrint(ref.read(formNavigatorProvider).isReadOnly);
     if (formType == null && transaction?.transactionType == null) {
       errorPrint(
           'both formType and transaction can not be null, one of them is needed for transactionType');
@@ -97,6 +99,7 @@ class TransactionShowForm {
       itemStockQuantityKey: 0,
       itemTotalProfitKey: 0,
       itemSalesmanTotalCommissionKey: 0,
+      itemBuyingPriceKey: 0,
     });
     if (transaction != null) return; // if we are in edit, we don't need further initialization
     String paymentType = settingsDataNotifier.getProperty(settingsPaymentTypeKey) ??
@@ -140,16 +143,19 @@ class TransactionShowForm {
     List items = formDataNotifier.getProperty(itemsKey);
     for (var i = 0; i < items.length; i++) {
       final code = formDataNotifier.getSubProperty(itemsKey, i, itemCodeKey);
-      final price = formDataNotifier.getSubProperty(itemsKey, i, itemSellingPriceKey);
+      final sellingPrice = formDataNotifier.getSubProperty(itemsKey, i, itemSellingPriceKey);
       final weight = formDataNotifier.getSubProperty(itemsKey, i, itemWeightKey);
       final soldQuantity = formDataNotifier.getSubProperty(itemsKey, i, itemSoldQuantityKey);
       final giftQuantity = formDataNotifier.getSubProperty(itemsKey, i, itemGiftQuantityKey);
+      final buyingPrice = formDataNotifier.getSubProperty(itemsKey, i, itemBuyingPriceKey);
       textEditingNotifier.updateSubControllers(itemsKey, {
         itemCodeKey: code,
-        itemSellingPriceKey: price,
+        itemSellingPriceKey: sellingPrice,
+        itemBuyingPriceKey: buyingPrice,
         itemSoldQuantityKey: soldQuantity,
         itemGiftQuantityKey: giftQuantity,
-        itemTotalAmountKey: soldQuantity == null || price == null ? 0 : soldQuantity * price,
+        itemTotalAmountKey:
+            soldQuantity == null || sellingPrice == null ? 0 : soldQuantity * sellingPrice,
         itemTotalWeightKey: soldQuantity == null || weight == null ? 0 : soldQuantity * weight,
       });
       // I create textEditingControllers for fields that:
@@ -157,6 +163,7 @@ class TransactionShowForm {
       // formData like itemWeight & totalItemAmounts doesn't comply to these two condistions
       final totalAmount = formDataNotifier.getProperty(totalAmountKey);
       final totalWeight = formDataNotifier.getProperty(totalWeightKey);
+      final totalProfit = formDataNotifier.getProperty(transactionTotalProfitKey);
       // below 4 (number, discount, notes,) are need for form navigation, when loadng new data inside form, this is the way to update
       // data seen by user
       final number = formDataNotifier.getProperty(transactionNumberKey);
@@ -165,6 +172,7 @@ class TransactionShowForm {
       textEditingNotifier.updateControllers({
         totalAmountKey: totalAmount,
         totalWeightKey: totalWeight,
+        transactionTotalProfitKey: totalProfit,
         transactionNumberKey: number,
         discountKey: discount,
         notesKey: notes,

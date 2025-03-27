@@ -116,6 +116,33 @@ class DbRepository {
         .map((snapshot) => snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
   }
 
+  // // watch collection that is filtered by on one criterial, example watch specific date
+  // Stream<List<Map<String, dynamic>>> watchItemListAsFilteredMaps(String key, dynamic value) {
+  //   final ref = _firestore.collection(_collectionName).where(key, isEqualTo: value);
+  //   return ref
+  //       .snapshots()
+  //       .map((snapshot) => snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
+  // }
+
+  Stream<List<Map<String, dynamic>>> watchItemListAsFilteredDateMaps(
+      String key, DateTime targetDate) {
+    // Get the start and end of the target date in UTC
+    final startOfDay = DateTime(targetDate.year, targetDate.month, targetDate.day, 00, 00, 00);
+    final endOfDay = DateTime(targetDate.year, targetDate.month, targetDate.day, 23, 59, 59);
+
+    // Log the start and end dates for debugging
+    tempPrint('Filtering from $startOfDay to $endOfDay');
+
+    final ref = _firestore
+        .collection(_collectionName)
+        .where(key, isGreaterThanOrEqualTo: startOfDay)
+        .where(key, isLessThanOrEqualTo: endOfDay);
+
+    return ref.snapshots().map((snapshot) {
+      return snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList();
+    });
+  }
+
   // /// below function was not tested
   // Stream<List<BaseItem>> watchItemListAsItems() {
   //   final query = _firestore.collection(_collectionName);

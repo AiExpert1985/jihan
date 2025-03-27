@@ -22,19 +22,21 @@ import 'package:tablets/src/features/products/controllers/product_screen_control
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/products/repository/product_repository_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/hide_profit_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_utils_controller.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/view/transaction_form.dart';
 
-const double codeColumnWidth = customerInvoiceFormWidth * 0.075;
+const double codeColumnWidth = customerInvoiceFormWidth * 0.11;
+const double buyingPriceColumnWidth = customerInvoiceFormWidth * 0.145;
 const double sequenceColumnWidth = customerInvoiceFormWidth * 0.06;
-const double nameColumnWidth = customerInvoiceFormWidth * 0.4;
+const double nameColumnWidth = customerInvoiceFormWidth * 0.35;
 const double priceColumnWidth = customerInvoiceFormWidth * 0.145;
-const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.15;
-const double stockColumnWidth = customerInvoiceFormWidth * 0.15;
-const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.15;
-const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.15;
+const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.11;
+const double stockColumnWidth = customerInvoiceFormWidth * 0.11;
+const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.11;
+const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.11;
 
 class ItemsList extends ConsumerWidget {
   const ItemsList(this.hideGifts, this.hidePrice, this.transactionType, {super.key});
@@ -60,7 +62,8 @@ class ItemsList extends ConsumerWidget {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _buildItemsTitles(context, formDataNotifier, textEditingNotifier, hideGifts, hidePrice),
+            _buildItemsTitles(
+                context, formDataNotifier, textEditingNotifier, hideGifts, hidePrice, ref),
             ..._buildDataRows(formDataNotifier, textEditingNotifier, productRepository, hideGifts,
                 hidePrice, transactionType, productDbCache, productScreenController, context, ref),
           ],
@@ -90,6 +93,7 @@ List<Widget> _buildDataRows(
   BuildContext context,
   WidgetRef ref,
 ) {
+  final isShowProfit = ref.watch(showProfitProvider);
   final formNavigator = ref.read(formNavigatorProvider);
   if (!formDataNotifier.data.containsKey(itemsKey) || formDataNotifier.data[itemsKey] is! List) {
     return const [];
@@ -107,11 +111,29 @@ List<Widget> _buildDataRows(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CodeFormInputField(
-                index, codeColumnWidth, itemsKey, itemCodeKey, transactionType, items.length,
+            if (!hideGifts && isShowProfit)
+              TransactionFormInputField(
+                index,
+                buyingPriceColumnWidth,
+                itemsKey,
+                itemBuyingPriceKey,
+                transactionType,
                 isReadOnly: formNavigator.isReadOnly,
                 isDisabled: formNavigator.isReadOnly,
-                isFirst: true),
+                isFirst: true,
+                isOnSubmit: true,
+              ),
+            CodeFormInputField(
+              index,
+              codeColumnWidth,
+              itemsKey,
+              itemCodeKey,
+              transactionType,
+              items.length,
+              isReadOnly: formNavigator.isReadOnly,
+              isDisabled: formNavigator.isReadOnly,
+              isFirst: !isShowProfit,
+            ),
             _buildDropDownWithSearch(ref, formDataNotifier, textEditingNotifier, index,
                 nameColumnWidth, productDbCache, productScreenController, context, items.length,
                 isReadOnly: formNavigator.isReadOnly),
@@ -187,6 +209,7 @@ void addNewRow(ItemFormData formDataNotifier, TextControllerNotifier textEditing
     itemStockQuantityKey: 0,
     itemTotalProfitKey: 0,
     itemSalesmanTotalCommissionKey: 0,
+    itemBuyingPriceKey: 0,
   });
   textEditingNotifier.updateSubControllers(itemsKey, {
     itemCodeKey: null,
@@ -194,7 +217,8 @@ void addNewRow(ItemFormData formDataNotifier, TextControllerNotifier textEditing
     itemSoldQuantityKey: 0,
     itemGiftQuantityKey: 0,
     itemTotalAmountKey: 0,
-    itemTotalWeightKey: 0
+    itemTotalWeightKey: 0,
+    itemBuyingPriceKey: 0,
   });
 }
 
@@ -262,9 +286,13 @@ Widget _buildDeleteItemButton(
 }
 
 Widget _buildItemsTitles(BuildContext context, ItemFormData formDataNotifier,
-    TextControllerNotifier textEditingNotifier, bool hideGifts, bool hidePrice) {
+    TextControllerNotifier textEditingNotifier, bool hideGifts, bool hidePrice, WidgetRef ref) {
+  final isShowProfit = ref.watch(showProfitProvider);
   final titles = [
     // _buildAddItemButton(formDataNotifier, textEditingNotifier), // not needed, row auto added
+    if (!hideGifts && isShowProfit)
+      Text(S.of(context).product_buying_price,
+          style: const TextStyle(color: Colors.white, fontSize: 14)),
     Text(S.of(context).code, style: const TextStyle(color: Colors.white, fontSize: 14)),
     Text(S.of(context).item_name, style: const TextStyle(color: Colors.white, fontSize: 14)),
     Text(S.of(context).item_sold_quantity,
@@ -282,6 +310,7 @@ Widget _buildItemsTitles(BuildContext context, ItemFormData formDataNotifier,
   ];
 
   final widths = [
+    if (!hideGifts && isShowProfit) buyingPriceColumnWidth,
     codeColumnWidth,
     nameColumnWidth,
     soldQuantityColumnWidth,
@@ -361,7 +390,8 @@ Widget _buildDropDownWithSearch(
         }
         // calculate the quantity of the product
         final productQuantity = calculateProductStock(context, ref, item['dbRef']);
-        if (productQuantity < 1) {
+        if (productQuantity < 1 &&
+            formDataNotifier.getProperty(transTypeKey) != TransactionType.vendorInvoice.name) {
           failureUserMessage(context, S.of(context).product_out_of_stock);
         }
         // updates related fields using the item selected (of type Map<String, dynamic>)
@@ -397,6 +427,7 @@ class TransactionFormInputField extends ConsumerWidget {
       this.isReadOnly = false,
       this.isFirst = false,
       this.isDisabled = false,
+      this.isOnSubmit = false,
       super.key});
 
   final int index;
@@ -408,6 +439,7 @@ class TransactionFormInputField extends ConsumerWidget {
   final bool isFirst;
   final bool isReadOnly;
   final bool isDisabled;
+  final bool isOnSubmit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -422,6 +454,7 @@ class TransactionFormInputField extends ConsumerWidget {
         hideBorders: true,
         isRequired: false,
         isDisabled: isDisabled,
+        isOnSubmit: isOnSubmit,
         isReadOnly: isReadOnly,
         dataType: constants.FieldDataType.num,
         name: subProperty,
@@ -437,9 +470,11 @@ class TransactionFormInputField extends ConsumerWidget {
           if (soldQuantity == null || sellingPrice == null) {
             return;
           }
+          final buyingPrice = formDataNotifier.getSubProperty(property, index, itemBuyingPriceKey);
           final updatedSubProperties = {
             itemTotalAmountKey: soldQuantity * sellingPrice,
-            itemTotalWeightKey: soldQuantity * weight
+            itemTotalWeightKey: soldQuantity * weight,
+            itemBuyingPriceKey: buyingPrice,
           };
           formDataNotifier.updateSubProperties(property, updatedSubProperties, index: index);
           textEditingNotifier.updateSubControllers(property, updatedSubProperties, index: index);
@@ -457,7 +492,7 @@ class TransactionFormInputField extends ConsumerWidget {
           final giftQuantity =
               formDataNotifier.getSubProperty(property, index, itemGiftQuantityKey);
           if (giftQuantity == null) return;
-          final buyingPrice = formDataNotifier.getSubProperty(property, index, itemBuyingPriceKey);
+
           final salesmanCommission =
               formDataNotifier.getSubProperty(property, index, itemSalesmanCommissionKey);
           final salesmanTotalCommission = salesmanCommission * soldQuantity;
@@ -483,6 +518,8 @@ class TransactionFormInputField extends ConsumerWidget {
               salesmanTransactionComssionKey: salesmanTransactionComssion
             },
           );
+          textEditingNotifier
+              .updateControllers({transactionTotalProfitKey: transactionTotalProfit});
         },
       ),
       isLast: isLast,

@@ -131,6 +131,7 @@ class TransactionForm extends ConsumerWidget {
     final screenController = ref.read(transactionScreenControllerProvider);
     final dbCache = ref.read(transactionDbCacheProvider.notifier);
     final formNavigation = ref.read(formNavigatorProvider);
+    tempPrint(formNavigation.isReadOnly);
     formNavigation.initialize(transactionType, formDataNotifier.getProperty(dbRefKey));
     // final transactionTypeTranslated = translateScreenTextToDbText(context, transactionType);
     // final backgroundColor = ref.watch(backgroundColorProvider);
@@ -666,7 +667,6 @@ class NavigationSearch extends ConsumerWidget {
     final formNavigator = ref.read(formNavigatorProvider);
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final formImagesNotifier = ref.read(imagePickerProvider.notifier);
-    final formNavigation = ref.read(formNavigatorProvider);
     return SizedBox(
       width: 250,
       child: TextFormField(
@@ -675,13 +675,13 @@ class NavigationSearch extends ConsumerWidget {
         onFieldSubmitted: (value) {
           try {
             formNavigator.goTo(context, int.tryParse(value.trim()));
-            formNavigation.isReadOnly = true;
+            formNavigator.isReadOnly = true;
             // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
             // TODO later I might change formNavigation to StateNotifier and watch it in this widget
             TransactionForm.onNavigationPressed(
-                formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+                formDataNotifier, context, ref, formImagesNotifier, formNavigator,
                 targetTransactionData:
-                    formNavigation.navigatorTransactions[formNavigation.currentIndex]);
+                    formNavigator.navigatorTransactions[formNavigator.currentIndex]);
           } catch (e) {
             return;
           }
