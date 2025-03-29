@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
+import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/interfaces/screen_controller.dart';
 import 'package:tablets/src/common/providers/screen_data_notifier.dart';
@@ -365,11 +366,12 @@ class SalesmanScreenController implements ScreenDataController {
     // separate salesman transactions
     List<Map<String, dynamic>> fliteredTransactions =
         filterTransactions(_transactionDbCache.data, startDate, endDate, salesmanDbRef);
-
     Map<String, Map<String, num>> summary = {};
 
     // Process each transaction
     for (var transaction in fliteredTransactions) {
+      final items = transaction[itemsKey];
+      if (items == null) continue;
       for (var item in transaction[itemsKey]) {
         String itemName = item[itemNameKey];
         num soldQuantity = 0;
@@ -401,16 +403,22 @@ class SalesmanScreenController implements ScreenDataController {
     List<List<dynamic>> result = [];
     summary.forEach((itemName, quantities) {
       final product = productDbCache.getItemByProperty('name', itemName);
-      final commission = product['salesmanCommission'];
-      result.add([
-        itemName,
-        quantities[itemSoldQuantityKey],
-        quantities[itemGiftQuantityKey],
-        quantities['returnedQuantity'],
-        quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!,
-        commission,
-        commission * (quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!)
-      ]);
+      if (product.isNotEmpty) {
+        // this check as protection if product where deleted from the database
+        // in this case, it will be passed
+        final commission = product['salesmanCommission'];
+        result.add([
+          itemName,
+          quantities[itemSoldQuantityKey],
+          quantities[itemGiftQuantityKey],
+          quantities['returnedQuantity'],
+          quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!,
+          commission,
+          commission * (quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!)
+        ]);
+      } else {
+        errorPrint('product $itemName not found in dbCacche');
+      }
     });
     return result;
   }
