@@ -6,7 +6,6 @@ import 'package:search_choices/search_choices.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/database_backup.dart';
 import 'package:tablets/src/common/functions/db_cache_inialization.dart';
-import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/background_color.dart';
@@ -489,7 +488,6 @@ Widget buildSoldItemsButton(BuildContext context, WidgetRef ref, {bool isSupervi
         final endDate = nameAndDates[2];
         String reportTitle = '';
         if (context.mounted) {
-          tempPrint(salesmanData['name']);
           reportTitle =
               '${S.of(context).salesman_selling_report} \n ${salesmanData['name']} \n ${S.of(context).for_the_duration} ${formatDate(startDate ?? DateTime.parse("2024-12-01T14:30:00"))} - ${formatDate(endDate ?? DateTime.now())}';
         }

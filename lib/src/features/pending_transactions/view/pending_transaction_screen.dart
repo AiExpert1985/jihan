@@ -199,11 +199,17 @@ class DataRow extends ConsumerWidget {
               IconButton(
                   onPressed: () {
                     approveTransaction(context, ref, transaction);
+                    ref
+                        .read(pendingTransactionQuickFiltersProvider.notifier)
+                        .applyListFilter(context);
                   },
                   icon: const SaveIcon()),
               IconButton(
                 onPressed: () {
                   deletePendingTransaction(context, ref, transaction);
+                  ref
+                      .read(pendingTransactionQuickFiltersProvider.notifier)
+                      .applyListFilter(context);
                 },
                 icon: const DeleteIcon(),
               )

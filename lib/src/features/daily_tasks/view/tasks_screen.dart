@@ -135,8 +135,9 @@ class SalesPoints extends ConsumerWidget {
                         await _showMultiSelectDialog(context, ref, salesmanName) ?? [];
                     for (var customerName in selectedCustomerNames) {
                       if (tasksCustomerNames.contains(customerName)) {
+                        tempPrint('I am here');
                         // if name already exists (it is surely same dates no need to check it), pass it
-                        return;
+                        continue;
                       }
                       final customer = ref
                           .read(customerDbCacheProvider.notifier)
