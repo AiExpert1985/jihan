@@ -14,7 +14,6 @@ import 'package:tablets/src/features/customers/repository/customer_db_cache_prov
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
 import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
-import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
@@ -31,7 +30,6 @@ class TransactionShowForm {
       {String? formType,
       Transaction? transaction,
       DbCache? transactionDbCache}) {
-    tempPrint(ref.read(formNavigatorProvider).isReadOnly);
     if (formType == null && transaction?.transactionType == null) {
       errorPrint(
           'both formType and transaction can not be null, one of them is needed for transactionType');

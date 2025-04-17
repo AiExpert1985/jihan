@@ -131,7 +131,6 @@ class TransactionForm extends ConsumerWidget {
     final screenController = ref.read(transactionScreenControllerProvider);
     final dbCache = ref.read(transactionDbCacheProvider.notifier);
     final formNavigation = ref.read(formNavigatorProvider);
-    tempPrint(formNavigation.isReadOnly);
     formNavigation.initialize(transactionType, formDataNotifier.getProperty(dbRefKey));
     // final transactionTypeTranslated = translateScreenTextToDbText(context, transactionType);
     // final backgroundColor = ref.watch(backgroundColorProvider);

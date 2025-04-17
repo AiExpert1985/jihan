@@ -58,7 +58,7 @@ class InvoiceForm extends ConsumerWidget {
             VerticalGap.m,
             ItemsList(hideGifts, false, transactionType),
             VerticalGap.xxl,
-            TotalsRow(transactionType),
+            TotalsRow(transactionType, isVendor),
           ],
         ),
       ),
@@ -292,8 +292,9 @@ class FifthRow extends ConsumerWidget {
 }
 
 class TotalsRow extends ConsumerWidget {
-  const TotalsRow(this.transactionType, {super.key});
+  const TotalsRow(this.transactionType, this.isVendor, {super.key});
   final String transactionType;
+  final bool isVendor;
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
@@ -348,7 +349,7 @@ class TotalsRow extends ConsumerWidget {
               },
             ),
             if (isShowProfit) HorizontalGap.xxl,
-            if (isShowProfit)
+            if (isShowProfit & !isVendor)
               FormInputField(
                 controller: textEditingNotifier.getController(transactionTotalProfitKey),
                 isReadOnly: true,
@@ -362,9 +363,10 @@ class TotalsRow extends ConsumerWidget {
                 },
               ),
             HorizontalGap.xl,
-            IconButton(
-                onPressed: () => ref.read(showProfitProvider.notifier).state = !isShowProfit,
-                icon: const Icon(Icons.password))
+            if (!isVendor)
+              IconButton(
+                  onPressed: () => ref.read(showProfitProvider.notifier).state = !isShowProfit,
+                  icon: const Icon(Icons.password))
           ],
         ));
   }

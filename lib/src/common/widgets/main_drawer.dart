@@ -425,6 +425,7 @@ class SettingsDialog extends ConsumerWidget {
       S.of(context).regions,
       S.of(context).settings,
       S.of(context).deleted_transactions,
+      'تخفيضات المجهز'
     ];
 
     final List<String> routes = [
@@ -432,6 +433,7 @@ class SettingsDialog extends ConsumerWidget {
       AppRoute.regions.name,
       AppRoute.settings.name,
       AppRoute.deletedTransactions.name,
+      AppRoute.supplierDiscount.name
     ];
 
     return AlertDialog(
@@ -439,7 +441,7 @@ class SettingsDialog extends ConsumerWidget {
       scrollable: true,
       content: Container(
         padding: const EdgeInsets.all(25),
-        width: 300,
+        width: 260,
         height: 800,
         child: Column(
           children: [
@@ -513,7 +515,7 @@ class BackupButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      height: 150,
+      height: 125,
       child: InkWell(
         onTap: () async {
           await backupDataBase(context, ref);

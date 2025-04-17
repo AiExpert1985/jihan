@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
@@ -135,7 +134,6 @@ class SalesPoints extends ConsumerWidget {
                         await _showMultiSelectDialog(context, ref, salesmanName) ?? [];
                     for (var customerName in selectedCustomerNames) {
                       if (tasksCustomerNames.contains(customerName)) {
-                        tempPrint('I am here');
                         // if name already exists (it is surely same dates no need to check it), pass it
                         continue;
                       }
@@ -333,7 +331,6 @@ Future<List<String>?> _showMultiSelectDialog(
                         }
                       }
                     }
-                    tempPrint(selectedCustomerNames);
                   },
                   searchable: true,
                   decoration: BoxDecoration(

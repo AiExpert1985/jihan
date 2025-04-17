@@ -295,6 +295,28 @@ List<Map<String, dynamic>> deepCopyDbCache(List<Map<String, dynamic>> original) 
   return original.map((map) => Map<String, dynamic>.from(map)).toList();
 }
 
+// Helper function to recursively deep copy values
+dynamic deepCopyValue(dynamic value) {
+  if (value is Map) {
+    // If the value is a Map, recursively copy it
+    return deepCopyMap(value.cast<String, dynamic>()); // Cast needed if keys aren't dynamic
+  } else if (value is List) {
+    // If the value is a List, recursively copy its elements
+    return value.map((item) => deepCopyValue(item)).toList();
+  }
+  // For primitive types or immutable objects, return the value itself
+  return value;
+}
+
+// Main function to deep copy a Map
+Map<String, dynamic> deepCopyMap(Map<String, dynamic> original) {
+  Map<String, dynamic> copy = {};
+  original.forEach((key, value) {
+    copy[key] = deepCopyValue(value);
+  });
+  return copy;
+}
+
 // I did below map creation to solve issue I faced with List<dynamic> is not accepted as List<Map<String, dynamic>>
 List<Map<String, dynamic>> convertListofDyanmicToListofMaps(List<dynamic> list) {
   List<Map<String, dynamic>> newList = [];
