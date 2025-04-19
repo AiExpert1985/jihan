@@ -12,6 +12,7 @@ import 'package:tablets/src/features/customers/controllers/customer_screen_contr
 import 'package:tablets/src/features/customers/controllers/customer_screen_data_notifier.dart';
 import 'package:tablets/src/features/customers/model/customer.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/products/model/product.dart';
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_data_notifier.dart';
 import 'package:tablets/src/features/salesmen/model/salesman.dart';
@@ -279,7 +280,8 @@ class SalesmanScreenController implements ScreenDataController {
   }
 
   Map<String, dynamic> getCustomersInfo(
-      List<Customer> salesmanCustomers, List<Transaction> salesmanTransactions) {
+      List<Customer> salesmanCustomers, List<Transaction> salesmanTransactions,
+      {bool isSuperVisor = false, WidgetRef? ref}) {
     List<List<dynamic>> customerData = [];
     List<String> customerDbRef = [];
     for (var customer in salesmanCustomers) {
@@ -291,7 +293,22 @@ class SalesmanScreenController implements ScreenDataController {
           numInvoices++;
           final items = trans.items ?? [];
           for (var i = 0; i < items.length; i++) {
-            numItems += items[i][itemSoldQuantityKey];
+            final item = items[i];
+            // if the caller is Jihan supervisor, hide certain products
+
+            if (isSuperVisor && ref != null) {
+              final productDbRef = item['dbRef'];
+              final productDbCache = ref.read(productDbCacheProvider.notifier);
+              final productMap = productDbCache.getItemByDbRef(productDbRef);
+              if (productMap.isNotEmpty) {
+                final product = Product.fromMap(productMap);
+                if (product.isHiddenInSpecialReports != null && product.isHiddenInSpecialReports!) {
+                  // if product is hidden from supervisor, pass it to next item
+                  continue;
+                }
+              }
+            }
+            numItems += item[itemSoldQuantityKey];
           }
         }
       }

@@ -434,8 +434,9 @@ Widget buildSalesmanCustomersButton(BuildContext context, WidgetRef ref) {
         final salesmanTransactions = salesmanTransactionMaps
             .map((transactionMap) => Transaction.fromMap(transactionMap))
             .toList();
-        final customersInfo =
-            salesmanScreenController.getCustomersInfo(salesmanCustomers, salesmanTransactions);
+        final customersInfo = salesmanScreenController.getCustomersInfo(
+            salesmanCustomers, salesmanTransactions,
+            isSuperVisor: true, ref: ref);
         final customersBasicData = customersInfo['customersData'] as List<List<dynamic>>;
         final startDateAsString = startDate == null ? '' : 'من ${formatDate(startDate)}';
         final endDataeAsString = endDate == null ? '' : 'الى ${formatDate(endDate)}';
