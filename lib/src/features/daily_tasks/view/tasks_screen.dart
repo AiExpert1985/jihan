@@ -1,17 +1,24 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/utils.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/daily_tasks/controllers/selected_date_provider.dart';
 import 'package:tablets/src/features/daily_tasks/model/point.dart';
+import 'package:tablets/src/features/daily_tasks/printing/tasks_pdf.dart';
 import 'package:tablets/src/features/daily_tasks/repo/tasks_repository_provider.dart';
 import 'package:tablets/src/features/regions/repository/region_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
@@ -73,6 +80,11 @@ class SalesPoints extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    bool isReadOnly = true;
+    final userInfo = ref.watch(userInfoProvider); // to update UI when user info finally loaded
+    if (userInfo != null && userInfo.privilage != 'guest') {
+      isReadOnly = false;
+    }
     final selectedDate = ref.watch(selectedDateProvider);
     // Create list of unique salesman names found in firebase for that date
     Set<String> uniqueSalesmanNames = {};
@@ -121,44 +133,51 @@ class SalesPoints extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.add,
-                    color: Colors.green,
-                  ),
-                  onPressed: () async {
-                    final salesman = ref
-                        .read(salesmanDbCacheProvider.notifier)
-                        .getItemByProperty('name', salesmanName);
-                    final selectedCustomerNames =
-                        await _showMultiSelectDialog(context, ref, salesmanName) ?? [];
-                    for (var customerName in selectedCustomerNames) {
-                      if (tasksCustomerNames.contains(customerName)) {
-                        // if name already exists (it is surely same dates no need to check it), pass it
-                        continue;
+                if (!isReadOnly)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.add,
+                      color: Colors.green,
+                    ),
+                    onPressed: () async {
+                      final salesman = ref
+                          .read(salesmanDbCacheProvider.notifier)
+                          .getItemByProperty('name', salesmanName);
+                      final selectedCustomerNames =
+                          await _showMultiSelectDialog(context, ref, salesmanName) ?? [];
+                      for (var customerName in selectedCustomerNames) {
+                        if (tasksCustomerNames.contains(customerName)) {
+                          // if name already exists (it is surely same dates no need to check it), pass it
+                          continue;
+                        }
+                        final customer = ref
+                            .read(customerDbCacheProvider.notifier)
+                            .getItemByProperty('name', customerName);
+                        final newSalesPoint = SalesPoint(
+                          salesmanName,
+                          salesman['dbRef'],
+                          customerName,
+                          customer['dbRef'],
+                          selectedDate ?? DateTime.now(),
+                          false,
+                          false,
+                          generateRandomString(len: 8),
+                          [],
+                          generateRandomString(len: 8),
+                          customer['x'],
+                          customer['y'],
+                        );
+                        //TODO to prevent adding new salespoint if it already exists
+                        ref.read(tasksRepositoryProvider).addItem(newSalesPoint);
                       }
-                      final customer = ref
-                          .read(customerDbCacheProvider.notifier)
-                          .getItemByProperty('name', customerName);
-                      final newSalesPoint = SalesPoint(
-                        salesmanName,
-                        salesman['dbRef'],
-                        customerName,
-                        customer['dbRef'],
-                        selectedDate ?? DateTime.now(),
-                        false,
-                        false,
-                        generateRandomString(len: 8),
-                        [],
-                        generateRandomString(len: 8),
-                        customer['x'],
-                        customer['y'],
-                      );
-                      //TODO to prevent adding new salespoint if it already exists
-                      ref.read(tasksRepositoryProvider).addItem(newSalesPoint);
-                    }
-                  },
-                ),
+                    },
+                  ),
+                HorizontalGap.s,
+                IconButton(
+                    onPressed: () {
+                      printReport(tasks);
+                    },
+                    icon: const Icon(Icons.print)),
                 HorizontalGap.l,
                 Container(
                   width: 150,
@@ -202,23 +221,26 @@ class SalesPoints extends ConsumerWidget {
                       child: Text(item['customerName'],
                           textAlign: TextAlign.center, style: TextStyle(color: fontColor)),
                     ),
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: TextButton(
-                          onPressed: () {
-                            ref.read(tasksRepositoryProvider).deleteItem(SalesPoint.fromMap(item));
-                          },
-                          child: const Text(
-                            'x',
-                            style: TextStyle(color: Colors.black54),
+                    if (!isReadOnly)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: TextButton(
+                            onPressed: () {
+                              ref
+                                  .read(tasksRepositoryProvider)
+                                  .deleteItem(SalesPoint.fromMap(item));
+                            },
+                            child: const Text(
+                              'x',
+                              style: TextStyle(color: Colors.black54),
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 );
               }).toList(),
@@ -358,4 +380,25 @@ Future<List<String>?> _showMultiSelectDialog(
   );
 
   return selectedValues; // Return the selected values to the calling function
+}
+
+Future<void> printReport(List<Map<String, dynamic>> salesPointMaps) async {
+  try {
+    List<SalesPoint> salesPoints = [];
+    for (var map in salesPointMaps) {
+      salesPoints.add(SalesPoint.fromMap(map));
+    }
+    // 1. Generate the PDF bytes
+    final Uint8List pdfBytes =
+        await SalesPointPdfGenerator.generatePdf(salesPoints); // Use your actual list here
+
+    // 2. Use the printing package to preview and print
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdfBytes,
+      name:
+          'Sales_Report_${salesPoints.first.salesmanName}_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf', // Optional: set default file name
+    );
+  } catch (e) {
+    errorPrint('Error generating or printing PDF for tasks: $e');
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:search_choices/search_choices.dart';
 import 'package:tablets/generated/l10n.dart';
@@ -323,6 +324,8 @@ class FastReports extends ConsumerWidget {
                     VerticalGap.xl,
                     buildSalesmanCustomersButton(context, ref),
                     VerticalGap.xl,
+                    buildSalesmanTasksButton(context, ref),
+                    VerticalGap.xl,
                     const RistrictedAccessWidget(
                       allowedPrivilages: [],
                       child: HideProductCheckBox(),
@@ -444,6 +447,19 @@ Widget buildSalesmanCustomersButton(BuildContext context, WidgetRef ref) {
         if (context.mounted) {
           salesmanReportController.showCustomers(context, customersBasicData, reportTitle);
         }
+      }
+    },
+  );
+}
+
+Widget buildSalesmanTasksButton(BuildContext context, WidgetRef ref) {
+  return FastAccessReportsButton(
+    backgroundColor: Colors.red[100],
+    'زيارات المندوبين',
+    () async {
+      await initializeAppData(context, ref);
+      if (context.mounted) {
+        context.goNamed('tasks');
       }
     },
   );
