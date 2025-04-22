@@ -18,7 +18,6 @@ import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/daily_tasks/controllers/copy_weekly_tasks_to_day.dart';
-import 'package:tablets/src/features/daily_tasks/controllers/initialize_weekly_tasks.dart';
 import 'package:tablets/src/features/daily_tasks/controllers/selected_date_provider.dart';
 import 'package:tablets/src/features/daily_tasks/model/point.dart';
 import 'package:tablets/src/features/daily_tasks/printing/tasks_pdf.dart';
