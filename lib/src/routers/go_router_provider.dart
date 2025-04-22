@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tablets/src/features/daily_tasks/view/weekly_tasks_screen.dart';
 import 'package:tablets/src/features/deleted_transactions/view/deleted_transaction_screen.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/features/categories/view/category_screen.dart';
@@ -34,6 +35,7 @@ enum AppRoute {
   regions,
   deletedTransactions,
   supplierDiscount,
+  weeklyTasks,
 }
 
 final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
@@ -131,6 +133,11 @@ final goRouterProvider = Provider<GoRouter>(
           path: '/supplier-discount',
           name: AppRoute.supplierDiscount.name,
           builder: (BuildContext context, GoRouterState state) => const SupplierDiscountScreen(),
+        ),
+        GoRoute(
+          path: '/weekly-tasks',
+          name: AppRoute.weeklyTasks.name,
+          builder: (BuildContext context, GoRouterState state) => const WeeklyTasksScreen(),
         ),
       ],
       errorBuilder: (context, state) => const NotFoundScreen(),

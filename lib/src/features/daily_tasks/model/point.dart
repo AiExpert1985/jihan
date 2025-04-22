@@ -4,16 +4,18 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import 'package:tablets/src/common/interfaces/base_item.dart';
-import 'package:tablets/src/common/values/constants.dart';
+import 'package:tablets/src/common/values/constants.dart'; // Assuming defaultImageUrl is here
 
 class SalesPoint implements BaseItem {
   String salesmanName;
   String salesmanDbRef;
   String customerName;
   String customerDbRef;
-  DateTime date;
+  DateTime date; // TODO change it to taskDate
   bool isVisited;
   bool hasTransaction;
+  DateTime? visitDate; // <-- Added Property
+  DateTime? transactionDate; // <-- Added Property
   @override
   String dbRef;
   @override
@@ -36,10 +38,13 @@ class SalesPoint implements BaseItem {
     this.name,
     this.x,
     this.y,
+    // Add new nullable properties at the end of the positional list
+    this.visitDate, // <-- Added to Constructor
+    this.transactionDate, // <-- Added to Constructor
   );
 
   @override
-  String get coverImageUrl => defaultImageUrl;
+  String get coverImageUrl => defaultImageUrl; // Make sure defaultImageUrl is defined
 
   SalesPoint copyWith({
     String? salesmanName,
@@ -54,6 +59,8 @@ class SalesPoint implements BaseItem {
     String? name,
     double? x,
     double? y,
+    DateTime? visitDate, // <-- Added to copyWith parameters
+    DateTime? transactionDate, // <-- Added to copyWith parameters
   }) {
     return SalesPoint(
       salesmanName ?? this.salesmanName,
@@ -68,17 +75,20 @@ class SalesPoint implements BaseItem {
       name ?? this.name,
       x ?? this.x,
       y ?? this.y,
+      visitDate ?? this.visitDate, // <-- Added assignment
+      transactionDate ?? this.transactionDate, // <-- Added assignment
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
+    // Keep existing pattern of adding DateTime object directly
     return <String, dynamic>{
       'salesmanName': salesmanName,
       'salesmanDbRef': salesmanDbRef,
       'customerName': customerName,
       'customerDbRef': customerDbRef,
-      'date': date,
+      'date': date, // Original DateTime object
       'isVisited': isVisited,
       'hasTransaction': hasTransaction,
       'dbRef': dbRef,
@@ -86,16 +96,20 @@ class SalesPoint implements BaseItem {
       'name': name,
       'x': x,
       'y': y,
+      'visitDate': visitDate, // <-- Added DateTime? object
+      'transactionDate': transactionDate, // <-- Added DateTime? object
     };
   }
 
   factory SalesPoint.fromMap(Map<String, dynamic> map) {
+    // Follow existing pattern for date conversion (assuming Firestore Timestamp),
+    // but handle null for the new nullable fields.
     return SalesPoint(
       map['salesmanName'] as String,
       map['salesmanDbRef'] as String,
       map['customerName'] as String,
       map['customerDbRef'] as String,
-      map['date'].toDate(),
+      map['date'].toDate(), // Keep original non-nullable assumption
       map['isVisited'] as bool,
       map['hasTransaction'] as bool,
       map['dbRef'] as String,
@@ -103,9 +117,15 @@ class SalesPoint implements BaseItem {
       map['name'] as String,
       map['x'] != null ? map['x'] as double : null,
       map['y'] != null ? map['y'] as double : null,
+      // Apply same .toDate() logic, checking for null first
+      map['visitDate'] == null ? null : (map['visitDate'] as dynamic).toDate(), // <-- Added parsing
+      map['transactionDate'] == null
+          ? null
+          : (map['transactionDate'] as dynamic).toDate(), // <-- Added parsing
     );
   }
 
+  // toJson and fromJson remain unchanged as they rely on toMap/fromMap
   String toJson() => json.encode(toMap());
 
   factory SalesPoint.fromJson(String source) =>
@@ -113,13 +133,15 @@ class SalesPoint implements BaseItem {
 
   @override
   String toString() {
-    return 'SalesPoint(salesmanName: $salesmanName, salesmanDbRef: $salesmanDbRef, customerName: $customerName, customerDbRef: $customerDbRef, date: $date, isVisited: $isVisited, hasTransaction: $hasTransaction, dbRef: $dbRef, imageUrls: $imageUrls, name: $name, x: $x, y: $y)';
+    // Added new fields to the string representation
+    return 'SalesPoint(salesmanName: $salesmanName, salesmanDbRef: $salesmanDbRef, customerName: $customerName, customerDbRef: $customerDbRef, date: $date, isVisited: $isVisited, hasTransaction: $hasTransaction, dbRef: $dbRef, imageUrls: $imageUrls, name: $name, x: $x, y: $y, visitDate: $visitDate, transactionDate: $transactionDate)'; // <-- Added fields here
   }
 
   @override
   bool operator ==(covariant SalesPoint other) {
     if (identical(this, other)) return true;
 
+    // Added checks for the new fields
     return other.salesmanName == salesmanName &&
         other.salesmanDbRef == salesmanDbRef &&
         other.customerName == customerName &&
@@ -131,11 +153,14 @@ class SalesPoint implements BaseItem {
         listEquals(other.imageUrls, imageUrls) &&
         other.name == name &&
         other.x == x &&
-        other.y == y;
+        other.y == y &&
+        other.visitDate == visitDate && // <-- Added check
+        other.transactionDate == transactionDate; // <-- Added check
   }
 
   @override
   int get hashCode {
+    // Added hash codes for the new fields
     return salesmanName.hashCode ^
         salesmanDbRef.hashCode ^
         customerName.hashCode ^
@@ -147,6 +172,8 @@ class SalesPoint implements BaseItem {
         imageUrls.hashCode ^
         name.hashCode ^
         x.hashCode ^
-        y.hashCode;
+        y.hashCode ^
+        visitDate.hashCode ^ // <-- Added hash code
+        transactionDate.hashCode; // <-- Added hash code
   }
 }

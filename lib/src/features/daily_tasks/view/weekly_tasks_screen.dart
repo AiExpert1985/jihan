@@ -1,83 +1,70 @@
-import 'dart:typed_data';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
-import 'package:pdf/pdf.dart';
-import 'package:printing/printing.dart';
 import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
-import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
-import 'package:tablets/src/features/daily_tasks/controllers/copy_weekly_tasks_to_day.dart';
-import 'package:tablets/src/features/daily_tasks/controllers/initialize_weekly_tasks.dart';
-import 'package:tablets/src/features/daily_tasks/controllers/selected_date_provider.dart';
 import 'package:tablets/src/features/daily_tasks/model/point.dart';
-import 'package:tablets/src/features/daily_tasks/printing/tasks_pdf.dart';
-import 'package:tablets/src/features/daily_tasks/repo/tasks_repository_provider.dart';
+import 'package:tablets/src/features/daily_tasks/model/weekly_tasks.dart';
+import 'package:tablets/src/features/daily_tasks/repo/weekly_tasks_repo.dart';
 import 'package:tablets/src/features/regions/repository/region_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
-import 'package:tablets/src/routers/go_router_provider.dart';
 
-class DatePickerWidget extends ConsumerWidget {
-  const DatePickerWidget({super.key});
+/// Provider holding the index of the selected weekday (0-6, or null if none selected).
+final selectedWeekdayIndexProvider = StateProvider<int>((ref) => 1);
+
+class DayPicker extends ConsumerWidget {
+  const DayPicker({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      width: 200,
-      child: FormBuilderDateTimePicker(
-        name: 'date',
-        textAlign: TextAlign.center,
-        decoration: const InputDecoration(
-            labelStyle: TextStyle(color: Colors.red, fontSize: 15),
-            border: OutlineInputBorder(),
-            label: Text('اختيار اليوم')),
-        inputType: InputType.date,
-        format: DateFormat('dd-MM-yyyy'),
-        onChanged: (value) {
-          ref.read(selectedDateProvider.notifier).setDate(value);
-        },
-      ),
+    return SimpleWeekdaySelector(
+      onWeekdayTap: (index) {
+        ref.read(selectedWeekdayIndexProvider.notifier).state = index;
+      },
     );
   }
 }
 
-class TasksScreen extends ConsumerWidget {
-  const TasksScreen({super.key});
+class WeeklyTasksScreen extends ConsumerWidget {
+  const WeeklyTasksScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final salesPointsAsyncValue = ref.watch(tasksStreamProvider);
-    ref.watch(selectedDateProvider);
-    return AppScreenFrame(
-      Container(
-        padding: const EdgeInsets.all(0),
+    final dailyTasksAsyncValue = ref.watch(weeklyTasksStreamProvider);
+    final selectedDayIndex = ref.watch(selectedWeekdayIndexProvider);
+    return Scaffold(
+      appBar: AppBar(),
+      body: Container(
+        padding: const EdgeInsets.all(25),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const DatePickerWidget(),
-                IconButton(
-                    onPressed: () {
-                      initializeWeeklyTasks(ref); //! only used once
-                      context.pushNamed(AppRoute.weeklyTasks.name);
-                    },
-                    icon: const Icon(Icons.calendar_month))
-              ],
-            ),
+            const DayPicker(),
             Expanded(
-              child: salesPointsAsyncValue.when(
-                data: (salespoints) => SalesPoints(salespoints),
+              child: dailyTasksAsyncValue.when(
+                data: (dailyTasks) {
+                  late Map<String, dynamic> dayTasks;
+                  if (dailyTasks.isEmpty) {
+                    dayTasks = {
+                      'weekDay': selectedDayIndex,
+                      'tasks': [],
+                      'dbRef': generateRandomString(len: 8),
+                      'name': generateRandomString(len: 8),
+                      'imageUrls': []
+                    };
+                    ref.read(weeklyTasksRepositoryProvider).addItem(WeeklyTask.fromMap(dayTasks));
+                  } else {
+                    dayTasks = dailyTasks.first;
+                  }
+                  return SalesPoints(dayTasks);
+                },
                 loading: () => const CircularProgressIndicator(), // Show loading indicator
                 error: (error, stack) => Text('Error: $error'), // Handle errors
               ),
@@ -90,20 +77,17 @@ class TasksScreen extends ConsumerWidget {
 }
 
 class SalesPoints extends ConsumerWidget {
-  const SalesPoints(this.salesPoints, {super.key});
-  final List<Map<String, dynamic>> salesPoints;
+  const SalesPoints(this.dailyTasks, {super.key});
+  final Map<String, dynamic> dailyTasks;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (salesPoints.isEmpty) {
-      copyWeeklyDayTasks(ref);
-    }
     bool isReadOnly = true;
+    final salesPoints = dailyTasks['tasks'];
     final userInfo = ref.watch(userInfoProvider); // to update UI when user info finally loaded
     if (userInfo != null && userInfo.privilage != 'guest') {
       isReadOnly = false;
     }
-    final selectedDate = ref.watch(selectedDateProvider);
     // Create list of unique salesman names found in firebase for that date
     Set<String> uniqueSalesmanNames = {};
     for (var salesPoint in salesPoints) {
@@ -207,28 +191,25 @@ class SalesPoints extends ConsumerWidget {
                           salesman['dbRef'],
                           customerName,
                           customer['dbRef'],
-                          selectedDate ?? DateTime.now(),
+                          DateTime.now(),
                           false,
                           false,
                           generateRandomString(len: 8),
-                          [],
+                          [defaultImageUrl],
                           generateRandomString(len: 8),
                           customer['x'],
                           customer['y'],
                           null,
                           null,
                         );
-                        //TODO to prevent adding new salespoint if it already exists
-                        ref.read(tasksRepositoryProvider).addItem(newSalesPoint);
+                        final newSalesPointMap = newSalesPoint.toMap();
+                        newSalesPointMap['date'] = Timestamp.fromDate(newSalesPointMap['date']);
+                        dailyTasks['tasks'].add(newSalesPointMap);
+                        final dailyTasksObject = WeeklyTask.fromMap(dailyTasks);
+                        ref.read(weeklyTasksRepositoryProvider).updateItem(dailyTasksObject);
                       }
                     },
                   ),
-                HorizontalGap.s,
-                IconButton(
-                    onPressed: () {
-                      printReport(tasks);
-                    },
-                    icon: const Icon(Icons.print)),
                 HorizontalGap.l,
                 Container(
                   width: 150,
@@ -252,50 +233,24 @@ class SalesPoints extends ConsumerWidget {
             Wrap(
               spacing: 8.0, // Space between items
               runSpacing: 8.0, // Space between rows
-              children: tasks.map((item) {
-                final bgColor = !item['isVisited']
-                    ? Colors.red
-                    : item['hasTransaction']
-                        ? Colors.green
-                        : Colors.amber;
-                final fontColor = item['isVisited'] ? Colors.black : Colors.white;
+              children: tasks.map((task) {
                 return Stack(
                   children: [
                     Container(
                       width: 140,
-                      height: 90,
+                      height: 80,
                       padding: const EdgeInsets.only(top: 20, bottom: 10, left: 10, right: 10),
                       decoration: BoxDecoration(
                         borderRadius: const BorderRadius.all(Radius.circular(8)),
-                        color: bgColor,
+                        color: Colors.blueGrey[100],
                       ),
                       child: Column(
                         children: [
                           Text(
-                            item['customerName'],
+                            task['customerName'],
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: fontColor, fontWeight: FontWeight.w500),
+                            style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
-                          const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                item['visitDate'] == null
-                                    ? ''
-                                    : DateFormat('hh:mm a').format(item['visitDate'].toDate()),
-                                style: const TextStyle(fontSize: 12, color: Colors.black),
-                              ),
-                              if (item['transactionDate'] != null) const Spacer(),
-                              Text(
-                                item['transactionDate'] == null
-                                    ? ''
-                                    : DateFormat('hh:mm a')
-                                        .format(item['transactionDate'].toDate()),
-                                style: const TextStyle(fontSize: 12, color: Colors.black),
-                              ),
-                            ],
-                          )
                         ],
                       ),
                     ),
@@ -308,9 +263,12 @@ class SalesPoints extends ConsumerWidget {
                           height: 22,
                           child: TextButton(
                             onPressed: () {
+                              const mapEquality = MapEquality<String, dynamic>();
+                              dailyTasks['tasks']
+                                  .removeWhere((item) => mapEquality.equals(item, task));
                               ref
-                                  .read(tasksRepositoryProvider)
-                                  .deleteItem(SalesPoint.fromMap(item));
+                                  .read(weeklyTasksRepositoryProvider)
+                                  .updateItem(WeeklyTask.fromMap(dailyTasks));
                             },
                             child: const Text(
                               'x',
@@ -319,15 +277,6 @@ class SalesPoints extends ConsumerWidget {
                           ),
                         ),
                       ),
-                    // Positioned(
-                    //     top: 2,
-                    //     right: 10,
-                    //     child: Text(
-                    //       item['visitDate'] == null
-                    //           ? ''
-                    //           : DateFormat('hh:mm a').format(item['visitDate'].toDate()),
-                    //       style: const TextStyle(fontSize: 12, color: Colors.black),
-                    //     ))
                   ],
                 );
               }).toList(),
@@ -469,23 +418,67 @@ Future<List<String>?> _showMultiSelectDialog(
   return selectedValues; // Return the selected values to the calling function
 }
 
-Future<void> printReport(List<Map<String, dynamic>> salesPointMaps) async {
-  try {
-    List<SalesPoint> salesPoints = [];
-    for (var map in salesPointMaps) {
-      salesPoints.add(SalesPoint.fromMap(map));
-    }
-    // 1. Generate the PDF bytes
-    final Uint8List pdfBytes =
-        await SalesPointPdfGenerator.generatePdf(salesPoints); // Use your actual list here
+class SimpleWeekdaySelector extends ConsumerWidget {
+  // The callback function that receives the index (0-6) when a day is tapped.
+  final Function(int index) onWeekdayTap;
 
-    // 2. Use the printing package to preview and print
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdfBytes,
-      name:
-          'Sales_Report_${salesPoints.first.salesmanName}_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf', // Optional: set default file name
+  // Define the weekday labels (0 = Monday, 6 = Sunday)
+  final List<String> weekdays = const [
+    'الاثنين',
+    'الثلاثاء',
+    'الاربعاء',
+    'الخميس',
+    'الجمعة',
+    'السبت',
+    'الاحد',
+  ];
+
+  const SimpleWeekdaySelector({
+    super.key,
+    required this.onWeekdayTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIndex = ref.watch(selectedWeekdayIndexProvider);
+
+    return Row(
+      // Distribute space nicely between the boxes
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(weekdays.length, (index) {
+        Color? bgColor = selectedIndex == (index + 1) ? Colors.orange[300] : Colors.orange[100];
+        return InkWell(
+          // The function to call when tapped, passing the current index
+          onTap: () => onWeekdayTap(index + 1),
+          // Optional: Makes the ripple effect match the box shape
+          borderRadius: BorderRadius.circular(8.0),
+          child: Container(
+            width: 110,
+            height: 85,
+            margin: const EdgeInsets.all(5),
+            // Internal padding for the box content
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              // A simple background color for the box
+              color: bgColor,
+              // Rounded corners for a nicer look
+              borderRadius: BorderRadius.circular(8.0),
+              // Optional: Add a subtle border
+              // border: Border.all(color: Colors.blueGrey[200]!),
+            ),
+            child: Center(
+              child: Text(
+                weekdays[index], // Display the weekday abbreviation
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.black87, // Text color
+                  // fontWeight: FontWeight.bold, // Optional: Make text bold
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
     );
-  } catch (e) {
-    errorPrint('Error generating or printing PDF for tasks: $e');
   }
 }
