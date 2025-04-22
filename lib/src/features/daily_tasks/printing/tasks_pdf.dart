@@ -87,17 +87,22 @@ class SalesPointPdfGenerator {
                   style: const pw.TextStyle(fontSize: 10)));
         },
 
-        // --- Build Function (Content flows across pages) ---
+// --- Build Function (Content flows across pages) ---
         build: (pw.Context context) {
           // Returns a LIST of widgets. MultiPage will arrange them across pages.
+
+          // Define the time formatter once (using 'ar' locale for Arabic AM/PM)
+          final DateFormat timeFormatter = DateFormat.jm('ar');
+
           return [
-            // 1. Body - Grid (The Wrap widget is good here as MultiPage can break between its children)
+            // 1. Body - Grid
             pw.Wrap(
               spacing: 10,
               runSpacing: 10,
-              // Wrap direction is influenced by the MultiPage's textDirection
               children: salesPoints.map((point) {
+                // Start mapping salesPoints
                 PdfColor boxColor;
+                // ... (color logic remains the same) ...
                 if (point.hasTransaction) {
                   boxColor = PdfColors.green100;
                 } else if (point.isVisited) {
@@ -105,35 +110,85 @@ class SalesPointPdfGenerator {
                 } else {
                   boxColor = PdfColors.red100;
                 }
+
+                // Get formatted times, handling nulls
+                String visitTimeStr =
+                    point.visitDate != null ? timeFormatter.format(point.visitDate!) : '';
+                String transactionTimeStr = point.transactionDate != null
+                    ? timeFormatter.format(point.transactionDate!)
+                    : '';
+
+                // --- Conditional Logic for Times Row ---
+                pw.Widget timesRowWidget; // Placeholder for the row widget
+                bool hasVisit = visitTimeStr.isNotEmpty;
+                bool hasTransaction = transactionTimeStr.isNotEmpty;
+
+                if (hasVisit && hasTransaction) {
+                  // CASE 1: Both Visit and Transaction Times -> Push Apart
+                  timesRowWidget = pw.Row(
+                    children: [
+                      pw.Text(visitTimeStr, style: const pw.TextStyle(fontSize: 7)),
+                      pw.Spacer(),
+                      pw.Text(transactionTimeStr, style: const pw.TextStyle(fontSize: 7)),
+                    ],
+                  );
+                } else if (hasVisit && !hasTransaction) {
+                  // CASE 2: ONLY Visit Time -> Center Align
+                  timesRowWidget = pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.center, // Center the content
+                    children: [
+                      pw.Text(visitTimeStr, style: const pw.TextStyle(fontSize: 7)),
+                    ],
+                  );
+                } else if (!hasVisit && hasTransaction) {
+                  // CASE 3: ONLY Transaction Time -> Default Align (Start/Right in RTL)
+                  timesRowWidget = pw.Row(
+                    // Default mainAxisAlignment is start
+                    children: [
+                      pw.Text(transactionTimeStr, style: const pw.TextStyle(fontSize: 7)),
+                    ],
+                  );
+                } else {
+                  // CASE 4: No times -> Render an empty container
+                  timesRowWidget = pw.Container(); // Or pw.SizedBox.shrink()
+                }
+                // --- End Conditional Logic ---
+
                 return pw.Container(
-                  width: 80,
-                  height: 60,
+                  // ... (container settings: width, height, padding, decoration remain the same) ...
+                  width: 85,
+                  height: 65,
                   padding: const pw.EdgeInsets.all(4),
                   decoration: pw.BoxDecoration(
                     color: boxColor,
                     border: pw.Border.all(color: PdfColors.grey, width: 0.5),
                     borderRadius: pw.BorderRadius.circular(4),
                   ),
-                  child: pw.Center(
-                    child: pw.Text(
-                      point.customerName,
-                      textAlign: pw.TextAlign.center,
-                      // textDirection inherited from MultiPage's textDirection
-                      style: const pw.TextStyle(fontSize: 9),
-                    ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      // Customer Name (at the top)
+                      pw.Text(
+                        point.customerName,
+                        textAlign: pw.TextAlign.center,
+                        style: const pw.TextStyle(fontSize: 9),
+                      ),
+
+                      // Spacer to push the times row to the bottom
+                      pw.Spacer(),
+
+                      // The conditionally constructed times row widget
+                      timesRowWidget,
+                    ],
                   ),
                 );
-              }).toList(),
-            ),
+              }).toList(), // End mapping salesPoints
+            ), // End Wrap
 
-            // Add space before the summary if needed, but avoid Spacer() here.
-            // pw.SizedBox(height: 20),
-
-            // 2. Final Summary (Appears ONCE after all the wrap items)
-            // We add these as separate widgets in the list returned by build.
-            // MultiPage will place them after the Wrap content, potentially on a new page if needed.
-            pw.SizedBox(height: 20), // Space before summary
+            // --- Remaining summary section (no changes needed here) ---
+            pw.SizedBox(height: 20),
             pw.Divider(),
+            // ... (rest of the summary Text widgets) ...
             pw.SizedBox(height: 10),
             pw.Text('$totalPointsLabel $totalCount'),
             pw.SizedBox(height: 5),
@@ -141,9 +196,9 @@ class SalesPointPdfGenerator {
             pw.SizedBox(height: 5),
             pw.Text('$visitedWithTxLabel $visitedWithTransactionCount'),
             pw.SizedBox(height: 5),
-            pw.Text('$notVisitedWithTxLabel $notVisitedCount'), // Use corrected var name
+            pw.Text('$notVisitedWithTxLabel $notVisitedCount'),
           ];
-        },
+        }, // End build function
       ),
     );
 
