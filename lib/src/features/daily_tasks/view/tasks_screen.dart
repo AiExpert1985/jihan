@@ -69,7 +69,6 @@ class TasksScreen extends ConsumerWidget {
                 const DatePickerWidget(),
                 IconButton(
                     onPressed: () {
-                      initializeWeeklyTasks(ref); //! only used once
                       context.pushNamed(AppRoute.weeklyTasks.name);
                     },
                     icon: const Icon(Icons.calendar_month))
