@@ -57,33 +57,39 @@ class TasksScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final salesPointsAsyncValue = ref.watch(tasksStreamProvider);
     ref.watch(selectedDateProvider);
-    return AppScreenFrame(
-      Container(
-        padding: const EdgeInsets.all(0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const DatePickerWidget(),
-                IconButton(
-                    onPressed: () {
-                      context.pushNamed(AppRoute.weeklyTasks.name);
-                    },
-                    icon: const Icon(Icons.calendar_month))
-              ],
+    final userInfo = ref.watch(userInfoProvider);
+
+    Widget bodyWidget = Container(
+      padding: const EdgeInsets.all(0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const DatePickerWidget(),
+              IconButton(
+                  onPressed: () {
+                    context.pushNamed(AppRoute.weeklyTasks.name);
+                  },
+                  icon: const Icon(Icons.calendar_month))
+            ],
+          ),
+          Expanded(
+            child: salesPointsAsyncValue.when(
+              data: (salespoints) => SalesPoints(salespoints),
+              loading: () => const CircularProgressIndicator(), // Show loading indicator
+              error: (error, stack) => Text('Error: $error'), // Handle errors
             ),
-            Expanded(
-              child: salesPointsAsyncValue.when(
-                data: (salespoints) => SalesPoints(salespoints),
-                loading: () => const CircularProgressIndicator(), // Show loading indicator
-                error: (error, stack) => Text('Error: $error'), // Handle errors
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+    return userInfo != null && userInfo.privilage == 'guest'
+        ? Scaffold(
+            appBar: AppBar(),
+            body: bodyWidget,
+          )
+        : AppScreenFrame(bodyWidget);
   }
 }
 

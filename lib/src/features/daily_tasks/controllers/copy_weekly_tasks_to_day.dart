@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/features/daily_tasks/controllers/selected_date_provider.dart';
 import 'package:tablets/src/features/daily_tasks/model/point.dart';
 import 'package:tablets/src/features/daily_tasks/repo/tasks_repository_provider.dart';
@@ -14,6 +15,8 @@ void copyWeeklyDayTasks(WidgetRef ref) async {
   final tasks = dayTasks.isEmpty ? [] : dayTasks.first['tasks'];
   for (var task in tasks) {
     final salesPoint = SalesPoint.fromMap(task);
+    // important to give unqiue dbRef, face bug without ti
+    salesPoint.dbRef = generateRandomString(len: 8);
     salesPoint.isVisited = false;
     salesPoint.hasTransaction = false;
     salesPoint.date = selectedDate;

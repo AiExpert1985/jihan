@@ -459,7 +459,7 @@ Widget buildSalesmanTasksButton(BuildContext context, WidgetRef ref) {
     () async {
       await initializeAppData(context, ref);
       if (context.mounted) {
-        context.goNamed('tasks');
+        context.pushNamed('tasks');
       }
     },
   );
