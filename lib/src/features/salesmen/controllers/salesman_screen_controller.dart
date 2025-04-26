@@ -288,28 +288,35 @@ class SalesmanScreenController implements ScreenDataController {
       int numInvoices = 0;
       num numItems = 0;
       for (var trans in salesmanTransactions) {
-        if (trans.transactionType == TransactionType.customerInvoice.name &&
-            trans.nameDbRef == customer.dbRef) {
-          numInvoices++;
-          final items = trans.items ?? [];
-          for (var i = 0; i < items.length; i++) {
-            final item = items[i];
-            // if the caller is Jihan supervisor, hide certain products
+        if (trans.nameDbRef != customer.dbRef &&
+            (trans.transactionType != TransactionType.customerInvoice.name ||
+                trans.transactionType != TransactionType.customerReturn.name)) {
+          // we only consider customerInvoices and customerReturns
+          continue;
+        }
 
-            if (isSuperVisor && ref != null) {
-              final productDbRef = item['dbRef'];
-              final productDbCache = ref.read(productDbCacheProvider.notifier);
-              final productMap = productDbCache.getItemByDbRef(productDbRef);
-              if (productMap.isNotEmpty) {
-                final product = Product.fromMap(productMap);
-                if (product.isHiddenInSpecialReports != null && product.isHiddenInSpecialReports!) {
-                  // if product is hidden from supervisor, pass it to next item
-                  continue;
-                }
+        if (trans.transactionType == TransactionType.customerInvoice.name) {
+          numInvoices++;
+        }
+        final items = trans.items ?? [];
+        for (var i = 0; i < items.length; i++) {
+          final item = items[i];
+          // if the caller is Jihan supervisor, hide certain products
+          if (isSuperVisor && ref != null) {
+            final productDbRef = item['dbRef'];
+            final productDbCache = ref.read(productDbCacheProvider.notifier);
+            final productMap = productDbCache.getItemByDbRef(productDbRef);
+            if (productMap.isNotEmpty) {
+              final product = Product.fromMap(productMap);
+              if (product.isHiddenInSpecialReports != null && product.isHiddenInSpecialReports!) {
+                // if product is hidden from supervisor, pass it to next item
+                continue;
               }
             }
-            numItems += item[itemSoldQuantityKey];
           }
+          trans.transactionType == TransactionType.customerInvoice.name
+              ? numItems += item[itemSoldQuantityKey]
+              : numItems -= item[itemSoldQuantityKey];
         }
       }
       customerData.add([customer.name, customer.region, customer.phone, numInvoices, numItems]);
