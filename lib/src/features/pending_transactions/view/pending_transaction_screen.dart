@@ -524,8 +524,7 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
         onChangedFn: (salesman) {
           // it is important to trim, because I faced issue with "مضر هذال" filter, i think
           // it is good practice to trim when searching for certain text value
-          QuickFilter filter =
-              QuickFilter(propertyName, QuickFilterType.equals, salesman['name'].trim());
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, salesman['name']);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
         },
