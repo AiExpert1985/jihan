@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
+import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
@@ -321,6 +322,12 @@ void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
 }
 
 void approveTransaction(BuildContext context, WidgetRef ref, Transaction transaction) {
+  final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
+  // below check is added to prevent the bug of duplicating of pressing approve button multiple times
+  if (transactionDbCache.getItemByDbRef(transaction.dbRef).isNotEmpty) {
+    errorPrint('item was previously approved, duplication is not allowed');
+    return;
+  }
   // first of all, we delete the transaction (before changing its number)
   deletePendingTransaction(context, ref, transaction, addToDeletedTransaction: false);
   // then we udpate the transaction number if transaction is a customer invoice

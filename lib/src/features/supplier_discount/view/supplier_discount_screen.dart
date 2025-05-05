@@ -148,7 +148,10 @@ class SupplierDiscountFloatingButtons extends ConsumerWidget {
         SpeedDialChild(
           child: const Icon(Icons.add, color: Colors.white),
           backgroundColor: iconsColor,
-          onTap: () => showAddSupplierDiscountForm(context, ref),
+          onTap: () {
+            //! temprarilly stop adding discount due to errors found
+            // showAddSupplierDiscountForm(context, ref);
+          },
         ),
       ],
     );

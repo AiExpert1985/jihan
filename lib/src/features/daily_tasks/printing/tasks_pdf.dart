@@ -171,7 +171,10 @@ class SalesPointPdfGenerator {
                       pw.Text(
                         point.customerName,
                         textAlign: pw.TextAlign.center,
-                        style: const pw.TextStyle(fontSize: 9),
+                        maxLines: 2, // Allow up to two lines for the name
+                        overflow: pw.TextOverflow.clip, // Add '...' if text exceeds maxLines
+                        style: const pw.TextStyle(
+                            fontSize: 9), // Or use your customerNameFontSize constant
                       ),
 
                       // Spacer to push the times row to the bottom
