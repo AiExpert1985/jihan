@@ -42,10 +42,25 @@ class SupplierDiscountService {
       if (isTransactionUpdated) {
         transaction['items'].addAll(newItems);
         // update transaction related fields
-        const notePartOne = 'في تاريخ';
-        const notePartTwo = 'تم تخفيض سعر المادة';
-        transaction['notes'] =
+        const String notePartOne = 'في تاريخ';
+        const String notePartTwo = 'تم تخفيض سعر المادة';
+        final String newNoteLine = // Using final
             '$notePartOne ${formatDate(discount.date)} $notePartTwo ${discount.productName}';
+
+        final dynamic rawExistingNotes = transaction['notes']; // Get the value once
+        String? currentNotes; // Explicitly declare as nullable String
+
+        if (rawExistingNotes is String) {
+          // Check if it's actually a String
+          currentNotes = rawExistingNotes;
+        }
+        // If rawExistingNotes was null or not a String, currentNotes remains null.
+        if (currentNotes != null && currentNotes.isNotEmpty) {
+          // .isNotEmpty is idiomatic and safe
+          transaction['notes'] = '$currentNotes\n$newNoteLine';
+        } else {
+          transaction['notes'] = newNoteLine;
+        }
         double newSubTotalAmount = 0.0;
         for (var item in transaction['items']) {
           newSubTotalAmount += item['itemTotalAmount'];

@@ -74,13 +74,14 @@ class ProductScreenController implements ScreenDataController {
       transactionMap['number'] = transactionMap['number'].toInt();
       // end of conversion
       Transaction transaction = Transaction.fromMap(transactionMap);
-      num totalQuantity = 0;
-      num totalProfit = 0;
-      num totalSalesmanCommission = 0;
+
       String type = transaction.transactionType;
       String number = '${transaction.number}';
       DateTime date = transaction.date;
       for (var item in transaction.items ?? []) {
+        num totalQuantity = 0;
+        num totalProfit = 0;
+        num totalSalesmanCommission = 0;
         if (item['dbRef'] != product.dbRef) continue;
         if (type == TransactionType.customerInvoice.name ||
             type == TransactionType.vendorReturn.name) {
