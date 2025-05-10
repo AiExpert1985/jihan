@@ -149,8 +149,7 @@ class SupplierDiscountFloatingButtons extends ConsumerWidget {
           child: const Icon(Icons.add, color: Colors.white),
           backgroundColor: iconsColor,
           onTap: () {
-            //! temprarilly stop adding discount due to errors found
-            // showAddSupplierDiscountForm(context, ref);
+            showAddSupplierDiscountForm(context, ref);
           },
         ),
       ],
