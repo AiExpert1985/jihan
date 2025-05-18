@@ -153,8 +153,8 @@ class CustomerReportController {
       final region = customerDbCacheData['region'] ?? '-';
       final totalDebt = customerScreenData[totalDebtKey] as double;
       final dueDebt = customerScreenData[dueDebtKey] as double;
-      // only show customers with debt > 0
-      if (totalDebt > 0) {
+      // only show customers with debt > 0 or debt < 0 (special case where customer has -ve balance)
+      if (totalDebt != 0) {
         final lastReceiptDate = lastCustomerReceipt(context, ref, customerScreenData);
         final lastInvoiceDate = lastCustomerInvoice(context, ref, customerScreenData);
         debtList
