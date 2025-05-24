@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import 'package:tablets/src/common/functions/debug_print.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
 import 'package:tablets/src/common/values/gaps.dart';
@@ -227,14 +228,36 @@ class DataRow extends ConsumerWidget {
   }
 }
 
-Future<void> _printProducts(BuildContext context) async {
+// this method return List of Maps, in the form {'productName': 'بطيخ احمر', 'productQuantity': 10}
+// filter product if it is hidden, and if it is equal or less than zero
+List<Map<String, dynamic>> _getFilterProductInventory(WidgetRef ref) {
+  final productDbCache = ref.read(productDbCacheProvider.notifier);
+
+  final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
+  final screenData = screenDataNotifier.data;
+  tempPrint(screenData.length);
+  List<Map<String, dynamic>> filteredProductInventory = [];
+  for (var productData in screenData) {
+    final productRef = productData[productDbRefKey];
+    final productMap = productDbCache.getItemByDbRef(productRef);
+    final product = Product.fromMap(productMap);
+    final productQuantity = productData[productQuantityKey];
+    if (productQuantity > 0 &&
+        product.isHiddenInSpecialReports != null &&
+        !product.isHiddenInSpecialReports!) {
+      filteredProductInventory
+          .add({'productName': product.name, 'productQuantity': productQuantity});
+    }
+  }
+  return filteredProductInventory;
+}
+
+Future<void> _printProducts(BuildContext context, WidgetRef ref) async {
   try {
-    final myProductsData = [
-      {'productName': 'بطيخ احمر', 'productQuantity': 10}
-    ];
+    final myProductsData = _getFilterProductInventory(ref);
     final Uint8List pdfBytes = await ProductListPdfGenerator.generatePdf(
       myProductsData,
-      reportTitle: "تقرير المخزون (بيانات Map)",
+      reportTitle: "تقرير المخزون",
     );
 
     await Printing.layoutPdf(
@@ -288,7 +311,7 @@ class ProductFloatingButtons extends ConsumerWidget {
         SpeedDialChild(
           child: const Icon(Icons.print, color: Colors.white),
           backgroundColor: iconsColor,
-          onTap: () => _printProducts(context),
+          onTap: () => _printProducts(context, ref),
         ),
         SpeedDialChild(
           child: const Icon(Icons.search, color: Colors.white),
