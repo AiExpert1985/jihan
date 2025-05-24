@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
 import 'package:tablets/src/common/values/gaps.dart';
@@ -12,6 +16,7 @@ import 'package:tablets/src/features/products/controllers/product_drawer_provide
 import 'package:tablets/src/features/products/controllers/product_form_data_notifier.dart';
 import 'package:tablets/src/features/products/controllers/product_report_controller.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_data_notifier.dart';
+import 'package:tablets/src/features/products/printing/printing_inventory.dart';
 import 'package:tablets/src/features/products/view/product_form.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
@@ -222,6 +227,24 @@ class DataRow extends ConsumerWidget {
   }
 }
 
+Future<void> _printProducts(BuildContext context) async {
+  try {
+    final myProductsData = [
+      {'productName': 'بطيخ احمر', 'productQuantity': 10}
+    ];
+    final Uint8List pdfBytes = await ProductListPdfGenerator.generatePdf(
+      myProductsData,
+      reportTitle: "تقرير المخزون (بيانات Map)",
+    );
+
+    await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+        name: 'product_list_map_${DateTime.now().toIso8601String()}.pdf');
+  } catch (e) {
+    debugPrint("Error generating PDF: $e");
+  }
+}
+
 void _showEditProductForm(BuildContext context, WidgetRef ref, Product product) {
   final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
   final formDataNotifier = ref.read(productFormDataProvider.notifier);
@@ -262,11 +285,11 @@ class ProductFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
-        // SpeedDialChild(
-        //   child: const Icon(Icons.pie_chart, color: Colors.white),
-        //   backgroundColor: iconsColor,
-        //   onTap: () => drawerController.showReports(context),
-        // ),
+        SpeedDialChild(
+          child: const Icon(Icons.print, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () => _printProducts(context),
+        ),
         SpeedDialChild(
           child: const Icon(Icons.search, color: Colors.white),
           backgroundColor: iconsColor,
