@@ -29,7 +29,7 @@ class ProductListPdfGenerator {
     final printableProducts = productMaps.where((item) {
       final quantity = item['productQuantity'];
       final name = item['productName'];
-      return name is String && name.isNotEmpty && quantity is num && quantity > 0;
+      return name is String && name.isNotEmpty && quantity is num;
     }).toList();
 
     final pdf = pw.Document();
