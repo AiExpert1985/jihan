@@ -9,6 +9,7 @@ import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
 import 'package:tablets/src/common/values/constants.dart';
+import 'package:tablets/src/common/values/features_keys.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
@@ -30,6 +31,8 @@ import 'package:tablets/src/common/widgets/form_fields/drop_down_with_search.dar
 import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_quick_filter_controller.dart';
+import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
+import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_drawer_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_form_controller.dart';
@@ -43,6 +46,7 @@ import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
+import 'package:tablets/src/features/transactions/view/forms/item_list.dart';
 
 class PendingTransactions extends ConsumerWidget {
   const PendingTransactions({super.key});
@@ -365,9 +369,13 @@ void saveToTransactionCollection(
   final formController = ref.read(transactionFormControllerProvider);
   final screenController = ref.read(transactionScreenControllerProvider);
   final dbCache = ref.read(transactionDbCacheProvider.notifier);
+  // since Item buyingPrice added by Salesman is the default (not the correct one) we need to update it
+  // note that I can't calculate buyingPrice at mobile, because it is CPU expensive
+  updateBuyingPricesAndProfit(context, ref, transaction);
   formController.saveItemToDb(context, transaction, false, keepDialogOpen: true);
   // update the bdCache (database mirror) so that we don't need to fetch data from db
   final itemData = transaction.toMap();
+
   if (itemData[transactionDateKey] is DateTime) {
     // in our form the data type usually is DateTime, but the date type in dbCache should be
     // Timestamp, as to mirror the datatype of firebase
@@ -379,6 +387,36 @@ void saveToTransactionCollection(
   if (context.mounted) {
     screenController.setFeatureScreenData(context);
   }
+}
+
+void updateBuyingPricesAndProfit(BuildContext context, WidgetRef ref, Transaction transaction) {
+  try {
+    if (transaction.items == null) return;
+    double itemsTotalProfit = 0;
+    for (var item in transaction.items!) {
+      item['buyingPrice'] = _getItemPrice(context, ref, item['dbRef']);
+      final oneItemProfit = item['sellingPrice'] - item['buyingPrice'];
+      final sellingProfit = oneItemProfit * item['soldQuantity'];
+      final giftLoss = item['giftQuantity'] * item['buyingPrice'];
+      item['itemTotalProfit'] = sellingProfit - giftLoss;
+      itemsTotalProfit += item['itemTotalProfit'];
+    }
+    transaction.itemsTotalProfit = itemsTotalProfit;
+    final discount = transaction.discount ?? 0;
+    transaction.transactionTotalProfit = itemsTotalProfit - discount;
+  } catch (e) {
+    errorPrint('error during updateBuyingPricesAndProfit, $e');
+  }
+}
+
+double _getItemPrice(BuildContext context, WidgetRef ref, String productDbRef) {
+  tempPrint(productDbRef);
+  final productDbCache = ref.read(productDbCacheProvider.notifier);
+  final productData = productDbCache.getItemByDbRef(productDbRef);
+  final productScreenController = ref.read(productScreenControllerProvider);
+  final prodcutScreenData = productScreenController.getItemScreenData(context, productData);
+  final productQuantity = prodcutScreenData[productQuantityKey];
+  return getBuyingPrice(ref, productQuantity, productData['dbRef']);
 }
 
 // here I am giving the next number after the maximumn number previously given in both transactions & deleted
