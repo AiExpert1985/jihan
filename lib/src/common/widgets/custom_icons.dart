@@ -7,7 +7,11 @@ class ApproveIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [const Icon(Icons.check, color: Colors.green), VerticalGap.s, Text(S.of(context).approve)]);
+    return Column(children: [
+      const Icon(Icons.check, color: Colors.green),
+      VerticalGap.s,
+      Text(S.of(context).approve)
+    ]);
   }
 }
 
@@ -64,7 +68,11 @@ class SaveIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [const Icon(Icons.check, color: Colors.green), VerticalGap.s, Text(S.of(context).save)]);
+    return Column(children: [
+      const Icon(Icons.check, color: Colors.green),
+      VerticalGap.s,
+      Text(S.of(context).save)
+    ]);
   }
 }
 
@@ -212,6 +220,27 @@ class PrintIcon extends StatelessWidget {
         const Icon(Icons.print),
         VerticalGap.s,
         Text(S.of(context).print),
+      ],
+    );
+  }
+}
+
+// same Icon with only difference in label
+class PrintIconB extends StatelessWidget {
+  const PrintIconB({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        // Image.asset(
+        //   'assets/icons/buttons/print.png',
+        //   width: 25,
+        //   height: 22,
+        // ),
+        Icon(Icons.print),
+        VerticalGap.s,
+        Text("طباعة2"),
       ],
     );
   }

@@ -232,10 +232,25 @@ class TransactionForm extends ConsumerWidget {
         },
         icon: const PrintIcon(),
       ),
+      IconButton(
+        onPressed: () {
+          _onPrintPressed(context, ref, formDataNotifier, isLogoB: true);
+          // if not printed due to empty name, don't continue
+          if (!formDataNotifier.getProperty(isPrintedKey)) return;
+          formNavigation.isReadOnly = true;
+          // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
+          // TODO later I might change formNavigation to StateNotifier and watch it in this widget
+          final formData = formDataNotifier.data;
+          onNavigationPressed(formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+              targetTransactionData: formData);
+        },
+        icon: const PrintIconB(),
+      ),
     ];
   }
 
-  void _onPrintPressed(BuildContext context, WidgetRef ref, ItemFormData formDataNotifier) async {
+  void _onPrintPressed(BuildContext context, WidgetRef ref, ItemFormData formDataNotifier,
+      {bool isLogoB = false}) async {
     if (formDataNotifier.data[nameKey] == '') {
       failureUserMessage(context, S.of(context).no_name_print_error);
       return;
@@ -246,7 +261,7 @@ class TransactionForm extends ConsumerWidget {
     // also, as a policy, I want always to save before print, because I want to ensure always the transaction in
     // database matches the printed transaction.
     saveTransaction(context, ref, formDataNotifier.data, true);
-    printForm(context, ref, formDataNotifier.data);
+    printForm(context, ref, formDataNotifier.data, isLogoB: isLogoB);
     formDataNotifier.updateProperties({isPrintedKey: true});
   }
 

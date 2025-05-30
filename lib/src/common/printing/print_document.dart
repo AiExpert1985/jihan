@@ -39,11 +39,8 @@ Future<void> _printPDf(Document pdf, int numCopies) async {
   }
 }
 
-Future<void> printForm(
-  BuildContext context,
-  WidgetRef ref,
-  Map<String, dynamic> transactionData,
-) async {
+Future<void> printForm(BuildContext context, WidgetRef ref, Map<String, dynamic> transactionData,
+    {bool isLogoB = false}) async {
   try {
     final settings = ref.read(settingsFormDataProvider.notifier);
     final settingInvoiceCopies = settings.data['printedCustomerInvoices'];
@@ -51,7 +48,9 @@ Future<void> printForm(
             transactionData['transactionType'].contains('expenditure')
         ? 1
         : settingInvoiceCopies;
-    final image = await loadImage('assets/images/invoice_logo.PNG');
+    final imagePath =
+        isLogoB ? 'assets/images/invoice_logo_b.png' : 'assets/images/invoice_logo.PNG';
+    final image = await loadImage(imagePath);
     final filePath = gePdfpath('test_file');
     if (context.mounted) {
       final pdf = await getPdfFile(context, ref, transactionData, image);

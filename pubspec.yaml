@@ -102,6 +102,7 @@ flutter:
     - assets/images/logo.png
     - assets/images/empty.png
     - assets/images/invoice_logo.PNG
+    - assets/images/invoice_logo_b.png
     - assets/icons/side_drawer/
     - assets/icons/buttons/
     - assets/settings/
