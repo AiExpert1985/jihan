@@ -25,6 +25,7 @@ class ProductScreenController implements ScreenDataController {
     this._transactionsDbCache,
     this._productDbCache,
   );
+
   final ScreenDataNotifier _screenDataNotifier;
   final DbCache _transactionsDbCache;
   final DbCache _productDbCache;
@@ -32,11 +33,17 @@ class ProductScreenController implements ScreenDataController {
   @override
   void setFeatureScreenData(BuildContext context) {
     final allProductsData = _productDbCache.data;
+    // Pre-process and group transactions by product dbRef for efficient lookup.
+    final transactionsByProduct = _groupTransactionsByProduct();
+
     List<Map<String, dynamic>> screenData = [];
     for (var productData in allProductsData) {
-      final newRow = getItemScreenData(context, productData);
+      final product = Product.fromMap(productData);
+      final productTransactions = transactionsByProduct[product.dbRef] ?? [];
+      final newRow = _createProductScreenData(context, product, productTransactions);
       screenData.add(newRow);
     }
+
     Map<String, dynamic> summaryTypes = {
       productTotalStockPriceKey: 'sum',
     };
@@ -44,79 +51,77 @@ class ProductScreenController implements ScreenDataController {
     _screenDataNotifier.set(screenData);
   }
 
-  /// create a list of lists, where each resulting list contains transaction info
-  /// [type, number, date, totalQuantity, totalProfit, totalSalesmanCommission, ]
-  @override
-  Map<String, dynamic> getItemScreenData(BuildContext context, Map<String, dynamic> productData) {
-    final product = Product.fromMap(productData);
-    List<List<dynamic>> productProcessedTransactions = [];
-    if (product.initialQuantity > 0) {
-      final initialTransaction = _createInitialQuantityTransaction(product);
-      productProcessedTransactions.add([
-        initialTransaction,
-        translateDbTextToScreenText(context, TransactionType.initialCredit.name),
-        '',
-        product.initialDate,
-        product.initialQuantity,
-        0,
-        0
-      ]);
-    }
+  /// Groups all transactions by product `dbRef`.
+  /// This is a key performance improvement, as we only iterate through transactions once.
+  Map<String, List<Transaction>> _groupTransactionsByProduct() {
     final transactions = _transactionsDbCache.data;
-    for (var transactionMap in transactions) {
-      // below type conversion were done after changing from web to windows,
-      // the error was int are not acceptable as doubles
-      transactionMap.forEach((key, value) {
-        if (transactionMap[key] is int) {
-          transactionMap[key] = transactionMap[key].toDouble();
-        }
-      });
-      transactionMap['number'] = transactionMap['number'].toInt();
-      // end of conversion
-      Transaction transaction = Transaction.fromMap(transactionMap);
+    final Map<String, List<Transaction>> groupedTransactions = {};
 
-      String type = transaction.transactionType;
-      String number = '${transaction.number}';
-      DateTime date = transaction.date;
+    for (var transactionMap in transactions) {
+      // Perform type conversion once before creating the Transaction object.
+      final convertedMap = _convertTransactionMap(transactionMap);
+      final transaction = Transaction.fromMap(convertedMap);
+
       for (var item in transaction.items ?? []) {
-        num totalQuantity = 0;
-        num totalProfit = 0;
-        num totalSalesmanCommission = 0;
-        if (item['dbRef'] != product.dbRef) continue;
-        if (type == TransactionType.customerInvoice.name ||
-            type == TransactionType.vendorReturn.name) {
-          totalQuantity -= item['soldQuantity'];
-          totalQuantity -= item['giftQuantity'];
-          totalProfit += item['itemTotalProfit'] ?? 0;
-          totalSalesmanCommission += item['salesmanTotalCommission'] ?? 0;
-        } else if (type == TransactionType.vendorInvoice.name ||
-            type == TransactionType.customerReturn.name) {
-          totalQuantity += item['soldQuantity'];
-          totalQuantity += item['giftQuantity'];
-          if (type == TransactionType.customerReturn.name) {
-            totalProfit -= item['itemTotalProfit'] ?? 0;
+        final productDbRef = item['dbRef'];
+        if (productDbRef != null) {
+          if (!groupedTransactions.containsKey(productDbRef)) {
+            groupedTransactions[productDbRef] = [];
           }
-        } else if (type == TransactionType.damagedItems.name) {
-          totalQuantity -= item['soldQuantity'];
-          totalProfit -= (item['soldQuantity'] ?? 0) * (item['buyingPrice'] ?? 0);
-        } else {
-          continue;
+          // Add the parent transaction to the list for the corresponding product.
+          groupedTransactions[productDbRef]!.add(transaction);
         }
-        List<dynamic> transactionDetails = [
-          transaction,
-          translateDbTextToScreenText(context, type),
-          number,
-          date,
-          totalQuantity,
-          totalProfit,
-          totalSalesmanCommission
-        ];
-        productProcessedTransactions.add(transactionDetails);
       }
     }
+    return groupedTransactions;
+  }
+
+  /// Handles the type conversion for a single transaction map.
+  Map<String, dynamic> _convertTransactionMap(Map<String, dynamic> transactionMap) {
+    final newMap = Map<String, dynamic>.from(transactionMap);
+    newMap.forEach((key, value) {
+      if (value is int) {
+        newMap[key] = value.toDouble();
+      }
+    });
+    newMap['number'] = (newMap['number'] as double).toInt();
+    return newMap;
+  }
+
+  /// This method is deprecated and no longer used in the new structure.
+  /// The logic is now integrated into `_createProductScreenData`.
+  @override
+  Map<String, dynamic> getItemScreenData(BuildContext context, Map<String, dynamic> productData) {
+    // This method is intentionally left empty as its logic has been refactored
+    // into `_createProductScreenData` for better performance and clarity.
+    // You can remove it if the interface allows.
+    return {};
+  }
+
+  /// Creates the data row for a single product.
+  Map<String, dynamic> _createProductScreenData(
+      BuildContext context, Product product, List<Transaction> transactions) {
+    List<List<dynamic>> productProcessedTransactions = [];
+
+    // Add initial quantity transaction if it exists.
+    if (product.initialQuantity > 0) {
+      productProcessedTransactions.add(_createInitialTransactionRow(context, product));
+    }
+
+    // Process all other transactions for this product.
+    for (var transaction in transactions) {
+      productProcessedTransactions
+          .addAll(_processTransactionItems(context, transaction, product.dbRef));
+    }
+
+    // Sort transactions by date.
     sortListOfListsByDate(productProcessedTransactions, 3);
+
     final productTotals = _getProductTotals(productProcessedTransactions);
-    Map<String, dynamic> newDataRow = {
+    final totalQuantity = productTotals[0];
+    final totalProfit = productTotals[1];
+
+    return {
       productDbRefKey: product.dbRef,
       productCodeKey: product.code,
       productNameKey: product.name,
@@ -125,13 +130,70 @@ class ProductScreenController implements ScreenDataController {
       productSellingWholeSaleKey: product.sellRetailPrice,
       productSellingRetailKey: product.sellWholePrice,
       productBuyingPriceKey: product.buyingPrice,
-      productQuantityKey: productTotals[0],
+      productQuantityKey: totalQuantity,
       productQuantityDetailsKey: productProcessedTransactions,
-      productProfitKey: productTotals[1],
+      productProfitKey: totalProfit,
       productProfitDetailsKey: _getOnlyProfitInvoices(productProcessedTransactions, 5),
-      productTotalStockPriceKey: productTotals[0] * product.buyingPrice,
+      productTotalStockPriceKey: totalQuantity * product.buyingPrice,
     };
-    return newDataRow;
+  }
+
+  /// Creates a row for the initial product quantity.
+  List<dynamic> _createInitialTransactionRow(BuildContext context, Product product) {
+    final initialTransaction = _createInitialQuantityTransaction(product);
+    return [
+      initialTransaction,
+      translateDbTextToScreenText(context, TransactionType.initialCredit.name),
+      '',
+      product.initialDate,
+      product.initialQuantity,
+      0,
+      0
+    ];
+  }
+
+  /// Processes the items within a single transaction for a specific product.
+  List<List<dynamic>> _processTransactionItems(
+      BuildContext context, Transaction transaction, String productDbRef) {
+    List<List<dynamic>> processedItems = [];
+    final type = transaction.transactionType;
+
+    for (var item in transaction.items ?? []) {
+      if (item['dbRef'] != productDbRef) continue;
+
+      num totalQuantity = 0;
+      num totalProfit = 0;
+      num totalSalesmanCommission = 0;
+
+      if (type == TransactionType.customerInvoice.name ||
+          type == TransactionType.vendorReturn.name) {
+        totalQuantity -= (item['soldQuantity'] ?? 0) + (item['giftQuantity'] ?? 0);
+        totalProfit += item['itemTotalProfit'] ?? 0;
+        totalSalesmanCommission += item['salesmanTotalCommission'] ?? 0;
+      } else if (type == TransactionType.vendorInvoice.name ||
+          type == TransactionType.customerReturn.name) {
+        totalQuantity += (item['soldQuantity'] ?? 0) + (item['giftQuantity'] ?? 0);
+        if (type == TransactionType.customerReturn.name) {
+          totalProfit -= item['itemTotalProfit'] ?? 0;
+        }
+      } else if (type == TransactionType.damagedItems.name) {
+        totalQuantity -= item['soldQuantity'] ?? 0;
+        totalProfit -= (item['soldQuantity'] ?? 0) * (item['buyingPrice'] ?? 0);
+      } else {
+        continue;
+      }
+
+      processedItems.add([
+        transaction,
+        translateDbTextToScreenText(context, type),
+        '${transaction.number}',
+        transaction.date,
+        totalQuantity,
+        totalProfit,
+        totalSalesmanCommission
+      ]);
+    }
+    return processedItems;
   }
 
   /// creates a temp transaction using product initial quantity, the transaction is used in the
