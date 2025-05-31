@@ -29,17 +29,41 @@ class TransactionScreenController implements ScreenDataController {
   final ScreenDataNotifier _screenDataNotifier;
   final DbCache _transactionsDbCache;
 
+  /// This is the optimized version of the function.
+  /// It avoids a slow deep copy and uses efficient Dart collection methods.
   @override
   void setFeatureScreenData(BuildContext context) {
-    final dbCacheDataCopy = deepCopyDbCache(_transactionsDbCache.data);
+    final originalCacheData = _transactionsDbCache.data;
+
+    // Step 1: Efficiently transform the list.
+    // .map() creates a new list by applying a function to each element.
+    // We create a new map for each transaction using the spread operator (...)
+    // and then update the 'transactionTypeKey'. This is much faster than deep copying.
+    final screenData = originalCacheData.map((transaction) {
+      final newTransaction = {...transaction}; // Create a shallow copy of the map
+      newTransaction[transactionTypeKey] =
+          translateDbTextToScreenText(context, newTransaction[transactionTypeKey]);
+      return newTransaction;
+    }).toList();
+
+    // Step 2: Sort the new list.
+    // The comment specifies sorting from "recent to oldest", so we use a descending sort.
+    // Dart's built-in sort is highly optimized.
+    screenData.sort((a, b) {
+      final dateA = a[transactionDateKey];
+      final dateB = b[transactionDateKey];
+
+      // Safety checks for robust sorting
+      if (dateB == null) return -1;
+      if (dateA == null) return 1;
+
+      // For descending order, compare B to A.
+      return dateB.compareTo(dateA);
+    });
+
+    // Step 3: Update the screen data notifier.
     _screenDataNotifier.initialize({});
-    for (var mapData in dbCacheDataCopy) {
-      mapData[transactionTypeKey] =
-          translateDbTextToScreenText(context, mapData[transactionTypeKey]);
-    }
-    // I want the initial display of screen data to be ordered on time to recent to oldest
-    sortMapsByProperty(dbCacheDataCopy, transactionDateKey);
-    _screenDataNotifier.set(dbCacheDataCopy);
+    _screenDataNotifier.set(screenData);
   }
 
   /// create a list of lists, where each resulting list contains transaction info
