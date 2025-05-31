@@ -108,36 +108,42 @@ class CustomerScreenController implements ScreenDataController {
   Map<String, dynamic> getItemScreenData(BuildContext context, Map<String, dynamic> customerData,
       {List<Map<String, dynamic>>? customerTransactions}) {
     final customer = Customer.fromMap(customerData);
-    customerTransactions ??= getCustomerTransactions(customer.dbRef);
+    // Use a copy to avoid modifying the original cache
+    List<Map<String, dynamic>> localCustomerTransactions = List<Map<String, dynamic>>.from(
+        customerTransactions ?? getCustomerTransactions(customer.dbRef));
+
     if (customer.initialCredit > 0) {
-      customerTransactions.add(_createInitialDebtTransaction(customer));
+      localCustomerTransactions.add(_createInitialDebtTransaction(customer));
     }
-    final processedInvoices = getCustomerProcessedInvoices(context, customerTransactions, customer);
-    final openInvoices = _getOpenInvoices(context, processedInvoices, 5);
-    final matchingList = customerMatching(context, customerTransactions);
-    final totalDebt = _getTotalDebt(matchingList, 4);
-    final invoicesWithProfit = _getInvoicesWithProfit(processedInvoices);
-    final totalProfit = _getTotalProfit(invoicesWithProfit, 5);
-    final closedInvoices = _getClosedInvoices(context, processedInvoices, 5);
-    final averageClosingDays = _calculateAverageClosingDays(closedInvoices, 6);
-    final dueInvoices = _getDueInvoices(context, openInvoices, 5);
-    final numDueInvoices = dueInvoices.length;
-    final dueDebt = _getDueDebt(dueInvoices, 7);
-    final giftTransactions = _getGiftsAndDiscounts(context, customerTransactions);
+
+    // *** OPTIMIZATION: All invoice processing is now consolidated into one function call ***
+    final invoiceMetrics =
+        processAndCategorizeInvoices(context, localCustomerTransactions, customer);
+
+    // These functions have distinct logic and are kept separate for clarity.
+    final matchingList = customerMatching(context, localCustomerTransactions);
+    final giftTransactions = _getGiftsAndDiscounts(context, localCustomerTransactions);
+
+    // Calculations using the results from the optimized functions
+    final totalDebt = matchingList.isEmpty
+        ? 0.0
+        : matchingList.map((item) => item[4] as double).reduce((a, b) => a + b);
     final totalGiftsAmount = _getTotalGiftsAndDiscounts(giftTransactions, 4);
-    bool inValidCustomer = _inValidCustomer(dueDebt, totalDebt, customer);
+    final inValidCustomer = _inValidCustomer(invoiceMetrics.dueDebt, totalDebt, customer);
+
+    // Assemble the final data row
     Map<String, dynamic> newDataRow = {
-      openInvoicesKey: openInvoices.length,
-      openInvoicesDetailsKey: openInvoices,
-      dueInvoicesKey: numDueInvoices,
+      openInvoicesKey: invoiceMetrics.openInvoices.length,
+      openInvoicesDetailsKey: invoiceMetrics.openInvoices,
+      dueInvoicesKey: invoiceMetrics.dueInvoices.length,
       totalDebtKey: totalDebt,
       totalDebtDetailsKey: matchingList,
-      invoicesProfitKey: totalProfit,
-      invoicesProfitDetailsKey: invoicesWithProfit,
-      avgClosingDaysKey: averageClosingDays,
-      avgClosingDaysDetailsKey: closedInvoices,
-      dueDebtKey: dueDebt,
-      dueDebtDetailsKey: dueInvoices,
+      invoicesProfitKey: invoiceMetrics.totalProfit,
+      invoicesProfitDetailsKey: invoiceMetrics.invoicesWithProfit,
+      avgClosingDaysKey: invoiceMetrics.averageClosingDays,
+      avgClosingDaysDetailsKey: invoiceMetrics.closedInvoices,
+      dueDebtKey: invoiceMetrics.dueDebt,
+      dueDebtDetailsKey: invoiceMetrics.dueInvoices,
       giftsKey: totalGiftsAmount,
       giftsDetailsKey: giftTransactions,
       inValidUserKey: inValidCustomer,
@@ -174,12 +180,17 @@ class CustomerScreenController implements ScreenDataController {
   /// takes dataRows and returns a map of summaries for desired properties
   /// sumProperties are properties that will store sum
   /// avgProperties are properties that avgProperties are properties that will store average
+  /// *** OPTIMIZATION: Loop is swapped to iterate the list once. ***
   Map<String, dynamic> sumProperties(
       List<Map<String, dynamic>> list, List<String> sumProperties, List<String> avgProperties) {
     Map<String, dynamic> result = {};
+    // Initialize properties to 0
     for (var property in sumProperties) {
-      result[property] = 0;
-      for (var item in list) {
+      result[property] = 0.0;
+    }
+    // Iterate list once and update all sums
+    for (var item in list) {
+      for (var property in sumProperties) {
         if (item.containsKey(property) && item[property] is num) {
           result[property] += item[property];
         }
@@ -232,86 +243,6 @@ class CustomerScreenController implements ScreenDataController {
     return matchingTransactions.toList();
   }
 
-  List<List<dynamic>> _getOpenInvoices(
-      BuildContext context, List<List<dynamic>> processedInvoices, int statusIndex) {
-    if (processedInvoices.isEmpty) return [];
-    String openStatus = S.of(context).invoice_status_open;
-    String dueStatus = S.of(context).invoice_status_due;
-    final openInvoices = processedInvoices
-        .where((item) => item[statusIndex] == openStatus || item[statusIndex] == dueStatus)
-        .toList();
-    // skip last index, which stores the profit of the invoice
-    final openInvoicesWithoutProfit = openInvoices
-        .map((innerList) => innerList.sublist(0, innerList.length - 1)) // Skip the last index
-        .toList();
-    return openInvoicesWithoutProfit;
-  }
-
-  List<List<dynamic>> _getDueInvoices(
-      BuildContext context, List<List<dynamic>> openInvoicesWithoutProfit, int statusIndex) {
-    if (openInvoicesWithoutProfit.isEmpty) return [];
-    String dueStatus = S.of(context).invoice_status_due;
-    return openInvoicesWithoutProfit.where((item) => item[statusIndex] == dueStatus).toList();
-  }
-
-  List<List<dynamic>> _getClosedInvoices(
-      BuildContext context, List<List<dynamic>> processedInvoices, int statusIndex) {
-    if (processedInvoices.isEmpty) return [];
-    String closedStatus = S.of(context).invoice_status_closed;
-    final closedInvoices =
-        processedInvoices.where((item) => item[statusIndex] == closedStatus).toList();
-    // skip last index, which stores the profit of the invoice
-    final closedInvoicesWithoutProfit = closedInvoices
-        .map((innerList) => innerList.sublist(0, innerList.length - 1)) // Skip the last index
-        .toList();
-    return closedInvoicesWithoutProfit;
-  }
-
-  double _getTotalDebt(List<List<dynamic>> matchingList, int amountIndex) {
-    if (matchingList.isEmpty) return 0;
-    return matchingList.map((item) => item[amountIndex] as double).reduce((a, b) => a + b);
-  }
-
-  double _getDueDebt(List<List<dynamic>> dueInvoices, int amountIndex) {
-    if (dueInvoices.isEmpty) return 0;
-    return dueInvoices.map((item) => item[amountIndex] as double).reduce((a, b) => a + b);
-  }
-
-  List<List<dynamic>> _getInvoicesWithProfit(List<List<dynamic>> processedInvoices) {
-    List<int> skippedIndexes = [4, 6, 7];
-    List<List<dynamic>> invoicesWithProfit = [];
-    for (var invoice in processedInvoices) {
-      List<dynamic> filteredInnerList = [];
-      for (int i = 0; i < invoice.length; i++) {
-        if (!skippedIndexes.contains(i)) {
-          filteredInnerList.add(invoice[i]);
-        }
-      }
-      invoicesWithProfit.add(filteredInnerList);
-    }
-    return invoicesWithProfit;
-  }
-
-  double _getTotalProfit(List<List<dynamic>> invoicesWithProfit, int profitIndex) {
-    if (invoicesWithProfit.isEmpty) return 0;
-    return invoicesWithProfit.map((item) => item[profitIndex] as double).reduce((a, b) => a + b);
-  }
-
-  int _calculateAverageClosingDays(List<List<dynamic>> processedInvoices, int daysIndex) {
-    List<dynamic> values = processedInvoices
-        .where((innerList) => innerList.length > daysIndex && innerList[daysIndex] is num)
-        .map((innerList) => innerList[daysIndex])
-        .toList();
-    double average = values.isNotEmpty
-        ? values.reduce((a, b) => a + b) / values.length
-        : 0.0; // Avoid division by zero
-    // by rounding to int, I sacrifice some accuracy for earsier understanding
-    // I think for user it is more understandable to see 15 days to close a transaction, than 15.73
-    // .73 doesn't make any effect on the result the user needs from this info
-    // since he just needs to know whether client is fast to payback or not
-    return average.round();
-  }
-
 // filter transactions and keep only gifts and customerInvoices that contains a discount
 // or gift items and return it in a list of lists, where each list contains
 // [Transaction, num, type, date, amount]
@@ -361,6 +292,27 @@ class CustomerScreenController implements ScreenDataController {
 // below is a full code that process invoices & compares them to receipts
 // it was generated by AI, I need to check it later
 // ---------------------------------------------------------------------
+
+/// Helper class for returning multiple values from the processing function.
+class ProcessedInvoiceMetrics {
+  final List<List<dynamic>> openInvoices;
+  final List<List<dynamic>> dueInvoices;
+  final List<List<dynamic>> closedInvoices;
+  final List<List<dynamic>> invoicesWithProfit;
+  final double dueDebt;
+  final double totalProfit;
+  final int averageClosingDays;
+
+  ProcessedInvoiceMetrics({
+    required this.openInvoices,
+    required this.dueInvoices,
+    required this.closedInvoices,
+    required this.invoicesWithProfit,
+    required this.dueDebt,
+    required this.totalProfit,
+    required this.averageClosingDays,
+  });
+}
 
 class ReceiptUsed {
   String type;
@@ -442,31 +394,51 @@ List<InvoiceInfo> processTransactions(List<Map<String, dynamic>> transactions) {
   return result;
 }
 
-List<List<dynamic>> getCustomerProcessedInvoices(
+/// *** NEW OPTIMIZED METHOD ***
+/// This function replaces the old `getCustomerProcessedInvoices` and several other helper
+/// methods by processing all invoice-related metrics in a single, efficient loop.
+ProcessedInvoiceMetrics processAndCategorizeInvoices(
     BuildContext context, List<Map<String, dynamic>> transactions, Customer customer) {
-  List<List<dynamic>> invoicesStatus = [];
-  List<InvoiceInfo> processedInvoices = processTransactions(transactions);
+  // Initialize accumulators and lists
+  final List<List<dynamic>> openInvoicesDetails = [];
+  final List<List<dynamic>> dueInvoicesDetails = [];
+  final List<List<dynamic>> closedInvoicesDetails = [];
+  final List<List<dynamic>> invoicesWithProfitDetails = [];
+  double dueDebt = 0.0;
+  double totalProfit = 0.0;
+  int totalClosingDays = 0;
+
+  // Use the existing AI-generated function to get structured invoice info
+  final List<InvoiceInfo> processedInvoices = processTransactions(transactions);
+
+  final String openStatus = S.of(context).invoice_status_open;
+  final String dueStatus = S.of(context).invoice_status_due;
+  final String closedStatus = S.of(context).invoice_status_closed;
+
+  // *** SINGLE LOOP over all processed invoices ***
   for (var invoice in processedInvoices) {
-    double amountLeft = invoice.totalAmount;
-    String receiptInfo = '';
+    // Determine if an open invoice is now due
     if (invoice.status == InvoiceStatus.open.name &&
-        invoice.durationToClose > Duration(days: customer.paymentDurationLimit.toInt())) {
+        invoice.durationToClose.inDays > customer.paymentDurationLimit) {
       invoice.status = InvoiceStatus.due.name;
     }
-    String status = translateDbTextToScreenText(context, invoice.status);
+    final String status = translateDbTextToScreenText(context, invoice.status);
+
+    // Build receipt info string
+    String receiptInfo = '';
     for (var i = 0; i < invoice.receiptsUsed.length; i++) {
       final receipt = invoice.receiptsUsed[i];
       final receiptType = translateDbTextToScreenText(context, receipt.type);
       final receiptDate = formatDate(receipt.date);
-      amountLeft -= receipt.amountUsed;
-      receiptInfo =
-          '$receiptInfo $receiptType (${receipt.number}) $receiptDate (${doubleToStringWithComma(receipt.amountUsed)}) ';
-      // add line only if there are more receipts to be added
+      receiptInfo +=
+          '$receiptType (${receipt.number}) $receiptDate (${doubleToStringWithComma(receipt.amountUsed)}) ';
       if (i + 1 < invoice.receiptsUsed.length) {
-        receiptInfo = '$receiptInfo \n';
+        receiptInfo += '\n';
       }
     }
-    invoicesStatus.add([
+
+    // Create the detailed rows for display lists
+    final invoiceRowWithoutProfit = [
       invoice.originalTransaction,
       invoice.type == TransactionType.initialCredit.name ? '' : invoice.number,
       invoice.date,
@@ -474,9 +446,51 @@ List<List<dynamic>> getCustomerProcessedInvoices(
       receiptInfo,
       status,
       invoice.durationToClose.inDays,
-      amountLeft,
-      invoice.profit,
-    ]);
+      invoice.amountLeft,
+    ];
+
+    // 1. Categorize invoices and update aggregates
+    if (status == openStatus || status == dueStatus) {
+      openInvoicesDetails.add(invoiceRowWithoutProfit);
+    }
+    if (status == dueStatus) {
+      dueInvoicesDetails.add(invoiceRowWithoutProfit);
+      dueDebt += invoice.amountLeft;
+    }
+    if (status == closedStatus) {
+      closedInvoicesDetails.add(invoiceRowWithoutProfit);
+      totalClosingDays += invoice.durationToClose.inDays;
+    }
+
+    // 2. Handle profit calculation
+    totalProfit += invoice.profit;
+
+    // Create the filtered list for profit details (replicating original _getInvoicesWithProfit)
+    final invoicesWithProfitRow = [
+      invoice.originalTransaction,
+      invoice.type == TransactionType.initialCredit.name ? '' : invoice.number, // index 1
+      invoice.date, // index 2
+      invoice.totalAmount, // index 3
+      // index 4 (receiptInfo) is skipped
+      status, // index 5 in new list
+      invoice.profit, // index 8 -> now index 5 in new list
+    ];
+    invoicesWithProfitDetails.add(invoicesWithProfitRow);
   }
-  return sortListOfListsByDate(invoicesStatus, 2);
+
+  // Final calculations
+  final int averageClosingDays = closedInvoicesDetails.isNotEmpty
+      ? (totalClosingDays / closedInvoicesDetails.length).round()
+      : 0;
+
+  // Return all computed values in a single object
+  return ProcessedInvoiceMetrics(
+    openInvoices: openInvoicesDetails,
+    dueInvoices: dueInvoicesDetails,
+    closedInvoices: closedInvoicesDetails,
+    invoicesWithProfit: invoicesWithProfitDetails,
+    dueDebt: dueDebt,
+    totalProfit: totalProfit,
+    averageClosingDays: averageClosingDays,
+  );
 }
