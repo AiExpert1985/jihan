@@ -614,7 +614,6 @@ Future<List<dynamic>> selectionDialog(BuildContext context, WidgetRef ref,
                   onChanged: (value) {
                     selectedValue = value;
                   },
-
                   isExpanded: true,
                   // padding is the only way I found to reduce the width of the search dialog
                   dropDownDialogPadding: const EdgeInsets.symmetric(
@@ -639,11 +638,15 @@ Future<List<dynamic>> selectionDialog(BuildContext context, WidgetRef ref,
                             labelText: S.of(context).from_date,
                             border: const OutlineInputBorder(),
                           ),
-                          // initialValue: toDate ?? DateTime.now(),
                           inputType: InputType.date,
                           format: DateFormat('dd-MM-yyyy'),
                           onChanged: (picked) {
-                            startDate = picked;
+                            if (picked != null) {
+                              // Set time to the beginning of the day
+                              startDate = DateTime(picked.year, picked.month, picked.day);
+                            } else {
+                              startDate = null;
+                            }
                           },
                         ),
                       ),
@@ -657,11 +660,15 @@ Future<List<dynamic>> selectionDialog(BuildContext context, WidgetRef ref,
                             labelText: S.of(context).to_date,
                             border: const OutlineInputBorder(),
                           ),
-                          // initialValue: toDate ?? DateTime.now(),
                           inputType: InputType.date,
                           format: DateFormat('dd-MM-yyyy'),
                           onChanged: (picked) {
-                            endDate = picked;
+                            if (picked != null) {
+                              // Set time to the end of the day to make the range inclusive
+                              endDate = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
+                            } else {
+                              endDate = null;
+                            }
                           },
                         ),
                       ),
