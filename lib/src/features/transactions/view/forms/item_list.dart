@@ -28,15 +28,15 @@ import 'package:tablets/src/features/transactions/controllers/transaction_utils_
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/view/transaction_form.dart';
 
-const double codeColumnWidth = customerInvoiceFormWidth * 0.11;
-const double buyingPriceColumnWidth = customerInvoiceFormWidth * 0.145;
+const double codeColumnWidth = customerInvoiceFormWidth * 0.1;
+const double buyingPriceColumnWidth = customerInvoiceFormWidth * 0.142;
 const double sequenceColumnWidth = customerInvoiceFormWidth * 0.06;
 const double nameColumnWidth = customerInvoiceFormWidth * 0.35;
 const double priceColumnWidth = customerInvoiceFormWidth * 0.145;
 const double soldQuantityColumnWidth = customerInvoiceFormWidth * 0.11;
 const double stockColumnWidth = customerInvoiceFormWidth * 0.11;
 const double giftQuantityColumnWidth = customerInvoiceFormWidth * 0.11;
-const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.11;
+const double soldTotalAmountColumnWidth = customerInvoiceFormWidth * 0.16;
 
 class ItemsList extends ConsumerWidget {
   const ItemsList(this.hideGifts, this.hidePrice, this.transactionType, {super.key});
