@@ -73,12 +73,22 @@ class ItemsList extends ConsumerWidget {
   }
 }
 
-num calculateProductStock(BuildContext context, WidgetRef ref, String productDbRef) {
+// This is the new, safer code
+num calculateProductStock(BuildContext context, WidgetRef ref, String? productDbRef) {
+  // First, check if the product reference even exists. If not, stock is 0.
+  if (productDbRef == null) {
+    return 0;
+  }
+
   final productDbCache = ref.read(productDbCacheProvider.notifier);
   final productData = productDbCache.getItemByDbRef(productDbRef);
+
   final productScreenController = ref.read(productScreenControllerProvider);
   final prodcutScreenData = productScreenController.getItemScreenData(context, productData);
-  return prodcutScreenData[productQuantityKey];
+
+  // Finally, get the quantity. If the quantity key is missing, default to 0.
+  // The '?? 0' is the null-coalescing operator that prevents the crash.
+  return prodcutScreenData[productQuantityKey] ?? 0;
 }
 
 List<Widget> _buildDataRows(
