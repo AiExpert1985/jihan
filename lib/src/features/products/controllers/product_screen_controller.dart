@@ -88,14 +88,37 @@ class ProductScreenController implements ScreenDataController {
     return newMap;
   }
 
-  /// This method is deprecated and no longer used in the new structure.
-  /// The logic is now integrated into `_createProductScreenData`.
   @override
-  Map<String, dynamic> getItemScreenData(BuildContext context, Map<String, dynamic> productData) {
-    // This method is intentionally left empty as its logic has been refactored
-    // into `_createProductScreenData` for better performance and clarity.
-    // You can remove it if the interface allows.
-    return {};
+  Map<String, dynamic> getItemScreenData(BuildContext context, Map<String, dynamic>? productData) {
+    // If no product data is provided, we can't calculate anything.
+    if (productData == null) {
+      // Return a map with a zero quantity to be safe.
+      return {productQuantityKey: 0};
+    }
+
+    // 1. Convert the incoming map to a proper Product object.
+    final product = Product.fromMap(productData);
+
+    // 2. Find all transactions that involve this specific product.
+    final allTransactions = _transactionsDbCache.data;
+    final List<Transaction> productTransactions = [];
+
+    for (var transactionMap in allTransactions) {
+      // Check if the transaction's items list contains our product
+      final hasProduct = (transactionMap['items'] as List<dynamic>? ?? [])
+          .any((item) => item['dbRef'] == product.dbRef);
+
+      if (hasProduct) {
+        final convertedMap = _convertTransactionMap(transactionMap);
+        productTransactions.add(Transaction.fromMap(convertedMap));
+      }
+    }
+
+    // 3. Use your existing logic to do the final calculation for this single product.
+    final screenDataMap = _createProductScreenData(context, product, productTransactions);
+
+    // 4. Return the complete data map.
+    return screenDataMap;
   }
 
   /// Creates the data row for a single product.
