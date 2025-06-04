@@ -487,6 +487,11 @@ class __DateFilterDialogState extends State<_DateFilterDialog> {
         isHilighted = true;
         break;
       }
+      // highlight values less than zero
+      if (cell is double && cell < 0) {
+        isHilighted = true;
+        break;
+      }
     }
 
     final itemWidgetList = [];
