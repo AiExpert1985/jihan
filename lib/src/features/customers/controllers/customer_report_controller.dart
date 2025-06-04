@@ -149,7 +149,8 @@ class CustomerReportController {
     for (var customerScreenData in screenData) {
       final name = customerScreenData[customerNameKey] as String;
       final customerDbCacheData = customerDbCache.getItemByProperty('name', name);
-      final salesman = customerScreenData[customerSalesmanKey] as String;
+      String salesman = customerScreenData[customerSalesmanKey] as String;
+      salesman = salesman.trim();
       final region = customerDbCacheData['region'] ?? '-';
       final totalDebt = customerScreenData[totalDebtKey] as double;
       final dueDebt = customerScreenData[dueDebtKey] as double;
