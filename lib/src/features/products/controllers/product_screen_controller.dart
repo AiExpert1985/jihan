@@ -11,6 +11,7 @@ import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/features/products/model/product.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
+import 'dart:collection';
 
 final productScreenControllerProvider = Provider<ProductScreenController>((ref) {
   final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
@@ -52,25 +53,30 @@ class ProductScreenController implements ScreenDataController {
   }
 
   /// Groups all transactions by product `dbRef`.
-  /// This is a key performance improvement, as we only iterate through transactions once.
+  /// This is the corrected version that prevents double-counting transactions.
   Map<String, List<Transaction>> _groupTransactionsByProduct() {
     final transactions = _transactionsDbCache.data;
     final Map<String, List<Transaction>> groupedTransactions = {};
 
     for (var transactionMap in transactions) {
-      // Perform type conversion once before creating the Transaction object.
       final convertedMap = _convertTransactionMap(transactionMap);
       final transaction = Transaction.fromMap(convertedMap);
 
+      // Use a HashSet to find the unique product dbRefs within a single transaction.
+      // This prevents adding the same transaction multiple times for a product.
+      final productDbRefsInTransaction = HashSet<String>();
       for (var item in transaction.items ?? []) {
-        final productDbRef = item['dbRef'];
-        if (productDbRef != null) {
-          if (!groupedTransactions.containsKey(productDbRef)) {
-            groupedTransactions[productDbRef] = [];
-          }
-          // Add the parent transaction to the list for the corresponding product.
-          groupedTransactions[productDbRef]!.add(transaction);
+        if (item['dbRef'] != null) {
+          productDbRefsInTransaction.add(item['dbRef']);
         }
+      }
+
+      // Associate the transaction with each unique product it contains.
+      for (var dbRef in productDbRefsInTransaction) {
+        if (!groupedTransactions.containsKey(dbRef)) {
+          groupedTransactions[dbRef] = [];
+        }
+        groupedTransactions[dbRef]!.add(transaction);
       }
     }
     return groupedTransactions;
