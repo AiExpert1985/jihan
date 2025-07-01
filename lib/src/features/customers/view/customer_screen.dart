@@ -117,6 +117,8 @@ class ListHeaders extends ConsumerWidget {
             SortableMainScreenHeaderCell(
                 screenDataNotifier, customerSalesmanKey, S.of(context).salesman_selection),
             SortableMainScreenHeaderCell(
+                screenDataNotifier, customerRegionKey, S.of(context).region),
+            SortableMainScreenHeaderCell(
                 screenDataNotifier, totalDebtKey, S.of(context).current_debt),
             SortableMainScreenHeaderCell(
                 screenDataNotifier, openInvoicesKey, S.of(context).num_open_invoice),
@@ -160,6 +162,7 @@ class HeaderTotalsRow extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const MainScreenPlaceholder(width: 20, isExpanded: false),
+        const MainScreenPlaceholder(),
         const MainScreenPlaceholder(),
         const MainScreenPlaceholder(),
         MainScreenHeaderCell(totalDebt, isColumnTotal: true),
@@ -211,6 +214,7 @@ class DataRow extends ConsumerWidget {
               sequence, () => _showEditCustomerForm(context, ref, customer)),
           MainScreenTextCell(customer.name, isWarning: inValidCustomer),
           MainScreenTextCell(customer.salesman, isWarning: inValidCustomer),
+          MainScreenTextCell(customer.region, isWarning: inValidCustomer),
           MainScreenClickableCell(
             totalDebt,
             () => reportController.showCustomerMatchingReport(context, matchingList, customer.name),

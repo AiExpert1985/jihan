@@ -14,6 +14,7 @@ import 'package:tablets/src/common/widgets/circled_container.dart';
 import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/features/categories/controllers/category_screen_controller.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
+import 'package:tablets/src/features/customers/utils/bulk_reassign_customers.dart';
 import 'package:tablets/src/features/daily_tasks/controllers/selected_date_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_controller.dart';
@@ -441,15 +442,17 @@ class SettingsDialog extends ConsumerWidget {
       scrollable: true,
       content: Container(
         padding: const EdgeInsets.all(25),
-        width: 260,
+        width: 400, // Increased width for two columns
         height: 800,
         child: Column(
           children: [
             Expanded(
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 1, // Number of columns
-                  childAspectRatio: 1.7, // Aspect ratio of each card
+                  crossAxisCount: 2, // Changed to 2 columns
+                  childAspectRatio: 1.3, // Aspect ratio of each card
+                  crossAxisSpacing: 10, // Space between columns
+                  mainAxisSpacing: 10, // Space between rows
                 ),
                 itemCount: names.length,
                 itemBuilder: (context, index) {
@@ -457,6 +460,10 @@ class SettingsDialog extends ConsumerWidget {
                 },
               ),
             ),
+            const SizedBox(height: 20),
+            // Add the Bulk Customer Reassignment Button
+            const BulkCustomerReassignmentButton(),
+            const SizedBox(height: 20),
             const BackupButton(),
           ],
         ),
@@ -499,6 +506,7 @@ class SettingChildButton extends ConsumerWidget {
           height: 40, // Reduced height for the card
           child: Center(
             child: Text(
+              textAlign: TextAlign.center,
               name, // Use the corresponding name
               style: const TextStyle(fontSize: 18),
             ),

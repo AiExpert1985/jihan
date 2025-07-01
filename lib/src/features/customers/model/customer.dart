@@ -1,5 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
+
 import 'package:tablets/src/common/interfaces/base_item.dart';
 import 'package:tablets/src/common/values/constants.dart' as constants;
 
@@ -94,5 +96,43 @@ class Customer implements BaseItem {
   @override
   String toString() {
     return 'Customer(dbRef: $dbRef, name: $name, phone: $phone)';
+  }
+
+  Customer copyWith({
+    String? dbRef,
+    String? name,
+    List<String>? imageUrls,
+    String? salesman,
+    String? salesmanDbRef,
+    String? region,
+    String? regionDbRef,
+    ValueGetter<double?>? x,
+    ValueGetter<double?>? y,
+    DateTime? initialDate,
+    double? initialCredit,
+    ValueGetter<String?>? address,
+    String? sellingPriceType,
+    double? creditLimit,
+    double? paymentDurationLimit,
+    ValueGetter<String?>? phone,
+  }) {
+    return Customer(
+      dbRef: dbRef ?? this.dbRef,
+      name: name ?? this.name,
+      imageUrls: imageUrls ?? this.imageUrls,
+      salesman: salesman ?? this.salesman,
+      salesmanDbRef: salesmanDbRef ?? this.salesmanDbRef,
+      region: region ?? this.region,
+      regionDbRef: regionDbRef ?? this.regionDbRef,
+      x: x != null ? x() : this.x,
+      y: y != null ? y() : this.y,
+      initialDate: initialDate ?? this.initialDate,
+      initialCredit: initialCredit ?? this.initialCredit,
+      address: address != null ? address() : this.address,
+      sellingPriceType: sellingPriceType ?? this.sellingPriceType,
+      creditLimit: creditLimit ?? this.creditLimit,
+      paymentDurationLimit: paymentDurationLimit ?? this.paymentDurationLimit,
+      phone: phone != null ? phone() : this.phone,
+    );
   }
 }
