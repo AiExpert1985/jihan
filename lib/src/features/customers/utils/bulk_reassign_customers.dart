@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'package:tablets/src/common/classes/db_repository.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/customers/repository/customer_repository_provider.dart';
@@ -43,8 +44,8 @@ class ReassignmentDialog extends ConsumerStatefulWidget {
 class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
   String? selectedSalesmanDbRef;
   String? selectedSalesmanName;
-  String? selectedRegionDbRef;
-  String? selectedRegionName;
+  List<String> selectedRegionDbRefs = [];
+  List<String> selectedRegionNames = [];
   bool isLoading = false;
 
   // Use existing providers - import them or reference them directly
@@ -69,8 +70,8 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
             // ),
             const SizedBox(height: 20),
 
-            // Region Dropdown
-            const Text('المنطقة:', style: TextStyle(fontWeight: FontWeight.bold)),
+            // Region Multi-Select with Search
+            const Text('المناطق:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             StreamBuilder<List<Map<String, dynamic>>>(
               stream: ref.read(regionsRepositoryProvider).watchItemListAsMaps(),
@@ -95,26 +96,60 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
                 }
 
                 final regions = snapshot.data!;
-                return DropdownButtonFormField<String>(
-                  value: selectedRegionDbRef,
-                  hint: const Text('اختيار منطقة'),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                final items = regions
+                    .map((region) => MultiSelectItem<String>(
+                        region['dbRef'], region['name'] ?? 'منطقة غير معروفة'))
+                    .toList();
+
+                return MultiSelectDialogField<String>(
+                  items: items,
+                  title: const Text("اختيار المناطق"),
+                  selectedColor: Colors.blue,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: const BorderRadius.all(Radius.circular(40)),
+                    border: Border.all(
+                      color: Colors.blue,
+                      width: 2,
+                    ),
                   ),
-                  items: regions.map((region) {
-                    return DropdownMenuItem<String>(
-                      value: region['dbRef'],
-                      child: Text(region['name'] ?? 'منطقة غير معروفة'),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
+                  buttonIcon: const Icon(
+                    Icons.location_on,
+                    color: Colors.blue,
+                  ),
+                  buttonText: Text(
+                    "اختيار المناطق",
+                    style: TextStyle(
+                      color: Colors.blue[800],
+                      fontSize: 16,
+                    ),
+                  ),
+                  searchable: true,
+                  searchHint: "البحث عن منطقة...",
+                  confirmText: const Text("تأكيد"),
+                  cancelText: const Text("إلغاء"),
+                  onConfirm: (results) {
                     setState(() {
-                      selectedRegionDbRef = value;
-                      selectedRegionName =
-                          regions.firstWhere((region) => region['dbRef'] == value)['name'];
+                      selectedRegionDbRefs = results.cast<String>();
+                      selectedRegionNames = results
+                          .cast<String>()
+                          .map((dbRef) =>
+                              regions.firstWhere((region) => region['dbRef'] == dbRef)['name'] ??
+                              'منطقة غير معروفة')
+                          .toList() as List<String>;
                     });
                   },
+                  chipDisplay: MultiSelectChipDisplay(
+                    onTap: (value) {
+                      setState(() {
+                        selectedRegionDbRefs.remove(value);
+                        final regionName =
+                            regions.firstWhere((region) => region['dbRef'] == value)['name'] ??
+                                'منطقة غير معروفة';
+                        selectedRegionNames.remove(regionName);
+                      });
+                    },
+                  ),
                 );
               },
             ),
@@ -171,7 +206,7 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
               },
             ),
 
-            if (selectedRegionName != null && selectedSalesmanName != null) ...[
+            if (selectedRegionNames.isNotEmpty && selectedSalesmanName != null) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -181,7 +216,7 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
                   border: Border.all(color: Colors.blue.shade200),
                 ),
                 child: Text(
-                  'جميع الزبائين في "$selectedRegionName" سوف يتم تحويلهم الى المندوب "$selectedSalesmanName"',
+                  'جميع الزبائين في المناطق: "${selectedRegionNames.join('، ')}" سوف يتم تحويلهم الى المندوب "$selectedSalesmanName"',
                   style: TextStyle(
                     fontSize: 13,
                     color: Colors.blue.shade700,
@@ -199,9 +234,10 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
         //   child: const Text('عدم تغيير'),
         // ),
         ElevatedButton(
-          onPressed: (selectedSalesmanDbRef != null && selectedRegionDbRef != null && !isLoading)
-              ? _performReassignment
-              : null,
+          onPressed:
+              (selectedSalesmanDbRef != null && selectedRegionDbRefs.isNotEmpty && !isLoading)
+                  ? _performReassignment
+                  : null,
           child: isLoading
               ? const SizedBox(
                   width: 16,
@@ -215,7 +251,7 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
   }
 
   Future<void> _performReassignment() async {
-    if (selectedSalesmanDbRef == null || selectedRegionDbRef == null) return;
+    if (selectedSalesmanDbRef == null || selectedRegionDbRefs.isEmpty) return;
 
     setState(() {
       isLoading = true;
@@ -224,17 +260,52 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
     try {
       final customersRepo = ref.read(customerRepositoryProvider);
 
-      // Fetch all customers in the selected region
-      final customers = await customersRepo.fetchItemListAsMaps(
-        filterKey: 'regionDbRef',
-        filterValue: selectedRegionDbRef,
-      );
+      int totalSuccessCount = 0;
+      int totalFailCount = 0;
 
-      if (customers.isEmpty) {
+      // Process each selected region
+      for (final regionDbRef in selectedRegionDbRefs) {
+        // Fetch all customers in the current region
+        final customers = await customersRepo.fetchItemListAsMaps(
+          filterKey: 'regionDbRef',
+          filterValue: regionDbRef,
+        );
+
+        // Update each customer with the new salesman
+        for (final customerData in customers) {
+          try {
+            // Create updated customer object
+            final updatedCustomerData = Map<String, dynamic>.from(customerData);
+            updatedCustomerData['salesmanDbRef'] = selectedSalesmanDbRef;
+            updatedCustomerData['salesman'] = selectedSalesmanName;
+
+            // Convert to Customer object for update
+            final customer = Customer.fromMap(updatedCustomerData);
+            await customersRepo.updateItem(customer);
+            totalSuccessCount++;
+            // update salesman db cache
+            final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);
+            final salesmanData = await ref.read(salesmanRepositoryProvider).fetchItemListAsMaps();
+            salesmanDbCache.set(salesmanData);
+
+            // update customers db cache
+            final customerDbCache = ref.read(customerDbCacheProvider.notifier);
+            final customerDataMaps =
+                await ref.read(customerRepositoryProvider).fetchItemListAsMaps();
+            customerDbCache.set(customerDataMaps);
+          } catch (e) {
+            totalFailCount++;
+            debugPrint('Failed to update customer ${customerData['name']}: $e');
+          }
+        }
+      }
+
+      if (totalSuccessCount == 0 && totalFailCount == 0) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('No customers found in region "$selectedRegionName"'),
+              content: Text(
+                  'No customers found in selected regions: "${selectedRegionNames.join('، ')}"'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -242,49 +313,18 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
         return;
       }
 
-      // Update each customer with the new salesman
-      int successCount = 0;
-      int failCount = 0;
-
-      for (final customerData in customers) {
-        try {
-          // Create updated customer object
-          final updatedCustomerData = Map<String, dynamic>.from(customerData);
-          updatedCustomerData['salesmanDbRef'] = selectedSalesmanDbRef;
-          updatedCustomerData['salesman'] = selectedSalesmanName;
-
-          // Convert to Customer object for update
-          final customer = Customer.fromMap(updatedCustomerData);
-          await customersRepo.updateItem(customer);
-          successCount++;
-        } catch (e) {
-          failCount++;
-          debugPrint('Failed to update customer ${customerData['name']}: $e');
-        }
-      }
-
-      // update salesman db cache
-      final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);
-      final salesmanData = await ref.read(salesmanRepositoryProvider).fetchItemListAsMaps();
-      salesmanDbCache.set(salesmanData);
-
-      // update customers db cache
-      final customerDbCache = ref.read(customerDbCacheProvider.notifier);
-      final customerData = await ref.read(customerRepositoryProvider).fetchItemListAsMaps();
-      customerDbCache.set(customerData);
-
       if (mounted) {
         Navigator.of(context).pop();
 
         // Show result message
-        final message = failCount == 0
-            ? 'Successfully reassigned $successCount customers to "$selectedSalesmanName"'
-            : 'Reassigned $successCount customers successfully, $failCount failed';
+        final message = totalFailCount == 0
+            ? 'تم بنجاح اعادة تعيين $totalSuccessCount زبائن الى "$selectedSalesmanName"'
+            : 'اعادة تعيين $totalSuccessCount زبائن, $totalFailCount فشلت';
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
-            backgroundColor: failCount == 0 ? Colors.green : Colors.orange,
+            backgroundColor: totalFailCount == 0 ? Colors.green : Colors.orange,
             duration: const Duration(seconds: 4),
           ),
         );
