@@ -214,7 +214,7 @@ pw.Widget _buildReportHeader(
     child: pw.Column(
       mainAxisAlignment: pw.MainAxisAlignment.center,
       children: [
-        arabicText(arabicFont, reportTitle, fontSize: headerFontSize),
+        arabicText(arabicFont, reportTitle, fontSize: headerFontSize, maxLines: 3),
         if (filter1Values.isNotEmpty)
           _buildFilteredValueRow(arabicFont, filter1Values, fontSize: headerFontSize),
         if (filter2Values.isNotEmpty)

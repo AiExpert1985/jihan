@@ -146,17 +146,15 @@ Future<Document> getEmptyPdf() async {
   return pdf;
 }
 
-pw.Widget arabicText(
-  Font arabicFont,
-  String text, {
-  PdfColor? textColor,
-  double? width,
-  bool isTitle = false,
-  double fontSize = 10,
-  PdfColor? bgColor,
-  PdfColor? borderColor,
-  bool isBordered = false,
-}) {
+pw.Widget arabicText(Font arabicFont, String text,
+    {PdfColor? textColor,
+    double? width,
+    bool isTitle = false,
+    double fontSize = 10,
+    PdfColor? bgColor,
+    PdfColor? borderColor,
+    bool isBordered = false,
+    int maxLines = 1}) {
   return pw.Container(
     width: width,
     decoration: isBordered
@@ -169,7 +167,7 @@ pw.Widget arabicText(
     padding: const pw.EdgeInsets.symmetric(horizontal: 3, vertical: 0),
     child: pw.Text(
       text,
-      maxLines: 1, // Or another number that makes sense for your layout
+      maxLines: maxLines, // Or another number that makes sense for your layout
       overflow: pw.TextOverflow.clip, // Adds '...' to truncated text
       textAlign: pw.TextAlign.center,
       textDirection: pw.TextDirection.rtl,
