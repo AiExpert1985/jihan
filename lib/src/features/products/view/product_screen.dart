@@ -230,7 +230,7 @@ class DataRow extends ConsumerWidget {
 
 // this method return List of Maps, in the form {'productName': 'بطيخ احمر', 'productQuantity': 10}
 // filter product if it is hidden, and if it is equal or less than zero
-List<Map<String, dynamic>> _getFilterProductInventory(WidgetRef ref, bool specialReport) {
+List<Map<String, dynamic>> getFilterProductInventory(WidgetRef ref, bool specialReport) {
   final productDbCache = ref.read(productDbCacheProvider.notifier);
 
   final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
@@ -286,7 +286,7 @@ List<Map<String, dynamic>> _getFilterProductInventory(WidgetRef ref, bool specia
 Future<void> _printProducts(BuildContext context, WidgetRef ref,
     {bool specialReport = false}) async {
   try {
-    final myProductsData = _getFilterProductInventory(ref, specialReport);
+    final myProductsData = getFilterProductInventory(ref, specialReport);
     final Uint8List pdfBytes = await ProductListPdfGenerator.generatePdf(
       myProductsData,
       reportTitle: "تقرير المخزون",
