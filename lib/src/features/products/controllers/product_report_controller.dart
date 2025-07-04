@@ -40,6 +40,15 @@ class ProductReportController {
         useOriginalTransaction: true);
   }
 
+  void showInvontoryReport(BuildContext context, List<List<dynamic>> inventory, String title) {
+    showReportDialog(context, ['المادة', 'العدد'], inventory,
+        dropdownIndex: 0,
+        dropdownLabel: 'المادة',
+        title: title,
+        summaryIndexes: [1],
+        useOriginalTransaction: false);
+  }
+
   List<String> _getHistoryTitles(BuildContext context) {
     return [
       S.of(context).transaction_type,
