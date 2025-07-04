@@ -739,34 +739,38 @@ class HideProductCheckBox extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(userInfoProvider);
-    final supervisorAsyncValue = ref.watch(accountsStreamProvider);
+    final allAccountsAsyncValue = ref.watch(accountsStreamProvider);
 
     return Container(
       padding: const EdgeInsets.all(0),
-      child: supervisorAsyncValue.when(
-        data: (supervisors) {
-          // Filter to find the first supervisor with the specified email
-          final supervisor = supervisors.firstWhere(
-            (supervisor) => supervisor['email'] == 'jihansupervisor@gmail.com',
-            orElse: () => {}, // Provide a default value if not found
-          );
+      child: allAccountsAsyncValue.when(
+        data: (allAccounts) {
+          // Find all accounts with the 'guest' privilege.
+          final guestAccounts =
+              allAccounts.where((account) => account['privilage'] == 'guest').toList();
 
-          // Check if the supervisor was found
-          final hassAccess = supervisor.isNotEmpty ? supervisor['hasAccess'] ?? false : false;
+          // Determine the checkbox state from the first guest account, if any.
+          // This assumes all guest accounts should have the same 'hasAccess' status.
+          final bool hasAccess =
+              guestAccounts.isNotEmpty ? guestAccounts.first['hasAccess'] ?? false : false;
 
           return Checkbox(
-            value: hassAccess,
-            onChanged: (value) {
-              // Update the user info and notify the state
-              ref.read(accountsRepositoryProvider).updateItem(
-                    UserAccount(
-                      supervisor['name'],
-                      supervisor['dbRef'],
-                      supervisor['email'],
-                      supervisor['privilage'],
-                      value!,
-                    ),
-                  );
+            value: hasAccess,
+            onChanged: (newValue) {
+              if (newValue == null) return; // Exit if the value is null
+
+              // When the checkbox is changed, loop through all guest accounts and update them.
+              for (var account in guestAccounts) {
+                ref.read(accountsRepositoryProvider).updateItem(
+                      UserAccount(
+                        account['name'],
+                        account['dbRef'],
+                        account['email'],
+                        account['privilage'],
+                        newValue, // Apply the new value from the checkbox
+                      ),
+                    );
+              }
             },
           );
         },
