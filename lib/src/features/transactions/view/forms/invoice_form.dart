@@ -219,7 +219,7 @@ class SecondRow extends ConsumerWidget {
           isReadOnly: formNavigator.isReadOnly,
           initialValue: formDataNotifier.getProperty(paymentTypeKey),
           itemList: [
-            S.of(context).transaction_payment_cash,
+            // S.of(context).transaction_payment_cash,
             S.of(context).transaction_payment_credit,
           ],
           label: S.of(context).transaction_payment_type,

@@ -682,10 +682,21 @@ double getBuyingPrice(WidgetRef ref, num currentQuantity, String productDbRef) {
   }
   sortMapsByProperty(vendorTransactions, 'date');
   for (var trans in vendorTransactions) {
+    // Collect all matching items from this transaction
+    List<Map<String, dynamic>> matchingItems = [];
+
     for (var item in trans['items']) {
       if (item['dbRef'] == productDbRef) {
-        boughtItems.add(item);
+        matchingItems.add(item);
       }
+    }
+
+    // Sort by sellingPrice (lowest to highest, so lowest will be first)
+    if (matchingItems.isNotEmpty) {
+      matchingItems.sort((a, b) => (a['sellingPrice'] ?? 0).compareTo(b['sellingPrice'] ?? 0));
+
+      // Add sorted items to boughtItems
+      boughtItems.addAll(matchingItems);
     }
   }
 
