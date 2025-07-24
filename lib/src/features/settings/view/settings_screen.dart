@@ -4,10 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
+import 'package:tablets/src/features/customers/model/customer.dart';
+import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/customers/repository/customer_repository_provider.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
@@ -122,8 +126,10 @@ class SecondColumn extends ConsumerWidget {
         VerticalGap.xl,
         RadioButtons(S.of(context).settings_currency, settingsCurrencyKey, currencyValues),
         VerticalGap.xl,
-        SliderButton(
-            S.of(context).max_debt_duration_allowed, settingsMaxDebtDurationKey, 0, 60, 30),
+        SettingsInputField(S.of(context).max_debt_duration_allowed, settingsMaxDebtDurationKey,
+            FieldDataType.num.name),
+        // SliderButton(
+        //     S.of(context).max_debt_duration_allowed, settingsMaxDebtDurationKey, 0, 60, 30),
         VerticalGap.xl,
         SliderButton(S.of(context).num_printed_invoices, printedCustomerInvoicesKey, 0, 10, 5),
         VerticalGap.xl,
@@ -303,6 +309,36 @@ class _SettingsInputFieldState extends ConsumerState<SettingsInputField> {
     super.dispose();
   }
 
+  // when the date duration is update, we update that for all current clients
+// that was the request of Jihan - Shamil
+  void _updateDurationForAllClients(WidgetRef ref, double value) async {
+    final customersDbCache = ref.watch(customerDbCacheProvider);
+    final customerRepo = ref.watch(customerRepositoryProvider);
+    infoUserMessage(context, "الرجاء الانتظار عدة دقائق حتى اكتمال التحديث");
+    _updateSettings(value);
+    for (var customerMap in customersDbCache) {
+      customerMap['paymentDurationLimit'] = value;
+      await customerRepo.updateItem(Customer.fromMap(customerMap));
+    }
+    if (mounted) {
+      successUserMessage(context, 'تم تحديث مدة الدين لجميع الزبائن');
+    }
+  }
+
+  // this function updates the settings itself (the new value of debtDuration is saved in firebase)
+  void _updateSettings(double value) {
+    final repository = ref.read(settingsRepositoryProvider);
+    final settingDataNotifier = ref.read(settingsFormDataProvider.notifier);
+    final dbCache = ref.read(settingsDbCacheProvider.notifier);
+    final settingsData = settingDataNotifier.data;
+    settingsData['maxDebtDuration'] = value;
+    repository.updateItem(Settings.fromMap(settingsData));
+
+    // success(context, S.of(context).db_success_updaging_doc);
+    // finally we update the dbCache to mirror the change in db
+    dbCache.update(settingsData, DbCacheOperationTypes.edit);
+  }
+
   @override
   Widget build(BuildContext context) {
     final settingsDataNotifier = ref.watch(settingsFormDataProvider.notifier);
@@ -316,7 +352,20 @@ class _SettingsInputFieldState extends ConsumerState<SettingsInputField> {
           child: FormBuilderTextField(
             name: widget.propertyName,
             textAlign: TextAlign.center,
+            onSubmitted: (value) {
+              // this filed is only for changing the values of debtDuration
+              // doesn't used for any other filed
+              if (widget.propertyName == settingsMaxDebtDurationKey) {
+                double duration = double.tryParse(value ?? '21') ?? 21;
+                _updateDurationForAllClients(ref, duration);
+              }
+            },
             onChanged: (value) {
+              if (widget.propertyName == settingsMaxDebtDurationKey) {
+                // if this is the debt duration, return. because it is handled
+                // by the onSubmitted function
+                return;
+              }
               if (value == null) return; // Check for null
               dynamic newValue;
               if (widget.dataType == FieldDataType.num.name) {
