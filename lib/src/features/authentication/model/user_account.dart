@@ -1,6 +1,6 @@
 import 'package:tablets/src/common/interfaces/base_item.dart';
 
-enum UserPrivilage { admin, salesman, guest }
+enum UserPrivilage { admin, salesman, guest, warehouse }
 
 class UserAccount implements BaseItem {
   UserAccount(this.name, this.dbRef, this.email, this.privilage, this.hasAccess);
