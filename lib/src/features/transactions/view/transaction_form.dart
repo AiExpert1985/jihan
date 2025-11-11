@@ -41,6 +41,7 @@ import 'package:tablets/src/features/transactions/view/forms/statement_form.dart
 import 'package:tablets/src/features/transactions/view/transaction_show_form.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
+import 'package:tablets/src/features/warehouse/services/warehouse_service.dart';
 
 final Map<String, dynamic> transactionFormDimenssions = {
   TransactionType.customerInvoice.name: {'height': 1100, 'width': 900},
@@ -56,7 +57,8 @@ final Map<String, dynamic> transactionFormDimenssions = {
 
 class TransactionForm extends ConsumerWidget {
   const TransactionForm(this.isEditMode, this.transactionType, {super.key});
-  final bool isEditMode; // used by formController to decide whether to save or update in db
+  final bool
+      isEditMode; // used by formController to decide whether to save or update in db
   final String transactionType;
   // used to validate wether customer can buy new invoice (if he didn't exceed limits)
 
@@ -75,17 +77,26 @@ class TransactionForm extends ConsumerWidget {
     return dimenssions[transactionType];
   }
 
-  Widget _getFormWidget(BuildContext context, String transactionType, WidgetRef ref) {
+  Widget _getFormWidget(
+      BuildContext context, String transactionType, WidgetRef ref) {
     final titles = {
-      TransactionType.customerInvoice.name: S.of(context).transaction_type_customer_invoice,
-      TransactionType.vendorInvoice.name: S.of(context).transaction_type_vender_invoice,
-      TransactionType.customerReturn.name: S.of(context).transaction_type_customer_return,
-      TransactionType.vendorReturn.name: S.of(context).transaction_type_vender_return,
-      TransactionType.customerReceipt.name: S.of(context).transaction_type_customer_receipt,
-      TransactionType.vendorReceipt.name: S.of(context).transaction_type_vendor_receipt,
+      TransactionType.customerInvoice.name:
+          S.of(context).transaction_type_customer_invoice,
+      TransactionType.vendorInvoice.name:
+          S.of(context).transaction_type_vender_invoice,
+      TransactionType.customerReturn.name:
+          S.of(context).transaction_type_customer_return,
+      TransactionType.vendorReturn.name:
+          S.of(context).transaction_type_vender_return,
+      TransactionType.customerReceipt.name:
+          S.of(context).transaction_type_customer_receipt,
+      TransactionType.vendorReceipt.name:
+          S.of(context).transaction_type_vendor_receipt,
       TransactionType.gifts.name: S.of(context).transaction_type_gifts,
-      TransactionType.expenditures.name: S.of(context).transaction_type_expenditures,
-      TransactionType.damagedItems.name: S.of(context).transaction_type_damaged_items,
+      TransactionType.expenditures.name:
+          S.of(context).transaction_type_expenditures,
+      TransactionType.damagedItems.name:
+          S.of(context).transaction_type_damaged_items,
     };
     if (transactionType == TransactionType.customerInvoice.name) {
       final backgroundColor = ref.read(backgroundColorProvider);
@@ -97,13 +108,15 @@ class TransactionForm extends ConsumerWidget {
       );
     }
     if (transactionType == TransactionType.vendorInvoice.name) {
-      return InvoiceForm(titles[transactionType]!, transactionType, isVendor: true);
+      return InvoiceForm(titles[transactionType]!, transactionType,
+          isVendor: true);
     }
     if (transactionType == TransactionType.customerReturn.name) {
       return InvoiceForm(titles[transactionType]!, transactionType);
     }
     if (transactionType == TransactionType.vendorReturn.name) {
-      return InvoiceForm(titles[transactionType]!, transactionType, isVendor: true);
+      return InvoiceForm(titles[transactionType]!, transactionType,
+          isVendor: true);
     }
     if (transactionType == TransactionType.customerReceipt.name) {
       return ReceiptForm(titles[transactionType]!);
@@ -112,7 +125,8 @@ class TransactionForm extends ConsumerWidget {
       return ReceiptForm(titles[transactionType]!, isVendor: true);
     }
     if (transactionType == TransactionType.gifts.name) {
-      return StatementForm(titles[transactionType]!, transactionType, isGift: true);
+      return StatementForm(titles[transactionType]!, transactionType,
+          isGift: true);
     }
     if (transactionType == TransactionType.damagedItems.name) {
       return StatementForm(titles[transactionType]!, transactionType);
@@ -120,7 +134,8 @@ class TransactionForm extends ConsumerWidget {
     if (transactionType == TransactionType.expenditures.name) {
       return ExpenditureForm(titles[transactionType]!);
     }
-    return const Center(child: Text('Error happend while loading transaction form'));
+    return const Center(
+        child: Text('Error happend while loading transaction form'));
   }
 
   @override
@@ -131,7 +146,8 @@ class TransactionForm extends ConsumerWidget {
     final screenController = ref.read(transactionScreenControllerProvider);
     final dbCache = ref.read(transactionDbCacheProvider.notifier);
     final formNavigation = ref.read(formNavigatorProvider);
-    formNavigation.initialize(transactionType, formDataNotifier.getProperty(dbRefKey));
+    formNavigation.initialize(
+        transactionType, formDataNotifier.getProperty(dbRefKey));
     // final transactionTypeTranslated = translateScreenTextToDbText(context, transactionType);
     // final backgroundColor = ref.watch(backgroundColorProvider);
     ref.watch(imagePickerProvider);
@@ -158,13 +174,21 @@ class TransactionForm extends ConsumerWidget {
         children: [
           const NavigationButtons(),
           FormFrame(
-            title: buildFormTitle(translateDbTextToScreenText(context, transactionType)),
+            title: buildFormTitle(
+                translateDbTextToScreenText(context, transactionType)),
             // backgroundColor: backgroundColor,
             // formKey: formController.formKey,
             // formKey: GlobalKey<FormState>(),
             fields: _getFormWidget(context, transactionType, ref),
-            buttons: _actionButtons(context, formController, formDataNotifier, formImagesNotifier,
-                dbCache, screenController, formNavigation, ref),
+            buttons: _actionButtons(
+                context,
+                formController,
+                formDataNotifier,
+                formImagesNotifier,
+                dbCache,
+                screenController,
+                formNavigation,
+                ref),
             width: width,
             height: height,
           ),
@@ -190,7 +214,8 @@ class TransactionForm extends ConsumerWidget {
       IconButton(
         onPressed: () {
           formNavigation.isReadOnly = false;
-          onNavigationPressed(formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+          onNavigationPressed(formDataNotifier, context, ref,
+              formImagesNotifier, formNavigation,
               isNewTransaction: true);
         },
         icon: const NewIemIcon(),
@@ -202,7 +227,8 @@ class TransactionForm extends ConsumerWidget {
             // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
             // TODO later I might change formNavigation to StateNotifier and watch it in this widget
             final formData = formDataNotifier.data;
-            onNavigationPressed(formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+            onNavigationPressed(formDataNotifier, context, ref,
+                formImagesNotifier, formNavigation,
                 targetTransactionData: formData);
           },
           icon: const EditIcon(),
@@ -212,8 +238,14 @@ class TransactionForm extends ConsumerWidget {
         IconButton(
           onPressed: () {
             formNavigation.isReadOnly = true;
-            deleteTransaction(context, ref, formDataNotifier, formImagesNotifier, formController,
-                transactionDbCache, screenController,
+            deleteTransaction(
+                context,
+                ref,
+                formDataNotifier,
+                formImagesNotifier,
+                formController,
+                transactionDbCache,
+                screenController,
                 formNavigation: formNavigation);
           },
           icon: const DeleteIcon(),
@@ -227,7 +259,8 @@ class TransactionForm extends ConsumerWidget {
           // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
           // TODO later I might change formNavigation to StateNotifier and watch it in this widget
           final formData = formDataNotifier.data;
-          onNavigationPressed(formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+          onNavigationPressed(formDataNotifier, context, ref,
+              formImagesNotifier, formNavigation,
               targetTransactionData: formData);
         },
         icon: const PrintIcon(),
@@ -241,15 +274,23 @@ class TransactionForm extends ConsumerWidget {
           // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
           // TODO later I might change formNavigation to StateNotifier and watch it in this widget
           final formData = formDataNotifier.data;
-          onNavigationPressed(formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+          onNavigationPressed(formDataNotifier, context, ref,
+              formImagesNotifier, formNavigation,
               targetTransactionData: formData);
         },
         icon: const PrintIconB(),
       ),
+      if (transactionType == TransactionType.customerInvoice.name)
+        IconButton(
+            onPressed: () {
+              _onSendToWarehousePressed(context, ref, formDataNotifier);
+            },
+            icon: const SendIcon()),
     ];
   }
 
-  void _onPrintPressed(BuildContext context, WidgetRef ref, ItemFormData formDataNotifier,
+  void _onPrintPressed(
+      BuildContext context, WidgetRef ref, ItemFormData formDataNotifier,
       {bool isLogoB = false}) async {
     if (formDataNotifier.data[nameKey] == '') {
       failureUserMessage(context, S.of(context).no_name_print_error);
@@ -265,8 +306,34 @@ class TransactionForm extends ConsumerWidget {
     formDataNotifier.updateProperties({isPrintedKey: true});
   }
 
-  static void onNavigationPressed(ItemFormData formDataNotifier, BuildContext context,
-      WidgetRef ref, ImageSliderNotifier formImagesNotifier, FromNavigator formNavigation,
+  void _onSendToWarehousePressed(BuildContext context, WidgetRef ref,
+      ItemFormData formDataNotifier) async {
+    if (formDataNotifier.data[nameKey] == '') {
+      failureUserMessage(context, S.of(context).no_name_print_error);
+      return;
+    }
+
+    saveTransaction(context, ref, formDataNotifier.data, true);
+
+    const imagePath = 'assets/images/invoice_logo.PNG';
+    final image = await loadImage(imagePath);
+    if (!context.mounted) return;
+    final pdf = await getPdfFile(context, ref, formDataNotifier.data, image);
+    if (!context.mounted) return;
+
+    final warehouseService = ref.read(warehouseServiceProvider);
+    if (context.mounted) {
+      await warehouseService.sendToWarehouse(
+          context, ref, formDataNotifier.data, pdf);
+    }
+  }
+
+  static void onNavigationPressed(
+      ItemFormData formDataNotifier,
+      BuildContext context,
+      WidgetRef ref,
+      ImageSliderNotifier formImagesNotifier,
+      FromNavigator formNavigation,
       {Map<String, dynamic>? targetTransactionData,
       bool isNewTransaction = false,
       bool isDeleting = false}) {
@@ -324,8 +391,8 @@ class TransactionForm extends ConsumerWidget {
   /// this function is called when navigating away from current transaction
   /// or when leaving the form page
   /// unless the transaction has no name, we save (update) it.
-  static Future<void> onLeavingTransaction(
-      BuildContext context, WidgetRef ref, ImageSliderNotifier formImagesNotifier) async {
+  static Future<void> onLeavingTransaction(BuildContext context, WidgetRef ref,
+      ImageSliderNotifier formImagesNotifier) async {
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final formData = formDataNotifier.data;
     final name = formData[nameKey];
@@ -335,22 +402,23 @@ class TransactionForm extends ConsumerWidget {
       final formController = ref.read(transactionFormControllerProvider);
       final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
       final screenController = ref.read(transactionScreenControllerProvider);
-      deleteTransaction(context, ref, formDataNotifier, formImagesNotifier, formController,
-          transactionDbCache, screenController,
+      deleteTransaction(context, ref, formDataNotifier, formImagesNotifier,
+          formController, transactionDbCache, screenController,
           dialogOn: false);
       return;
     }
     // if invoice doesn't contain items, delete it
-    final isItemedTransaction =
-        type.contains('Invoice') || type.contains('gift') || type.contains('Return');
+    final isItemedTransaction = type.contains('Invoice') ||
+        type.contains('gift') ||
+        type.contains('Return');
     if (isItemedTransaction &&
         formData.containsKey(itemsKey) &&
         formData[itemsKey] is List &&
         formData[itemsKey].length == 1 &&
         formData[itemsKey][0]['code'] == null &&
         formData[itemsKey][0]['name'].isEmpty) {
-      failureUserMessage(
-          context, '${S.of(context).no_item_were_added_to_invoice} ${formData[numberKey]}');
+      failureUserMessage(context,
+          '${S.of(context).no_item_were_added_to_invoice} ${formData[numberKey]}');
     }
     // save (or update) transaction
     formImagesNotifier.close();
@@ -390,7 +458,8 @@ class TransactionForm extends ConsumerWidget {
     final itemData = {...formData, 'imageUrls': imageUrls};
     final transaction = Transaction.fromMap(itemData);
     if (context.mounted) {
-      formController.deleteItemFromDb(context, transaction, keepDialogOpen: true);
+      formController.deleteItemFromDb(context, transaction,
+          keepDialogOpen: true);
       if (dialogOn && itemData['name'].isNotEmpty) {
         // if dialog is on, it means this is real transaction deletion (i.e. user pressed delete button)
         // not automatic delete for empty transaction (when no name entered and we leave the form)
@@ -420,13 +489,16 @@ class TransactionForm extends ConsumerWidget {
     return true;
   }
 
-  static void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
+  static void addToDeletedTransactionsDb(
+      WidgetRef ref, Map<String, dynamic> itemData) {
     itemData = removeEmptyRows(itemData);
     final deletionItemData = {...itemData, 'deleteDateTime': DateTime.now()};
     final deletedTransaction = DeletedTransaction.fromMap(deletionItemData);
-    final deletedTransactionRepository = ref.read(deletedTransactionRepositoryProvider);
+    final deletedTransactionRepository =
+        ref.read(deletedTransactionRepositoryProvider);
     deletedTransactionRepository.addItem(deletedTransaction);
-    final deletedTransactionsDbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
+    final deletedTransactionsDbCache =
+        ref.read(deletedTransactionDbCacheProvider.notifier);
     // update the bdCache (database mirror) so that we don't need to fetch data from db
     if (deletionItemData[transactionDateKey] is DateTime) {
       // in our form the data type usually is DateTime, but the date type in dbCache should be
@@ -441,7 +513,8 @@ class TransactionForm extends ConsumerWidget {
       deletionItemData['deleteDateTime'] =
           firebase.Timestamp.fromDate(deletionItemData['deleteDateTime']);
     }
-    deletedTransactionsDbCache.update(deletionItemData, DbCacheOperationTypes.add);
+    deletedTransactionsDbCache.update(
+        deletionItemData, DbCacheOperationTypes.add);
   }
 
   static void saveTransaction(
@@ -464,15 +537,19 @@ class TransactionForm extends ConsumerWidget {
     formData = removeEmptyRows(formData);
     final imageUrls = formImagesNotifier.saveChanges();
     final itemData = {...formData, 'imageUrls': imageUrls};
-    final transaction = Transaction.fromMap({...formData, 'imageUrls': imageUrls});
-    formController.saveItemToDb(context, transaction, isEditing, keepDialogOpen: true);
+    final transaction =
+        Transaction.fromMap({...formData, 'imageUrls': imageUrls});
+    formController.saveItemToDb(context, transaction, isEditing,
+        keepDialogOpen: true);
     // update the bdCache (database mirror) so that we don't need to fetch data from db
     if (itemData[transactionDateKey] is DateTime) {
       // in our form the data type usually is DateTime, but the date type in dbCache should be
       // Timestamp, as to mirror the datatype of firebase
-      itemData[transactionDateKey] = firebase.Timestamp.fromDate(formData[transactionDateKey]);
+      itemData[transactionDateKey] =
+          firebase.Timestamp.fromDate(formData[transactionDateKey]);
     }
-    final operationType = isEditing ? DbCacheOperationTypes.edit : DbCacheOperationTypes.add;
+    final operationType =
+        isEditing ? DbCacheOperationTypes.edit : DbCacheOperationTypes.add;
     dbCache.update(itemData, operationType);
     // redo screenData calculations
     if (context.mounted) {
@@ -505,8 +582,9 @@ class CustomerDebtReview extends ConsumerWidget {
     final customerDebtInfo = ref.read(customerDebtNotifierProvider);
     ref.watch(customerDebtNotifierProvider);
     // show debt review for customer invoices & receipts
-    bool showDebtInfo = transactionType == TransactionType.customerInvoice.name ||
-        transactionType == TransactionType.customerReceipt.name;
+    bool showDebtInfo =
+        transactionType == TransactionType.customerInvoice.name ||
+            transactionType == TransactionType.customerReceipt.name;
     return Container(
       width: 300,
       padding: const EdgeInsets.only(left: 20),
@@ -514,15 +592,20 @@ class CustomerDebtReview extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const PrintStatus(),
+          if (transactionType == TransactionType.customerInvoice.name)
+            const WarehouseStatus(),
           if (showDebtInfo)
             Column(
               children: [
                 VerticalGap.l,
-                ReviewRow(S.of(context).last_receipt_date, customerDebtInfo.lastReceiptDate),
+                ReviewRow(S.of(context).last_receipt_date,
+                    customerDebtInfo.lastReceiptDate),
                 VerticalGap.l,
                 ReviewRow(S.of(context).total_debt, customerDebtInfo.totalDebt),
                 VerticalGap.l,
-                ReviewRow(S.of(context).due_debt_amount, customerDebtInfo.dueDebt, isWarning: true),
+                ReviewRow(
+                    S.of(context).due_debt_amount, customerDebtInfo.dueDebt,
+                    isWarning: true),
               ],
             )
         ],
@@ -538,7 +621,8 @@ class PrintStatus extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final isPrinted = formDataNotifier.data[isPrintedKey];
-    final printStatus = isPrinted ? S.of(context).printed : S.of(context).not_printed;
+    final printStatus =
+        isPrinted ? S.of(context).printed : S.of(context).not_printed;
 
     return Row(
       children: [
@@ -562,8 +646,59 @@ class PrintStatus extends ConsumerWidget {
   }
 }
 
+class WarehouseStatus extends ConsumerWidget {
+  const WarehouseStatus({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
+    final invoiceId = formDataNotifier.data[dbRefKey];
+    final warehouseService = ref.read(warehouseServiceProvider);
+
+    return FutureBuilder(
+      future: warehouseService.getQueueItem(invoiceId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
+
+        final queueItem = snapshot.data!;
+        final isPrinted = queueItem.status == 'printed';
+        final statusText =
+            isPrinted ? 'تم الطباعة في المجهز' : 'في انتظار طباعة المجهز';
+        final color = isPrinted ? Colors.green : Colors.orange;
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 280,
+                decoration:
+                    BoxDecoration(color: color, border: Border.all(width: 0.5)),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: Center(
+                  child: Text(
+                    statusText,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class ReviewRow extends ConsumerWidget {
-  const ReviewRow(this.title, this.content, {this.isWarning = false, super.key});
+  const ReviewRow(this.title, this.content,
+      {this.isWarning = false, super.key});
   final String title;
   final String content;
   final bool isWarning;
@@ -581,19 +716,23 @@ class ReviewRow extends ConsumerWidget {
             child: Center(
               child: Text(
                 title,
-                style:
-                    const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
               ),
             )),
         Container(
             width: 130,
             decoration: BoxDecoration(
-                color: Colors.white, border: Border.all(width: 0.5)), // Rounded corners,
+                color: Colors.white,
+                border: Border.all(width: 0.5)), // Rounded corners,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             child: Center(
               child: Text(
                 content,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             )),
       ],
@@ -628,8 +767,8 @@ class NavigationButtons extends ConsumerWidget {
                 onPressed: () {
                   final formData = formNavigation.first();
                   formNavigation.isReadOnly = true;
-                  TransactionForm.onNavigationPressed(
-                      formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+                  TransactionForm.onNavigationPressed(formDataNotifier, context,
+                      ref, formImagesNotifier, formNavigation,
                       targetTransactionData: formData);
                 },
                 icon: const GoFirstIcon(),
@@ -638,8 +777,8 @@ class NavigationButtons extends ConsumerWidget {
                 onPressed: () {
                   final formData = formNavigation.previous();
                   formNavigation.isReadOnly = true;
-                  TransactionForm.onNavigationPressed(
-                      formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+                  TransactionForm.onNavigationPressed(formDataNotifier, context,
+                      ref, formImagesNotifier, formNavigation,
                       targetTransactionData: formData);
                 },
                 icon: const GoPreviousIcon(),
@@ -649,8 +788,8 @@ class NavigationButtons extends ConsumerWidget {
                   formNavigation.isReadOnly = true;
                   final formData = formNavigation.next();
 
-                  TransactionForm.onNavigationPressed(
-                      formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+                  TransactionForm.onNavigationPressed(formDataNotifier, context,
+                      ref, formImagesNotifier, formNavigation,
                       targetTransactionData: formData);
                 },
                 icon: const GoNextIcon(),
@@ -659,8 +798,8 @@ class NavigationButtons extends ConsumerWidget {
                 onPressed: () {
                   final formData = formNavigation.last();
                   formNavigation.isReadOnly = true;
-                  TransactionForm.onNavigationPressed(
-                      formDataNotifier, context, ref, formImagesNotifier, formNavigation,
+                  TransactionForm.onNavigationPressed(formDataNotifier, context,
+                      ref, formImagesNotifier, formNavigation,
                       targetTransactionData: formData);
                 },
                 icon: const GoLastIcon(),
@@ -685,17 +824,18 @@ class NavigationSearch extends ConsumerWidget {
       width: 250,
       child: TextFormField(
         textAlign: TextAlign.center,
-        decoration: formFieldDecoration(label: S.of(context).transaction_number),
+        decoration:
+            formFieldDecoration(label: S.of(context).transaction_number),
         onFieldSubmitted: (value) {
           try {
             formNavigator.goTo(context, int.tryParse(value.trim()));
             formNavigator.isReadOnly = true;
             // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
             // TODO later I might change formNavigation to StateNotifier and watch it in this widget
-            TransactionForm.onNavigationPressed(
-                formDataNotifier, context, ref, formImagesNotifier, formNavigator,
-                targetTransactionData:
-                    formNavigator.navigatorTransactions[formNavigator.currentIndex]);
+            TransactionForm.onNavigationPressed(formDataNotifier, context, ref,
+                formImagesNotifier, formNavigator,
+                targetTransactionData: formNavigator
+                    .navigatorTransactions[formNavigator.currentIndex]);
           } catch (e) {
             return;
           }
@@ -716,7 +856,8 @@ class NavigationTypeSelection extends ConsumerWidget {
       width: 250,
       child: FormBuilderDropdown(
           initialValue: translateDbTextToScreenText(context, transactionType),
-          decoration: formFieldDecoration(label: S.of(context).transaction_type),
+          decoration:
+              formFieldDecoration(label: S.of(context).transaction_type),
           onChanged: (value) {},
           name: 'transactionTypeSearch',
           items: typesList
@@ -740,7 +881,8 @@ class PrintedSearch extends ConsumerWidget {
       width: 250,
       child: FormBuilderDropdown(
           initialValue: S.of(context).show_all,
-          decoration: formFieldDecoration(label: S.of(context).transaction_type),
+          decoration:
+              formFieldDecoration(label: S.of(context).transaction_type),
           onChanged: (value) {},
           name: 'printedSearch',
           items: [S.of(context).show_printed_only, S.of(context).show_all]

@@ -56,6 +56,8 @@ class MainDrawer extends ConsumerWidget {
                   VerticalGap.m,
                   TasksButton(),
                   VerticalGap.m,
+                  WarehouseButton(),
+                  VerticalGap.m,
                   SettingsButton(),
                   Spacer(),
                   PendingsButton(),
@@ -353,6 +355,39 @@ class TasksButton extends ConsumerWidget {
       }
       // make datePicker equals today
       ref.read(selectedDateProvider.notifier).setDate(DateTime.now());
+    });
+  }
+}
+
+class WarehouseButton extends ConsumerWidget {
+  const WarehouseButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+
+    if (userInfo == null || userInfo.privilage != UserPrivilage.warehouse.name) {
+      return const SizedBox.shrink();
+    }
+
+    return MainDrawerButton('warehouse', 'طباعة المجهز', () async {
+      final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
+      final pageTitleNotifier = ref.read(pageTitleProvider.notifier);
+
+      if (pageLoadingNotifier.state) {
+        failureUserMessage(context, "يرجى الانتظار حتى اكتمال تحميل بيانات البرنامج");
+        return;
+      }
+
+      pageLoadingNotifier.state = true;
+      pageTitleNotifier.state = 'طباعة المجهز';
+
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        context.goNamed(AppRoute.warehouse.name);
+      }
+
+      pageLoadingNotifier.state = false;
     });
   }
 }

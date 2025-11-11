@@ -41,7 +41,8 @@ class HomeReturnIcon extends StatelessWidget {
       HorizontalGap.s,
       Text(
         S.of(context).home_page,
-        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        style: const TextStyle(
+            color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
       )
     ]);
   }
@@ -55,10 +56,12 @@ class NavigationBackButton extends StatelessWidget {
     return Row(children: [
       Text(
         S.of(context).back,
-        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
+        style: const TextStyle(
+            color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
       ),
       HorizontalGap.s,
-      const Icon(Icons.arrow_forward_ios_outlined, color: Colors.black, size: 30)
+      const Icon(Icons.arrow_forward_ios_outlined,
+          color: Colors.black, size: 30)
     ]);
   }
 }
@@ -246,6 +249,27 @@ class PrintIconB extends StatelessWidget {
   }
 }
 
+// same Icon with only difference in label
+class SendIcon extends StatelessWidget {
+  const SendIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        // Image.asset(
+        //   'assets/icons/buttons/print.png',
+        //   width: 25,
+        //   height: 22,
+        // ),
+        Icon(Icons.send, color: Colors.orange),
+        VerticalGap.s,
+        Text("مخزن"),
+      ],
+    );
+  }
+}
+
 class PrintedIcon extends StatelessWidget {
   const PrintedIcon({super.key});
 
@@ -266,7 +290,8 @@ class PrintedIcon extends StatelessWidget {
         ),
         VerticalGap.s,
 
-        Text(S.of(context).printed, style: const TextStyle(color: Colors.white)),
+        Text(S.of(context).printed,
+            style: const TextStyle(color: Colors.white)),
       ]),
     );
   }
