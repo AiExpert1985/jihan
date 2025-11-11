@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,7 @@ import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
+import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/home_greetings.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:tablets/src/common/widgets/page_loading.dart';
@@ -997,6 +999,8 @@ class AccountantHomeView extends ConsumerWidget {
               ReloadDbCacheData(),
             ],
           ),
+          const SizedBox(height: 20),
+          const _AccountantLogoutButton(),
         ],
       ),
     );
@@ -1128,6 +1132,40 @@ class _AccountantButton extends ConsumerWidget {
           fontSize: 22,
           fontWeight: FontWeight.bold,
         ),
+      ),
+    );
+  }
+}
+
+class _AccountantLogoutButton extends ConsumerWidget {
+  const _AccountantLogoutButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red[400],
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        elevation: 4,
+      ),
+      onPressed: () async {
+        final confiramtion = await showDeleteConfirmationDialog(
+            context: context,
+            messagePart1: "",
+            messagePart2: S.of(context).alert_before_signout);
+        if (confiramtion != null) {
+          ref.read(userInfoProvider.notifier).reset();
+          FirebaseAuth.instance.signOut();
+        }
+      },
+      icon: const LocaleAwareLogoutIcon(),
+      label: Text(
+        S.of(context).logout,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
