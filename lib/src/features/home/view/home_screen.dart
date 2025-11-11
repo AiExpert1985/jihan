@@ -940,7 +940,43 @@ class WarehouseHomeView extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 40),
+          const _WarehouseLogoutButton(),
         ],
+      ),
+    );
+  }
+}
+
+class _WarehouseLogoutButton extends ConsumerWidget {
+  const _WarehouseLogoutButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red[400],
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        elevation: 4,
+      ),
+      onPressed: () async {
+        final confiramtion = await showDeleteConfirmationDialog(
+            context: context,
+            messagePart1: "",
+            messagePart2: S.of(context).alert_before_signout);
+        if (confiramtion != null) {
+          ref.read(userInfoProvider.notifier).reset();
+          FirebaseAuth.instance.signOut();
+        }
+      },
+      icon: const LocaleAwareLogoutIcon(),
+      label: Text(
+        S.of(context).logout,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
