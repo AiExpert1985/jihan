@@ -38,21 +38,23 @@ class ExpenditureForm extends ConsumerWidget {
           children: [
             _buildFirstRow(context, formDataNotifier, formNavigator),
             VerticalGap.l,
-            _buildSecondRow(context, formDataNotifier, textEditingNotifier, formNavigator),
+            _buildSecondRow(
+                context, formDataNotifier, textEditingNotifier, formNavigator),
             VerticalGap.l,
             _buildThirdRow(context, formDataNotifier, formNavigator),
             VerticalGap.l,
             _buildForthRow(context, formDataNotifier, formNavigator),
             VerticalGap.l,
-            _buildFifthRow(context, formDataNotifier, hideTransactionAmountAsText, formNavigator),
+            _buildFifthRow(context, formDataNotifier,
+                hideTransactionAmountAsText, formNavigator),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFirstRow(
-      BuildContext context, ItemFormData formDataNotifier, FromNavigator formNavigator) {
+  Widget _buildFirstRow(BuildContext context, ItemFormData formDataNotifier,
+      FromNavigator formNavigator) {
     return Row(
       children: [
         DropDownListFormField(
@@ -63,6 +65,8 @@ class ExpenditureForm extends ConsumerWidget {
             S.of(context).transaction_expenditure_rent,
             S.of(context).transaction_expenditure_bills,
             S.of(context).transaction_expenditure_money_transer,
+            "مصاريف كاز",
+            "سلفة موظف",
             S.of(context).transaction_expenditure_others,
           ],
           label: S.of(context).transaction_expenditure_type,
@@ -116,8 +120,8 @@ class ExpenditureForm extends ConsumerWidget {
     );
   }
 
-  Widget _buildThirdRow(
-      BuildContext context, ItemFormData formDataNotifier, FromNavigator formNavigator) {
+  Widget _buildThirdRow(BuildContext context, ItemFormData formDataNotifier,
+      FromNavigator formNavigator) {
     return Row(
       children: [
         FormInputField(
@@ -140,15 +144,16 @@ class ExpenditureForm extends ConsumerWidget {
           name: dateKey,
           label: S.of(context).transaction_date,
           onChangedFn: (date) {
-            formDataNotifier.updateProperties({dateKey: Timestamp.fromDate(date!)});
+            formDataNotifier
+                .updateProperties({dateKey: Timestamp.fromDate(date!)});
           },
         ),
       ],
     );
   }
 
-  Widget _buildForthRow(
-      BuildContext context, ItemFormData formDataNotifier, FromNavigator formNavigator) {
+  Widget _buildForthRow(BuildContext context, ItemFormData formDataNotifier,
+      FromNavigator formNavigator) {
     return Row(
       children: [
         FormInputField(
