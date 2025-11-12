@@ -92,7 +92,11 @@ class _HomeScreenGreetingState extends ConsumerState<HomeScreenGreeting> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               RistrictedAccessWidget(
-                allowedPrivilages: [UserPrivilage.accountant.name],
+                allowedPrivilages: [
+                  UserPrivilage.accountant.name,
+                  UserPrivilage.salesman.name,
+                  UserPrivilage.guest.name,
+                ],
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   width: 200,
@@ -312,7 +316,10 @@ class FastReports extends ConsumerWidget {
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
 
     return RistrictedAccessWidget(
-      allowedPrivilages: [UserPrivilage.guest.name],
+      allowedPrivilages: [
+        UserPrivilage.guest.name,
+        UserPrivilage.accountant.name,
+      ],
       child: Container(
           padding: const EdgeInsets.all(20),
           width: 200,
