@@ -94,8 +94,6 @@ class _HomeScreenGreetingState extends ConsumerState<HomeScreenGreeting> {
               RistrictedAccessWidget(
                 allowedPrivilages: [
                   UserPrivilage.accountant.name,
-                  UserPrivilage.salesman.name,
-                  UserPrivilage.guest.name,
                 ],
                 child: Container(
                   padding: const EdgeInsets.all(10),

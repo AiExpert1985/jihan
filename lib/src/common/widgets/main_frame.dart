@@ -47,8 +47,6 @@ class AppScreenFrame extends ConsumerWidget {
                     builder: (context) => RistrictedAccessWidget(
                       allowedPrivilages: [
                         UserPrivilage.accountant.name,
-                        UserPrivilage.salesman.name,
-                        UserPrivilage.guest.name,
                       ],
                       child: IconButton(
                         icon: const MainMenuIcon(),
