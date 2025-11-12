@@ -22,6 +22,8 @@ import 'package:tablets/src/features/customers/repository/customer_db_cache_prov
 import 'package:tablets/src/features/customers/view/customer_form_fields.dart';
 import 'package:tablets/src/features/customers/controllers/customer_form_data_notifier.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 
 class CustomerForm extends ConsumerWidget {
   const CustomerForm({this.isEditMode = false, super.key});
@@ -29,6 +31,8 @@ class CustomerForm extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final formController = ref.watch(customerFormControllerProvider);
     final formDataNotifier = ref.read(customerFormDataProvider.notifier);
     final formImagesNotifier = ref.read(imagePickerProvider.notifier);
@@ -71,7 +75,7 @@ class CustomerForm extends ConsumerWidget {
                     formController, dbCache, screenController),
                 icon: const SaveIcon(),
               ),
-              if (isEditMode)
+              if (isEditMode && !isAccountant)
                 IconButton(
                   onPressed: () => _onDeletePressed(context, formDataNotifier, formImagesNotifier,
                       formController, dbCache, screenController),

@@ -85,15 +85,6 @@ class _HomeScreenGreetingState extends ConsumerState<HomeScreenGreeting> {
       );
     }
 
-    // Accountant users get a dedicated view with limited access
-    if (userInfo != null &&
-        userInfo.privilage == UserPrivilage.accountant.name) {
-      return Container(
-        padding: const EdgeInsets.all(15),
-        child: const AccountantHomeView(),
-      );
-    }
-
     // since settings is the last doecument loaded from db, if it is being not empty means it finish loading
     Widget screenWidget = (settingsDbCache.data.isEmpty)
         ? const PageLoading()
@@ -129,6 +120,9 @@ class CustomerFastAccessButtons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
+
     return FastAccessButtonsContainer(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -137,11 +131,13 @@ class CustomerFastAccessButtons extends ConsumerWidget {
             TransactionType.customerInvoice.name,
             textColor: Colors.green[100],
           ),
-          VerticalGap.l,
-          FastAccessFormButton(
-            TransactionType.customerReceipt.name,
-            textColor: Colors.red[100],
-          ),
+          if (!isAccountant) ...[
+            VerticalGap.l,
+            FastAccessFormButton(
+              TransactionType.customerReceipt.name,
+              textColor: Colors.red[100],
+            ),
+          ],
           VerticalGap.l,
           FastAccessFormButton(
             TransactionType.customerReturn.name,
@@ -312,7 +308,9 @@ class FastReports extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(userInfoProvider);
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
+
     return RistrictedAccessWidget(
       allowedPrivilages: [UserPrivilage.guest.name],
       child: Container(
@@ -331,8 +329,10 @@ class FastReports extends ConsumerWidget {
                   ),
                   child: Column(
                     children: [
-                      buildAllDebtButton(context, ref),
-                      VerticalGap.xl,
+                      if (!isAccountant) ...[
+                        buildAllDebtButton(context, ref),
+                        VerticalGap.xl,
+                      ],
                       buildSoldItemsButton(context, ref),
                       VerticalGap.xl,
                       buildCustomerMatchingButton(context, ref),
@@ -350,10 +350,12 @@ class FastReports extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     buildSoldItemsButton(context, ref, isSupervisor: true),
-                    VerticalGap.xl,
-                    buildSalesmanCustomersButton(context, ref),
-                    VerticalGap.xl,
-                    buildSalesmanTasksButton(context, ref),
+                    if (!isAccountant) ...[
+                      VerticalGap.xl,
+                      buildSalesmanCustomersButton(context, ref),
+                      VerticalGap.xl,
+                      buildSalesmanTasksButton(context, ref),
+                    ],
                     VerticalGap.xl,
                     buildInventoryButton(context, ref),
                     VerticalGap.xl,
