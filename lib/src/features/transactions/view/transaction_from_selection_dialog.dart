@@ -11,6 +11,8 @@ import 'package:tablets/src/features/transactions/view/transaction_show_form.dar
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 
 class TransactionGroupSelection extends ConsumerWidget {
   const TransactionGroupSelection({super.key});
@@ -84,6 +86,9 @@ class TransactionTypeSelection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
+
     final group = {
       'customer': {
         'names': [
@@ -152,8 +157,11 @@ class TransactionTypeSelection extends ConsumerWidget {
             ),
             itemCount: names.length,
             itemBuilder: (context, index) {
+              final isReceiptButton = formTypes[index] == TransactionType.customerReceipt.name;
+              final isDisabled = isAccountant && isReceiptButton;
+
               return GestureDetector(
-                onTap: () async {
+                onTap: isDisabled ? null : () async {
                   if (context.mounted) {
                     TransactionShowForm.showForm(
                       context,
@@ -168,14 +176,18 @@ class TransactionTypeSelection extends ConsumerWidget {
                   }
                 },
                 child: Card(
-                  elevation: 4,
+                  elevation: isDisabled ? 1 : 4,
                   margin: const EdgeInsets.all(16),
+                  color: isDisabled ? Colors.grey[300] : null,
                   child: SizedBox(
                     height: 40, // Reduced height for the card
                     child: Center(
                       child: Text(
                         names[index], // Use the corresponding name
-                        style: const TextStyle(fontSize: 18),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: isDisabled ? Colors.grey[600] : null,
+                        ),
                       ),
                     ),
                   ),

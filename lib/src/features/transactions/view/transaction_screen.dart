@@ -28,6 +28,8 @@ import 'package:tablets/src/features/transactions/controllers/transaction_screen
 import 'package:tablets/src/features/transactions/repository/transaction_repository_provider.dart';
 import 'package:tablets/src/features/transactions/view/transaction_from_selection_dialog.dart';
 import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
@@ -153,6 +155,8 @@ class DataRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final productRef = transactionScreenData[productDbRefKey];
     final productDbCache = ref.read(transactionDbCacheProvider.notifier);
     final transactionData = productDbCache.getItemByDbRef(productRef);
@@ -167,6 +171,11 @@ class DataRow extends ConsumerWidget {
         transactionType.contains(S.of(context).transaction_type_customer_return);
     final printStatus =
         transactionScreenData[isPrintedKey] ? S.of(context).printed : S.of(context).not_printed;
+
+    // Check if accountant should not be able to click this transaction
+    final isReceiptTransaction = transaction.transactionType == TransactionType.customerReceipt.name;
+    final isDisabled = isAccountant && isReceiptTransaction;
+
     return Column(
       children: [
         Padding(
@@ -176,7 +185,7 @@ class DataRow extends ConsumerWidget {
             children: [
               MainScreenNumberedEditButton(
                 sequence,
-                () => _showEditTransactionForm(context, ref, transaction),
+                isDisabled ? () {} : () => _showEditTransactionForm(context, ref, transaction),
                 color: color,
               ),
               MainScreenTextCell(transactionScreenData[transactionTypeKey], isWarning: isWarning),
@@ -237,6 +246,8 @@ class TransactionsFloatingButtons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final drawerController = ref.watch(transactionDrawerControllerProvider);
     const iconsColor = Color.fromARGB(255, 126, 106, 211);
     return SpeedDial(
@@ -248,16 +259,17 @@ class TransactionsFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
-        SpeedDialChild(
-            child: const Icon(Icons.pie_chart, color: Colors.white),
-            backgroundColor: iconsColor,
-            onTap: () async {
-              final allTransactions =
-                  await ref.read(transactionRepositoryProvider).fetchItemListAsMaps();
-              if (context.mounted) {
-                drawerController.showReports(context, allTransactions);
-              }
-            }),
+        if (!isAccountant)
+          SpeedDialChild(
+              child: const Icon(Icons.pie_chart, color: Colors.white),
+              backgroundColor: iconsColor,
+              onTap: () async {
+                final allTransactions =
+                    await ref.read(transactionRepositoryProvider).fetchItemListAsMaps();
+                if (context.mounted) {
+                  drawerController.showReports(context, allTransactions);
+                }
+              }),
         SpeedDialChild(
           child: const Icon(Icons.search, color: Colors.white),
           backgroundColor: iconsColor,

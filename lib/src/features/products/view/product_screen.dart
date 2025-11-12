@@ -26,6 +26,8 @@ import 'package:tablets/src/features/products/repository/product_db_cache_provid
 import 'package:tablets/src/features/products/model/product.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 
 class ProductsScreen extends ConsumerWidget {
   const ProductsScreen({super.key});
@@ -108,12 +110,14 @@ class ListHeaders extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
-    final hideProductProfit = settingsController.getProperty(hideProductProfitKey);
+    final hideProductProfit = settingsController.getProperty(hideProductProfitKey) || isAccountant;
     final hideMainScreenColumnTotals =
-        settingsController.getProperty(hideMainScreenColumnTotalsKey);
+        settingsController.getProperty(hideMainScreenColumnTotalsKey) || isAccountant;
     return Column(
       children: [
         Row(
@@ -156,13 +160,15 @@ class HeaderTotalsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     ref.watch(productScreenDataNotifier);
     final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
     final summary = screenDataNotifier.summary;
     final totalStockPrice = summary[productTotalStockPriceKey]?['value'] ?? '';
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
-    final hideProductProfit = settingsController.getProperty(hideProductProfitKey);
+    final hideProductProfit = settingsController.getProperty(hideProductProfitKey) || isAccountant;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -190,9 +196,11 @@ class DataRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
-    final hideProductProfit = settingsController.getProperty(hideProductProfitKey);
+    final hideProductProfit = settingsController.getProperty(hideProductProfitKey) || isAccountant;
     final reportController = ref.read(productReportControllerProvider);
     final productRef = productScreenData[productDbRefKey];
     final productDbCache = ref.read(productDbCacheProvider.notifier);

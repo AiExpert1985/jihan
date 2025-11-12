@@ -28,10 +28,9 @@ class AppScreenFrame extends ConsumerWidget {
     final settingsDbCache = ref.read(settingsDbCacheProvider.notifier);
     // since settings is the last doecument loaded from db, if it is being not empty means it finish loading
 
-    // Hide drawer for accountant and warehouse users
+    // Hide drawer for warehouse users only
     final shouldShowDrawer = userInfo == null ||
-        (userInfo.privilage != UserPrivilage.accountant.name &&
-            userInfo.privilage != UserPrivilage.warehouse.name);
+        userInfo.privilage != UserPrivilage.warehouse.name;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -46,7 +45,9 @@ class AppScreenFrame extends ConsumerWidget {
                   leadingWidth: 140,
                   leading: Builder(
                     builder: (context) => RistrictedAccessWidget(
-                      allowedPrivilages: const [],
+                      allowedPrivilages: [
+                        UserPrivilage.accountant.name,
+                      ],
                       child: IconButton(
                         icon: const MainMenuIcon(),
                         onPressed: () {

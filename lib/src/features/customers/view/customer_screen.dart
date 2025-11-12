@@ -20,6 +20,8 @@ import 'package:tablets/src/features/customers/repository/customer_db_cache_prov
 import 'package:tablets/src/features/customers/model/customer.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 
 class CustomerScreen extends ConsumerWidget {
   const CustomerScreen({super.key});
@@ -101,10 +103,12 @@ class ListHeaders extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideMainScreenColumnTotals =
-        settingsController.getProperty(hideMainScreenColumnTotalsKey);
-    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey);
+        settingsController.getProperty(hideMainScreenColumnTotalsKey) || isAccountant;
+    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
     final screenDataNotifier = ref.read(customerScreenDataNotifier.notifier);
     return Column(
       children: [
@@ -145,8 +149,10 @@ class HeaderTotalsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey);
+    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
     ref.watch(customerScreenDataNotifier);
     final screenDataNotifier = ref.read(customerScreenDataNotifier.notifier);
     final summary = screenDataNotifier.summary;
@@ -183,8 +189,10 @@ class DataRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey);
+    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
     final reportController = ref.read(customerReportControllerProvider);
     final customerRef = customerScreenData[customerDbRefKey];
     final customerDbCache = ref.read(customerDbCacheProvider.notifier);
