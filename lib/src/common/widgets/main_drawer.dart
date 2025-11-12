@@ -324,13 +324,6 @@ class TasksButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userInfo = ref.watch(userInfoProvider);
-    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
-
-    if (isAccountant) {
-      return const SizedBox.shrink();
-    }
-
     final route = AppRoute.tasks.name;
     const pageTitle = 'زيارات المندوبين';
     return MainDrawerButton('tasks', 'زيارات المندوبين', () async {
