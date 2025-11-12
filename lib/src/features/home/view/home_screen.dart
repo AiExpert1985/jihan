@@ -92,7 +92,7 @@ class _HomeScreenGreetingState extends ConsumerState<HomeScreenGreeting> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               RistrictedAccessWidget(
-                allowedPrivilages: const [],
+                allowedPrivilages: [UserPrivilage.accountant.name],
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   width: 200,
