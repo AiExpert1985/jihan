@@ -324,16 +324,20 @@ class TasksButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
+
+    if (isAccountant) {
+      return const SizedBox.shrink();
+    }
+
     final route = AppRoute.tasks.name;
     const pageTitle = 'زيارات المندوبين';
     return MainDrawerButton('tasks', 'زيارات المندوبين', () async {
       // update user info, so if the user is blocked by admin, while he uses the app he will be blocked
       ref.read(userInfoProvider.notifier).loadUserInfo(ref);
       final userInfo = ref.read(userInfoProvider);
-      if (userInfo == null ||
-          !userInfo.hasAccess ||
-          userInfo.privilage != UserPrivilage.admin.name) {
-        // only admin (who has access) can make backup
+      if (userInfo == null || !userInfo.hasAccess) {
         return;
       }
       final pageLoadingNotifier = ref.read(pageIsLoadingNotifier.notifier);
@@ -349,7 +353,10 @@ class TasksButton extends ConsumerWidget {
         return;
       }
       final pageTitleNotifier = ref.read(pageTitleProvider.notifier);
-      await autoDatabaseBackup(context, ref);
+      // Only admin users can trigger database backup
+      if (userInfo.privilage == UserPrivilage.admin.name) {
+        await autoDatabaseBackup(context, ref);
+      }
       pageLoadingNotifier.state = true;
       // note that dbCaches are only used for mirroring the database, all the data used in the
       // app in the screenData, which is a processed version of dbCache

@@ -107,7 +107,7 @@ class ListHeaders extends ConsumerWidget {
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideMainScreenColumnTotals =
-        settingsController.getProperty(hideMainScreenColumnTotalsKey);
+        settingsController.getProperty(hideMainScreenColumnTotalsKey) || isAccountant;
     final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
     final screenDataNotifier = ref.read(customerScreenDataNotifier.notifier);
     return Column(

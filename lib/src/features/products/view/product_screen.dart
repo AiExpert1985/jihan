@@ -117,7 +117,7 @@ class ListHeaders extends ConsumerWidget {
     final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
     final hideProductProfit = settingsController.getProperty(hideProductProfitKey) || isAccountant;
     final hideMainScreenColumnTotals =
-        settingsController.getProperty(hideMainScreenColumnTotalsKey);
+        settingsController.getProperty(hideMainScreenColumnTotalsKey) || isAccountant;
     return Column(
       children: [
         Row(

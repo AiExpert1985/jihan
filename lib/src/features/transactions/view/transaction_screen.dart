@@ -155,6 +155,8 @@ class DataRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final productRef = transactionScreenData[productDbRefKey];
     final productDbCache = ref.read(transactionDbCacheProvider.notifier);
     final transactionData = productDbCache.getItemByDbRef(productRef);
@@ -169,6 +171,11 @@ class DataRow extends ConsumerWidget {
         transactionType.contains(S.of(context).transaction_type_customer_return);
     final printStatus =
         transactionScreenData[isPrintedKey] ? S.of(context).printed : S.of(context).not_printed;
+
+    // Check if accountant should not be able to click this transaction
+    final isReceiptTransaction = transaction.transactionType == TransactionType.customerReceipt.name;
+    final isDisabled = isAccountant && isReceiptTransaction;
+
     return Column(
       children: [
         Padding(
@@ -178,7 +185,7 @@ class DataRow extends ConsumerWidget {
             children: [
               MainScreenNumberedEditButton(
                 sequence,
-                () => _showEditTransactionForm(context, ref, transaction),
+                isDisabled ? () {} : () => _showEditTransactionForm(context, ref, transaction),
                 color: color,
               ),
               MainScreenTextCell(transactionScreenData[transactionTypeKey], isWarning: isWarning),
