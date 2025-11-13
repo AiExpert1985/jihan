@@ -553,7 +553,8 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
         initialValue:
             ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
         onChangedFn: (customer) {
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, customer['name']);
+          final customerName = customer['name']?.toString().trim() ?? '';
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, customerName);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
         },
@@ -569,7 +570,8 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
         onChangedFn: (salesman) {
           // it is important to trim, because I faced issue with "مضر هذال" filter, i think
           // it is good practice to trim when searching for certain text value
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, salesman['name']);
+          final salesmanName = salesman['name']?.toString().trim() ?? '';
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, salesmanName);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
         },
@@ -594,7 +596,8 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
         initialValue:
             ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
         onChangedFn: (type) {
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, type['name']);
+          final typeName = type['name']?.toString().trim() ?? '';
+          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, typeName);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
         },
@@ -623,7 +626,8 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
       initialValue:
           ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
       onChangedFn: (transactionNumber) {
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, transactionNumber);
+        final trimmedNumber = transactionNumber?.toString().trim() ?? '';
+        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, trimmedNumber);
         ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
         ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
       },
@@ -657,7 +661,8 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
       initialValue:
           ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
       onChangedFn: (notes) {
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.contains, notes);
+        final trimmedNotes = notes?.toString().trim() ?? '';
+        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.contains, trimmedNotes);
         ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
         ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
       },
