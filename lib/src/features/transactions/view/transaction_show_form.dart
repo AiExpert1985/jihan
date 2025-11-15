@@ -47,6 +47,9 @@ class TransactionShowForm {
       transaction: transaction,
       transactionDbCache: transactionDbCache,
     );
+
+    if (!context.mounted) return;
+
     initializeTextFieldControllers(textEditingNotifier, formDataNotifier);
     bool isEditMode = transaction != null;
 
@@ -107,6 +110,9 @@ class TransactionShowForm {
         S.of(context).transaction_payment_Dinar;
     // Get next transaction number from Firestore counter (multi-user safe)
     int transactionNumber = await getNextTransactionNumber(transactionType, ref);
+
+    if (!context.mounted) return;
+
     formDataNotifier.updateProperties({
       currencyKey: translateDbTextToScreenText(context, currenctyType),
       paymentTypeKey: translateDbTextToScreenText(context, paymentType),

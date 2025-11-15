@@ -162,7 +162,7 @@ class ThirdColumn extends ConsumerWidget {
           onPressed: () async {
             try {
               final migrationService = ref.read(counterMigrationServiceProvider);
-              await migrationService.initializeAllCounters(context);
+              await migrationService.initializeAllCounters(context, ref);
               if (context.mounted) {
                 successUserMessage(context, 'تم تثبيت ارقام القوائم بنجاح');
               }

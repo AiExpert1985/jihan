@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/src/common/values/constants.dart';
@@ -9,12 +8,8 @@ import 'package:tablets/src/features/transactions/view/transaction_show_form.dar
 
 // Service to migrate existing transaction data to use Firestore counters
 class CounterMigrationService {
-  final WidgetRef ref;
-
-  CounterMigrationService(this.ref);
-
   // Initialize all transaction counters based on existing data
-  Future<void> initializeAllCounters(BuildContext context) async {
+  Future<void> initializeAllCounters(BuildContext context, WidgetRef ref) async {
     tempPrint('Starting counter initialization...');
 
     final transactionTypes = [
@@ -30,7 +25,7 @@ class CounterMigrationService {
     ];
 
     for (final transactionType in transactionTypes) {
-      await initializeCounterForType(context, transactionType);
+      await initializeCounterForType(context, transactionType, ref);
     }
 
     tempPrint('Counter initialization completed!');
@@ -38,7 +33,7 @@ class CounterMigrationService {
 
   // Initialize counter for a specific transaction type
   // Uses the tested methods from TransactionShowForm
-  Future<void> initializeCounterForType(BuildContext context, String transactionType) async {
+  Future<void> initializeCounterForType(BuildContext context, String transactionType, WidgetRef ref) async {
     try {
       final counterRepository = ref.read(counterRepositoryProvider);
 
@@ -52,6 +47,8 @@ class CounterMigrationService {
       // Get all transactions data
       final transactionRepository = ref.read(transactionRepositoryProvider);
       final transactions = await transactionRepository.fetchItemListAsMaps();
+
+      if (!context.mounted) return;
 
       // Use the tested methods from TransactionShowForm to calculate the next number
       final nextNumber = TransactionShowForm.getNextTransactionNumberFromLocalData(
@@ -68,5 +65,5 @@ class CounterMigrationService {
 }
 
 final counterMigrationServiceProvider = Provider<CounterMigrationService>((ref) {
-  return CounterMigrationService(ref);
+  return CounterMigrationService();
 });

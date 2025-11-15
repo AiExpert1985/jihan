@@ -205,6 +205,7 @@ class DataRow extends ConsumerWidget {
               IconButton(
                   onPressed: () async {
                     await approveTransaction(context, ref, transaction);
+                    if (!context.mounted) return;
                     ref
                         .read(pendingTransactionQuickFiltersProvider.notifier)
                         .applyListFilter(context);
@@ -341,6 +342,9 @@ Future<void> approveTransaction(BuildContext context, WidgetRef ref, Transaction
     final invoiceNumber = await getNextCustomerInvoiceNumber(ref);
     transaction.number = invoiceNumber;
   }
+
+  if (!context.mounted) return;
+
   // save transaction to transaction database
   saveToTransactionCollection(context, ref, transaction);
   // // finally, we open it form edit (it opens unEditable, if user want he press the edit button)

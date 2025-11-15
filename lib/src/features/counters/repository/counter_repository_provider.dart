@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tablets/src/features/counters/model/counter.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
 
 // Repository for counter operations
