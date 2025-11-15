@@ -18,9 +18,10 @@ import 'package:tablets/src/features/transactions/controllers/transaction_screen
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/transactions/view/transaction_form.dart';
+import 'package:tablets/src/features/counters/repository/counter_repository_provider.dart';
 
 class TransactionShowForm {
-  static void showForm(
+  static Future<void> showForm(
       BuildContext context,
       WidgetRef ref,
       ImageSliderNotifier imagePickerNotifier,
@@ -29,7 +30,7 @@ class TransactionShowForm {
       TextControllerNotifier textEditingNotifier,
       {String? formType,
       Transaction? transaction,
-      DbCache? transactionDbCache}) {
+      DbCache? transactionDbCache}) async {
     if (formType == null && transaction?.transactionType == null) {
       errorPrint(
           'both formType and transaction can not be null, one of them is needed for transactionType');
@@ -37,7 +38,7 @@ class TransactionShowForm {
     }
     String transactionType = formType ?? transaction?.transactionType as String;
     imagePickerNotifier.initialize();
-    initializeFormData(
+    await initializeFormData(
       context,
       formDataNotifier,
       settingsDataNotifier,
@@ -46,6 +47,9 @@ class TransactionShowForm {
       transaction: transaction,
       transactionDbCache: transactionDbCache,
     );
+
+    if (!context.mounted) return;
+
     initializeTextFieldControllers(textEditingNotifier, formDataNotifier);
     bool isEditMode = transaction != null;
 
@@ -78,9 +82,9 @@ class TransactionShowForm {
     );
   }
 
-  static void initializeFormData(BuildContext context, ItemFormData formDataNotifier,
+  static Future<void> initializeFormData(BuildContext context, ItemFormData formDataNotifier,
       ItemFormData settingsDataNotifier, String transactionType, WidgetRef ref,
-      {Transaction? transaction, DbCache? transactionDbCache}) {
+      {Transaction? transaction, DbCache? transactionDbCache}) async {
     // note here if transaction is null, it it equivalent to calling
     // formDataNotifier.intialize();
     formDataNotifier.initialize(initialData: transaction?.toMap());
@@ -104,9 +108,11 @@ class TransactionShowForm {
         S.of(context).transaction_payment_credit;
     String currenctyType = settingsDataNotifier.getProperty(settingsCurrencyKey) ??
         S.of(context).transaction_payment_Dinar;
-    final transactionsData = transactionDbCache?.data;
-    int? transactionNumber =
-        getNextTransactionNumber(context, transactionsData!, transactionType, ref);
+    // Get next transaction number from Firestore counter (multi-user safe)
+    int transactionNumber = await getNextTransactionNumber(transactionType, ref);
+
+    if (!context.mounted) return;
+
     formDataNotifier.updateProperties({
       currencyKey: translateDbTextToScreenText(context, currenctyType),
       paymentTypeKey: translateDbTextToScreenText(context, paymentType),
@@ -178,9 +184,16 @@ class TransactionShowForm {
     }
   }
 
+  // Get next transaction number from Firestore counter
+  // Uses atomic increment to prevent duplicate numbers in multi-user environment
+  static Future<int> getNextTransactionNumber(String transactionType, WidgetRef ref) async {
+    final counterRepository = ref.read(counterRepositoryProvider);
+    return await counterRepository.getNextNumber(transactionType);
+  }
+
 // here I am giving the next number after the maximumn number previously given in both transactions & deleted
 // transactions
-  static int getNextTransactionNumber(
+  static int getNextTransactionNumberFromLocalData(
       BuildContext context, List<Map<String, dynamic>> transactions, String type, WidgetRef ref) {
     int maxDeletedNumber = getHighestDeletedTransactionNumber(ref, type) ?? 0;
     int maxTransactionNumber = getHighestTransactionNumber(context, transactions, type) ?? 0;

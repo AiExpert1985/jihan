@@ -47,6 +47,7 @@ import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/view/forms/item_list.dart';
+import 'package:tablets/src/features/counters/repository/counter_repository_provider.dart';
 
 class PendingTransactions extends ConsumerWidget {
   const PendingTransactions({super.key});
@@ -202,8 +203,9 @@ class DataRow extends ConsumerWidget {
               MainScreenTextCell(printStatus, isWarning: isWarning),
               MainScreenTextCell(transactionScreenData[transactionNotesKey], isWarning: isWarning),
               IconButton(
-                  onPressed: () {
-                    approveTransaction(context, ref, transaction);
+                  onPressed: () async {
+                    await approveTransaction(context, ref, transaction);
+                    if (!context.mounted) return;
                     ref
                         .read(pendingTransactionQuickFiltersProvider.notifier)
                         .applyListFilter(context);
@@ -325,7 +327,7 @@ void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
   deletedTransactionsDbCache.update(deletionItemData, DbCacheOperationTypes.add);
 }
 
-void approveTransaction(BuildContext context, WidgetRef ref, Transaction transaction) {
+Future<void> approveTransaction(BuildContext context, WidgetRef ref, Transaction transaction) async {
   final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
   // below check is added to prevent the bug of duplicating of pressing approve button multiple times
   if (transactionDbCache.getItemByDbRef(transaction.dbRef).isNotEmpty) {
@@ -337,9 +339,12 @@ void approveTransaction(BuildContext context, WidgetRef ref, Transaction transac
   // then we udpate the transaction number if transaction is a customer invoice
   // for receipts, the number is given by the salesman in the mobile app
   if (transaction.transactionType == TransactionType.customerInvoice.name) {
-    final invoiceNumber = getNextCustomerInvoiceNumber(context, ref);
+    final invoiceNumber = await getNextCustomerInvoiceNumber(ref);
     transaction.number = invoiceNumber;
   }
+
+  if (!context.mounted) return;
+
   // save transaction to transaction database
   saveToTransactionCollection(context, ref, transaction);
   // // finally, we open it form edit (it opens unEditable, if user want he press the edit button)
@@ -419,9 +424,16 @@ double _getItemPrice(BuildContext context, WidgetRef ref, String productDbRef) {
   return getBuyingPrice(ref, productQuantity, productData['dbRef']);
 }
 
+// Get next customer invoice number from Firestore counter
+// Uses atomic increment to prevent duplicate numbers in multi-user environment
+Future<int> getNextCustomerInvoiceNumber(WidgetRef ref) async {
+  final counterRepository = ref.read(counterRepositoryProvider);
+  return await counterRepository.getNextNumber(TransactionType.customerInvoice.name);
+}
+
 // here I am giving the next number after the maximumn number previously given in both transactions & deleted
 // transactions
-int getNextCustomerInvoiceNumber(BuildContext context, WidgetRef ref) {
+int getNextCustomerInvoiceNumberFromLocalData(BuildContext context, WidgetRef ref) {
   final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
   final transactions = transactionDbCache.data;
   int maxDeletedNumber = getHighestDeletedCustomerInvoiceNumber(ref) ?? 0;

@@ -20,6 +20,7 @@ import 'package:tablets/src/features/settings/model/settings.dart';
 import 'package:tablets/src/features/settings/repository/settings_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/repository/settings_repository_provider.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
+import 'package:tablets/src/features/counters/services/counter_migration_service.dart';
 
 final paymentValues = [PaymentType.credit.name, PaymentType.cash.name];
 final currencyValues = [Currency.dinar.name, Currency.dollar.name];
@@ -155,6 +156,24 @@ class ThirdColumn extends ConsumerWidget {
         VerticalGap.xl,
         SettingsInputField(S.of(context).settings_main_page_greeting, mainPageGreetingTextKey,
             FieldDataType.text.name),
+        VerticalGap.xl,
+        // Counter initialization button for multi-user setup
+        ElevatedButton(
+          onPressed: () async {
+            try {
+              final migrationService = ref.read(counterMigrationServiceProvider);
+              await migrationService.initializeAllCounters(context, ref);
+              if (context.mounted) {
+                successUserMessage(context, 'تم تثبيت ارقام القوائم بنجاح');
+              }
+            } catch (e) {
+              if (context.mounted) {
+                failureUserMessage(context, 'خطأ في تثبيت الارقام: $e');
+              }
+            }
+          },
+          child: const Text('تثبيت ارقام القوائم القادمة'),
+        ),
       ],
     );
   }
