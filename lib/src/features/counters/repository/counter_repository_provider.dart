@@ -35,12 +35,12 @@ class CounterRepository {
         return 1;
       }
 
-      // Increment the counter for the next user using atomic increment
+      // Update the counter to the next value for the next user
       await docRef.update({
-        'nextNumber': FieldValue.increment(1),
+        'nextNumber': nextNumber + 1,
       });
 
-      tempPrint('Counter for $transactionType: returning $nextNumber, incremented to ${nextNumber + 1}');
+      tempPrint('Counter for $transactionType: returning $nextNumber, updated to ${nextNumber + 1}');
       return nextNumber;
     } catch (e) {
       errorPrint('Error getting next number for $transactionType: $e');
