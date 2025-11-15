@@ -173,6 +173,12 @@ class InvoiceCard extends ConsumerWidget {
 
       final pdfBytes = await pdfFile.readAsBytes();
 
+      // Print first copy
+      await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdfBytes,
+      );
+
+      // Print second copy
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdfBytes,
       );

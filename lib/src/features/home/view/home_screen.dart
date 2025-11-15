@@ -325,7 +325,7 @@ class FastReports extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               RistrictedAccessWidget(
-                allowedPrivilages: const [],
+                allowedPrivilages: [UserPrivilage.accountant.name],
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -337,9 +337,9 @@ class FastReports extends ConsumerWidget {
                       if (!isAccountant) ...[
                         buildAllDebtButton(context, ref),
                         VerticalGap.xl,
+                        buildSoldItemsButton(context, ref),
+                        VerticalGap.xl,
                       ],
-                      buildSoldItemsButton(context, ref),
-                      VerticalGap.xl,
                       buildCustomerMatchingButton(context, ref),
                     ],
                   ),
