@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/empty_screen.dart';
 import 'package:tablets/src/common/widgets/page_loading.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -106,7 +108,9 @@ class ListHeaders extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final screenDataNotifier = ref.read(salesmanScreenDataNotifier.notifier);
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey);
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
+    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
     final hideMainScreenColumnTotals =
         settingsController.getProperty(hideMainScreenColumnTotalsKey);
     return Column(
@@ -152,7 +156,9 @@ class HeaderTotalsRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey);
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
+    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -181,7 +187,9 @@ class DataRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey);
+    final userInfo = ref.watch(userInfoProvider);
+    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
+    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
     final reportController = ref.read(salesmanReportControllerProvider);
     final customerRef = salesmanScreenData[salesmanDbRefKey];
     final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);

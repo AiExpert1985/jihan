@@ -255,13 +255,6 @@ class SalesmenButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userInfo = ref.watch(userInfoProvider);
-    final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
-
-    if (isAccountant) {
-      return const SizedBox.shrink();
-    }
-
     final salesmanScreenController = ref.read(salesmanScreenControllerProvider);
     final route = AppRoute.salesman.name;
     final pageTitle = S.of(context).salesmen;
