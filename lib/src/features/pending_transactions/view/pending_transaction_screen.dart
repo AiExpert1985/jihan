@@ -547,35 +547,57 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   }
 
   Widget _buildCustomerQuickFilter(BuildContext context, WidgetRef ref) {
-    final dbCache = ref.read(customerDbCacheProvider.notifier);
+    final pendingTransactionsDbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
     const propertyName = 'name';
+
+    // Extract unique customer names from pending transactions to ensure exact match
+    // This prevents mismatch due to whitespace or data inconsistencies
+    final customersInTransactions = <String, Map<String, dynamic>>{};
+    for (var transaction in pendingTransactionsDbCache.data) {
+      final customerName = transaction['name'];
+      if (customerName != null && customerName.toString().isNotEmpty) {
+        customersInTransactions[customerName] = {'name': customerName};
+      }
+    }
+    final customerList = customersInTransactions.values.toList();
+
     return DropDownWithSearchFormField(
         initialValue:
             ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
         onChangedFn: (customer) {
-          final customerName = customer['name']?.toString().trim() ?? '';
+          final customerName = customer['name'];
           QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, customerName);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
         },
-        itemsList: dbCache.data);
+        itemsList: customerList);
   }
 
   Widget _buildSalesmanQuickFilter(BuildContext context, WidgetRef ref) {
-    final dbCache = ref.read(salesmanDbCacheProvider.notifier);
+    final pendingTransactionsDbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
     const propertyName = 'salesman';
+
+    // Extract unique salesman names from pending transactions to ensure exact match
+    // This prevents mismatch due to whitespace or data inconsistencies
+    final salesmenInTransactions = <String, Map<String, dynamic>>{};
+    for (var transaction in pendingTransactionsDbCache.data) {
+      final salesmanName = transaction['salesman'];
+      if (salesmanName != null && salesmanName.toString().isNotEmpty) {
+        salesmenInTransactions[salesmanName] = {'name': salesmanName};
+      }
+    }
+    final salesmanList = salesmenInTransactions.values.toList();
+
     return DropDownWithSearchFormField(
         initialValue:
             ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
         onChangedFn: (salesman) {
-          // it is important to trim, because I faced issue with "مضر هذال" filter, i think
-          // it is good practice to trim when searching for certain text value
-          final salesmanName = salesman['name']?.toString().trim() ?? '';
+          final salesmanName = salesman['name'];
           QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, salesmanName);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
           ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
         },
-        itemsList: dbCache.data);
+        itemsList: salesmanList);
   }
 
   Widget _buildTypeQuickFilter(BuildContext context, WidgetRef ref) {
