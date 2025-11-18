@@ -29,11 +29,9 @@ import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/form_fields/drop_down_with_search.dart';
 import 'package:tablets/src/common/widgets/form_fields/edit_box.dart';
-import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_quick_filter_controller.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
-import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_drawer_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_form_controller.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_controller.dart';
@@ -327,7 +325,8 @@ void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
   deletedTransactionsDbCache.update(deletionItemData, DbCacheOperationTypes.add);
 }
 
-Future<void> approveTransaction(BuildContext context, WidgetRef ref, Transaction transaction) async {
+Future<void> approveTransaction(
+    BuildContext context, WidgetRef ref, Transaction transaction) async {
   final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
   // below check is added to prevent the bug of duplicating of pressing approve button multiple times
   if (transactionDbCache.getItemByDbRef(transaction.dbRef).isNotEmpty) {
