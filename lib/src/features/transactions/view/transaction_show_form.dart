@@ -30,7 +30,8 @@ class TransactionShowForm {
       TextControllerNotifier textEditingNotifier,
       {String? formType,
       Transaction? transaction,
-      DbCache? transactionDbCache}) async {
+      DbCache? transactionDbCache,
+      bool useReplacement = false}) async {
     if (formType == null && transaction?.transactionType == null) {
       errorPrint(
           'both formType and transaction can not be null, one of them is needed for transactionType');
@@ -48,14 +49,17 @@ class TransactionShowForm {
       transactionDbCache: transactionDbCache,
     );
 
-    if (!context.mounted) return;
+    // Note: Don't check context.mounted here as context may be from a popped widget
+    // when navigating from "new" button. Navigator.push will handle invalid context gracefully.
 
     initializeTextFieldControllers(textEditingNotifier, formDataNotifier);
     bool isEditMode = transaction != null;
 
     if (!isEditMode) {
       // if the transaction is new, we save it directly with empty data
-      TransactionForm.saveTransaction(context, ref, formDataNotifier.data, false);
+      if (context.mounted) {
+        TransactionForm.saveTransaction(context, ref, formDataNotifier.data, false);
+      }
     }
 
     // if we are loading a transaction (not new) for (customer invoices only) we update the debt info
@@ -63,7 +67,8 @@ class TransactionShowForm {
     if ((transactionType == TransactionType.customerInvoice.name ||
             transactionType == TransactionType.customerReceipt.name) &&
         customerName is String &&
-        customerName.isNotEmpty) {
+        customerName.isNotEmpty &&
+        context.mounted) {
       try {
         final customerDbCache = ref.read(customerDbCacheProvider.notifier);
         final customerData = customerDbCache.getItemByProperty('name', customerName);
@@ -74,12 +79,27 @@ class TransactionShowForm {
       }
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (BuildContext ctx) => TransactionForm(isEditMode, transactionType)),
-      // builder: (BuildContext ctx) => TransactionForm(isEditMode, transactionType)),
-    );
+    // Use pushReplacement when navigating from within form (e.g., "new" button)
+    // Use push when opening form from outside (e.g., from home screen)
+    if (!context.mounted) return;
+
+    try {
+      if (useReplacement) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext ctx) => TransactionForm(isEditMode, transactionType)),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (BuildContext ctx) => TransactionForm(isEditMode, transactionType)),
+        );
+      }
+    } catch (e) {
+      errorPrint('Error pushing transaction form: $e');
+    }
   }
 
   static Future<void> initializeFormData(BuildContext context, ItemFormData formDataNotifier,
@@ -104,18 +124,24 @@ class TransactionShowForm {
       itemBuyingPriceKey: 0,
     });
     if (transaction != null) return; // if we are in edit, we don't need further initialization
+
+    // Get context-dependent values BEFORE async call
     String paymentType = settingsDataNotifier.getProperty(settingsPaymentTypeKey) ??
         S.of(context).transaction_payment_credit;
     String currenctyType = settingsDataNotifier.getProperty(settingsCurrencyKey) ??
         S.of(context).transaction_payment_Dinar;
+    String translatedCurrency = translateDbTextToScreenText(context, currenctyType);
+    String translatedPaymentType = translateDbTextToScreenText(context, paymentType);
+    String damagedItemsName =
+        transactionType == TransactionType.damagedItems.name ? S.of(context).damagedItems : '';
+
     // Get next transaction number from Firestore counter (multi-user safe)
     int transactionNumber = await getNextTransactionNumber(transactionType, ref);
 
-    if (!context.mounted) return;
-
+    // No context.mounted check needed - context not used after async
     formDataNotifier.updateProperties({
-      currencyKey: translateDbTextToScreenText(context, currenctyType),
-      paymentTypeKey: translateDbTextToScreenText(context, paymentType),
+      currencyKey: translatedCurrency,
+      paymentTypeKey: translatedPaymentType,
       discountKey: 0.0,
       transTypeKey: transactionType,
       dateKey: DateTime.now(),
@@ -124,10 +150,7 @@ class TransactionShowForm {
       subTotalAmountKey: 0,
       transactionTotalProfitKey: 0,
       itemSalesmanTotalCommissionKey: 0,
-      // if transaction is damaged item, then we set name here, because we can't easily do that
-      // inside the form
-      nameKey:
-          transactionType == TransactionType.damagedItems.name ? S.of(context).damagedItems : '',
+      nameKey: damagedItemsName,
       salesmanKey: '',
       numberKey: transactionNumber,
       totalAsTextKey: '',

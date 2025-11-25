@@ -59,6 +59,7 @@ class CounterRepository {
       tempPrint('Counter initialized for $transactionType with starting value $startingNumber');
     } catch (e) {
       errorPrint('Error initializing counter for $transactionType: $e');
+      rethrow; // Propagate error so button handler can show it
     }
   }
 
@@ -80,6 +81,60 @@ class CounterRepository {
     } catch (e) {
       errorPrint('Error getting current number for $transactionType: $e');
       return 1;
+    }
+  }
+
+  // Update counter to ensure it's at least targetNumber
+  Future<void> ensureCounterAtLeast(String transactionType, int targetNumber) async {
+    try {
+      final docRef = _firestore.collection(_collectionName).doc(transactionType);
+      final docSnapshot = await docRef.get();
+
+      int currentNext = 1;
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        if (data != null && data['nextNumber'] != null) {
+          currentNext = data['nextNumber'] is int
+              ? data['nextNumber']
+              : (data['nextNumber'] as num).toInt();
+        }
+      }
+
+      // Only update if target is higher than current
+      if (targetNumber >= currentNext) {
+        await docRef.set({
+          'transactionType': transactionType,
+          'nextNumber': targetNumber + 1,
+        });
+        tempPrint('Counter updated for $transactionType from $currentNext to ${targetNumber + 1}');
+      }
+    } catch (e) {
+      errorPrint('Error ensuring counter for $transactionType: $e');
+    }
+  }
+
+  // Decrement counter by one
+  Future<void> decrementCounter(String transactionType) async {
+    try {
+      final docRef = _firestore.collection(_collectionName).doc(transactionType);
+      final docSnapshot = await docRef.get();
+
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        if (data != null && data['nextNumber'] != null) {
+          int currentNext = data['nextNumber'] is int
+              ? data['nextNumber']
+              : (data['nextNumber'] as num).toInt();
+
+          // Only decrement if counter is > 1
+          if (currentNext > 1) {
+            await docRef.update({'nextNumber': currentNext - 1});
+            tempPrint('Counter decremented for $transactionType from $currentNext to ${currentNext - 1}');
+          }
+        }
+      }
+    } catch (e) {
+      errorPrint('Error decrementing counter for $transactionType: $e');
     }
   }
 }
