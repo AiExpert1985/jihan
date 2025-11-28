@@ -26,3 +26,9 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  errors:
+    strict_top_level_inference: ignore
+    unintended_html_in_doc_comment: ignore
+    todo: ignore
