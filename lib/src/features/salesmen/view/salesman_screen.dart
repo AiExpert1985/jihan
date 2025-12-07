@@ -205,27 +205,28 @@ class DataRow extends ConsumerWidget {
     final salesman = Salesman.fromMap(customerData);
     final name = salesmanScreenData[salesmanNameKey] as String;
     final commission = salesmanScreenData[commissionKey].toDouble();
-    final commissionDetails =
-        toNestedList(salesmanScreenData[commissionDetailsKey]);
+    // Lazy Calculation: Lists are empty in cache, calculated on click.
+    // final commissionDetails =
+    //     toNestedList(salesmanScreenData[commissionDetailsKey]);
     final numCustomers = salesmanScreenData[customersKey].toDouble();
-    final customersList = toNestedList(salesmanScreenData[customersDetailsKey]);
+    // final customersList = toNestedList(salesmanScreenData[customersDetailsKey]);
     final totalDebt = salesmanScreenData[totalDebtsKey].toDouble();
     final dueDebt = salesmanScreenData[dueDbetsKey].toDouble();
-    final debtDetails = toNestedList(salesmanScreenData[debtsDetailsKey]);
+    // final debtDetails = toNestedList(salesmanScreenData[debtsDetailsKey]);
     final openInvoices = salesmanScreenData[openInvoicesKey].toDouble();
     final dueInvoices = salesmanScreenData[dueInvoicesKey].toDouble();
-    final openInvoicesDetails =
-        toNestedList(salesmanScreenData[openInvoicesDetailsKey]);
+    // final openInvoicesDetails =
+    //     toNestedList(salesmanScreenData[openInvoicesDetailsKey]);
     final profit = salesmanScreenData[profitKey].toDouble();
-    final profitTransactions =
-        toNestedList(salesmanScreenData[profitDetailsKey]);
+    // final profitTransactions =
+    //     toNestedList(salesmanScreenData[profitDetailsKey]);
     final numInvoices = salesmanScreenData[numInvoicesKey].toDouble();
-    final invoices = toNestedList(salesmanScreenData[invoicesKey]);
+    // final invoices = toNestedList(salesmanScreenData[invoicesKey]);
     final numReceipts = salesmanScreenData[numReceiptsKey].toDouble();
-    final receipts = toNestedList(salesmanScreenData[receiptsKey]);
+    // final receipts = toNestedList(salesmanScreenData[receiptsKey]);
     final invoicesAmount = salesmanScreenData[invoicesAmountKey].toDouble();
     final receiptAmount = salesmanScreenData[receiptsAmountKey].toDouble();
-    final returns = toNestedList(salesmanScreenData[returnsKey]);
+    // final returns = toNestedList(salesmanScreenData[returnsKey]);
     final numReturns = salesmanScreenData[numReturnsKey].toDouble();
     final returnsAmount = salesmanScreenData[returnsAmountKey].toDouble();
 
@@ -241,59 +242,119 @@ class DataRow extends ConsumerWidget {
           MainScreenTextCell(name),
           MainScreenClickableCell(
             commission,
-            () => reportController.showTransactionReport(
-                context, commissionDetails, name,
-                sumIndex: 6, isProfit: true),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[commissionDetailsKey]);
+              reportController.showTransactionReport(context, details, name,
+                  sumIndex: 6, isProfit: true);
+            },
           ),
           MainScreenClickableCell(
             numCustomers,
-            () => reportController.showCustomers(context, customersList, name),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[customersDetailsKey]);
+              reportController.showCustomers(context, details, name);
+            },
           ),
           MainScreenClickableCell(
             '${doubleToStringWithComma(totalDebt)} \n (${doubleToStringWithComma(dueDebt)})',
-            () => reportController.showDebtReport(context, debtDetails, name),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[debtsDetailsKey]);
+              reportController.showDebtReport(context, details, name);
+            },
           ),
           MainScreenClickableCell(
             '${doubleToStringWithComma(openInvoices)} (${doubleToStringWithComma(dueInvoices)})',
-            () => reportController.showInvoicesReport(
-                context, openInvoicesDetails, name),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[openInvoicesDetailsKey]);
+              reportController.showInvoicesReport(context, details, name);
+            },
           ),
           MainScreenClickableCell(
             numReceipts,
-            () =>
-                reportController.showTransactionReport(context, receipts, name),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[receiptsKey]);
+              reportController.showTransactionReport(context, details, name);
+            },
           ),
           MainScreenClickableCell(
             receiptAmount,
-            () => reportController
-                .showTransactionReport(context, receipts, name, sumIndex: 6),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[receiptsKey]);
+              reportController.showTransactionReport(context, details, name,
+                  sumIndex: 6);
+            },
           ),
           MainScreenClickableCell(
             numInvoices,
-            () =>
-                reportController.showTransactionReport(context, invoices, name),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[invoicesKey]);
+              reportController.showTransactionReport(context, details, name);
+            },
           ),
           MainScreenClickableCell(
             invoicesAmount,
-            () => reportController
-                .showTransactionReport(context, invoices, name, sumIndex: 6),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[invoicesKey]);
+              reportController.showTransactionReport(context, details, name,
+                  sumIndex: 6);
+            },
           ),
           MainScreenClickableCell(
             numReturns,
-            () =>
-                reportController.showTransactionReport(context, returns, name),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[returnsKey]);
+              reportController.showTransactionReport(context, details, name);
+            },
           ),
           MainScreenClickableCell(
             returnsAmount,
-            () => reportController.showTransactionReport(context, returns, name,
-                sumIndex: 6),
+            () {
+              final controller = ref.read(salesmanScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, customerData);
+              final details = toNestedList(fullData[returnsKey]);
+              reportController.showTransactionReport(context, details, name,
+                  sumIndex: 6);
+            },
           ),
           if (!hideSalesmanProfit)
             MainScreenClickableCell(
               profit,
-              () => reportController.showTransactionReport(
-                  context, profitTransactions, name,
-                  sumIndex: 6, isProfit: true),
+              () {
+                final controller = ref.read(salesmanScreenControllerProvider);
+                final fullData =
+                    controller.getItemScreenData(context, customerData);
+                final details = toNestedList(fullData[profitDetailsKey]);
+                reportController.showTransactionReport(context, details, name,
+                    sumIndex: 6, isProfit: true);
+              },
             ),
         ],
       ),

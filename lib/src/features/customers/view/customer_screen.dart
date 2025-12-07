@@ -206,22 +206,26 @@ class DataRow extends ConsumerWidget {
     final customerDbCache = ref.read(customerDbCacheProvider.notifier);
     final customerData = customerDbCache.getItemByDbRef(customerRef);
     final customer = Customer.fromMap(customerData);
+    // Lazy Calculation: These detail lists are now empty in the cache.
+    // We will calculate them on-demand in the onClick handlers.
+    // final matchingList = toNestedList(customerScreenData[totalDebtDetailsKey]);
+    // final closedInvoices =
+    //     toNestedList(customerScreenData[avgClosingDaysDetailsKey]);
+    // final openInvoices =
+    //     toNestedList(customerScreenData[openInvoicesDetailsKey]);
+    // final dueInvoices = toNestedList(customerScreenData[dueDebtDetailsKey]);
+    // final invoiceWithProfit =
+    //     toNestedList(customerScreenData[invoicesProfitDetailsKey]);
+    // final giftTransactions = toNestedList(customerScreenData[giftsDetailsKey]);
+
     final invoiceAverageClosingDays =
         customerScreenData[avgClosingDaysKey] as int;
-    final closedInvoices =
-        toNestedList(customerScreenData[avgClosingDaysDetailsKey]);
     final numOpenInvoices = customerScreenData[openInvoicesKey] as int;
-    final openInvoices =
-        toNestedList(customerScreenData[openInvoicesDetailsKey]);
-    final dueInvoices = toNestedList(customerScreenData[dueDebtDetailsKey]);
     final numDueInvoices = customerScreenData[dueInvoicesKey] as int;
     final totalDebt = customerScreenData[totalDebtKey] as double;
-    final matchingList = toNestedList(customerScreenData[totalDebtDetailsKey]);
     final dueDebt = customerScreenData[dueDebtKey];
-    final invoiceWithProfit =
-        toNestedList(customerScreenData[invoicesProfitDetailsKey]);
+
     final profit = customerScreenData[invoicesProfitKey] as double;
-    final giftTransactions = toNestedList(customerScreenData[giftsDetailsKey]);
     final totalGiftsAmount = customerScreenData[giftsKey] as double;
     final inValidCustomer = customerScreenData[inValidUserKey] as bool;
 
@@ -237,39 +241,81 @@ class DataRow extends ConsumerWidget {
           MainScreenTextCell(customer.region, isWarning: inValidCustomer),
           MainScreenClickableCell(
             totalDebt,
-            () => reportController.showCustomerMatchingReport(
-                context, matchingList, customer.name),
+            () {
+              final controller = ref.read(customerScreenControllerProvider);
+              final dbCache = ref.read(customerDbCacheProvider.notifier);
+              final rawData = dbCache.getItemByDbRef(customerRef);
+              final fullData = controller.getItemScreenData(context, rawData);
+              final details = toNestedList(fullData[totalDebtDetailsKey]);
+              reportController.showCustomerMatchingReport(
+                  context, details, customer.name);
+            },
             isWarning: inValidCustomer,
           ),
           MainScreenClickableCell(
             '$numOpenInvoices ($numDueInvoices)',
-            () => reportController.showInvoicesReport(context, openInvoices,
-                '${customer.name}  ( $numOpenInvoices )'),
+            () {
+              final controller = ref.read(customerScreenControllerProvider);
+              final dbCache = ref.read(customerDbCacheProvider.notifier);
+              final rawData = dbCache.getItemByDbRef(customerRef);
+              final fullData = controller.getItemScreenData(context, rawData);
+              final details = toNestedList(fullData[openInvoicesDetailsKey]);
+              reportController.showInvoicesReport(
+                  context, details, '${customer.name}  ( $numOpenInvoices )');
+            },
             isWarning: inValidCustomer,
           ),
           MainScreenClickableCell(
             dueDebt,
-            () => reportController.showInvoicesReport(
-                context, dueInvoices, '${customer.name}  ( $numDueInvoices )'),
+            () {
+              final controller = ref.read(customerScreenControllerProvider);
+              final dbCache = ref.read(customerDbCacheProvider.notifier);
+              final rawData = dbCache.getItemByDbRef(customerRef);
+              final fullData = controller.getItemScreenData(context, rawData);
+              final details = toNestedList(fullData[dueDebtDetailsKey]);
+              reportController.showInvoicesReport(
+                  context, details, '${customer.name}  ( $numDueInvoices )');
+            },
             isWarning: inValidCustomer,
           ),
           MainScreenClickableCell(
             invoiceAverageClosingDays,
-            () => reportController.showInvoicesReport(context, closedInvoices,
-                '${customer.name}  ( $invoiceAverageClosingDays )'),
+            () {
+              final controller = ref.read(customerScreenControllerProvider);
+              final dbCache = ref.read(customerDbCacheProvider.notifier);
+              final rawData = dbCache.getItemByDbRef(customerRef);
+              final fullData = controller.getItemScreenData(context, rawData);
+              final details = toNestedList(fullData[avgClosingDaysDetailsKey]);
+              reportController.showInvoicesReport(context, details,
+                  '${customer.name}  ( $invoiceAverageClosingDays )');
+            },
             isWarning: inValidCustomer,
           ),
           if (!hideCustomerProfit)
             MainScreenClickableCell(
               profit,
-              () => reportController.showProfitReport(
-                  context, invoiceWithProfit, customer.name),
+              () {
+                final controller = ref.read(customerScreenControllerProvider);
+                final dbCache = ref.read(customerDbCacheProvider.notifier);
+                final rawData = dbCache.getItemByDbRef(customerRef);
+                final fullData = controller.getItemScreenData(context, rawData);
+                final details =
+                    toNestedList(fullData[invoicesProfitDetailsKey]);
+                reportController.showProfitReport(
+                    context, details, customer.name);
+              },
               isWarning: inValidCustomer,
             ),
           MainScreenClickableCell(
             totalGiftsAmount,
-            () => reportController.showGiftsReport(
-                context, giftTransactions, customer.name),
+            () {
+              final controller = ref.read(customerScreenControllerProvider);
+              final dbCache = ref.read(customerDbCacheProvider.notifier);
+              final rawData = dbCache.getItemByDbRef(customerRef);
+              final fullData = controller.getItemScreenData(context, rawData);
+              final details = toNestedList(fullData[giftsDetailsKey]);
+              reportController.showGiftsReport(context, details, customer.name);
+            },
             isWarning: inValidCustomer,
           ),
         ],

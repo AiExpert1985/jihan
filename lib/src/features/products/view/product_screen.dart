@@ -23,6 +23,7 @@ import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/features/products/controllers/product_drawer_provider.dart';
 import 'package:tablets/src/features/products/controllers/product_form_data_notifier.dart';
 import 'package:tablets/src/features/products/controllers/product_report_controller.dart';
+import 'package:tablets/src/features/products/controllers/product_screen_controller.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_data_notifier.dart';
 import 'package:tablets/src/features/products/model/product.dart';
 import 'package:tablets/src/features/products/printing/printing_inventory.dart';
@@ -237,16 +238,22 @@ class DataRow extends ConsumerWidget {
             MainScreenTextCell(productScreenData[productBuyingPriceKey]),
           MainScreenTextCell(productScreenData[productSellingWholeSaleKey]),
           MainScreenTextCell(productScreenData[productSellingRetailKey]),
-          MainScreenClickableCell(
-              productScreenData[productQuantityKey],
-              () => reportController.showHistoryReport(context,
-                  productScreenData[productQuantityDetailsKey], product.name)),
+          MainScreenClickableCell(productScreenData[productQuantityKey], () {
+            final controller = ref.read(productScreenControllerProvider);
+            // productData is already fetched above (line 222)
+            final fullData = controller.getItemScreenData(context, productData);
+            final details = fullData[productQuantityDetailsKey];
+            reportController.showHistoryReport(context, details, product.name);
+          }),
           MainScreenTextCell(productScreenData[productTotalStockPriceKey]),
           if (!hideProductProfit)
-            MainScreenClickableCell(
-                (productScreenData[productProfitKey]),
-                () => reportController.showProfitReport(context,
-                    productScreenData[productProfitDetailsKey], product.name)),
+            MainScreenClickableCell((productScreenData[productProfitKey]), () {
+              final controller = ref.read(productScreenControllerProvider);
+              final fullData =
+                  controller.getItemScreenData(context, productData);
+              final details = fullData[productProfitDetailsKey];
+              reportController.showProfitReport(context, details, product.name);
+            }),
         ],
       ),
     );
