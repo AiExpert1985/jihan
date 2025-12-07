@@ -2,32 +2,34 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
+import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
+import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
+import 'package:tablets/src/common/providers/screen_cache_service.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/empty_screen.dart';
 import 'package:tablets/src/common/widgets/main_frame.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:tablets/src/common/providers/image_picker_provider.dart';
+import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/common/widgets/page_loading.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
+import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/features/products/controllers/product_drawer_provider.dart';
 import 'package:tablets/src/features/products/controllers/product_form_data_notifier.dart';
 import 'package:tablets/src/features/products/controllers/product_report_controller.dart';
 import 'package:tablets/src/features/products/controllers/product_screen_data_notifier.dart';
-import 'package:tablets/src/features/products/printing/printing_inventory.dart';
-import 'package:tablets/src/features/products/view/product_form.dart';
-import 'package:tablets/generated/l10n.dart';
-import 'package:tablets/src/features/home/view/home_screen.dart';
-import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
-import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
 import 'package:tablets/src/features/products/model/product.dart';
+import 'package:tablets/src/features/products/printing/printing_inventory.dart';
+import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
+import 'package:tablets/src/features/products/view/product_form.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
-import 'package:tablets/src/common/providers/user_info_provider.dart';
-import 'package:tablets/src/features/authentication/model/user_account.dart';
 
 class ProductsScreen extends ConsumerWidget {
   const ProductsScreen({super.key});
@@ -114,10 +116,13 @@ class ListHeaders extends ConsumerWidget {
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
-    final hideProductProfit = settingsController.getProperty(hideProductProfitKey) || isAccountant;
+    final hideProductBuyingPrice =
+        settingsController.getProperty(hideProductBuyingPriceKey);
+    final hideProductProfit =
+        settingsController.getProperty(hideProductProfitKey) || isAccountant;
     final hideMainScreenColumnTotals =
-        settingsController.getProperty(hideMainScreenColumnTotalsKey) || isAccountant;
+        settingsController.getProperty(hideMainScreenColumnTotalsKey) ||
+            isAccountant;
     return Column(
       children: [
         Row(
@@ -128,24 +133,30 @@ class ListHeaders extends ConsumerWidget {
                 screenDataNotifier, productNameKey, S.of(context).product_name),
             SortableMainScreenHeaderCell(
                 screenDataNotifier, productCodeKey, S.of(context).product_code),
+            SortableMainScreenHeaderCell(screenDataNotifier, productCategoryKey,
+                S.of(context).product_category),
             SortableMainScreenHeaderCell(
-                screenDataNotifier, productCategoryKey, S.of(context).product_category),
-            SortableMainScreenHeaderCell(screenDataNotifier, productCommissionKey,
+                screenDataNotifier,
+                productCommissionKey,
                 S.of(context).product_salesman_commission),
             if (!hideProductBuyingPrice)
-              SortableMainScreenHeaderCell(
-                  screenDataNotifier, productBuyingPriceKey, S.of(context).product_buying_price),
-            SortableMainScreenHeaderCell(screenDataNotifier, productSellingWholeSaleKey,
+              SortableMainScreenHeaderCell(screenDataNotifier,
+                  productBuyingPriceKey, S.of(context).product_buying_price),
+            SortableMainScreenHeaderCell(
+                screenDataNotifier,
+                productSellingWholeSaleKey,
                 S.of(context).product_sell_whole_price),
-            SortableMainScreenHeaderCell(screenDataNotifier, productSellingRetailKey,
+            SortableMainScreenHeaderCell(
+                screenDataNotifier,
+                productSellingRetailKey,
                 S.of(context).product_sell_retail_price),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, productQuantityKey, S.of(context).product_stock_quantity),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, productTotalStockPriceKey, S.of(context).product_stock_amount),
+            SortableMainScreenHeaderCell(screenDataNotifier, productQuantityKey,
+                S.of(context).product_stock_quantity),
+            SortableMainScreenHeaderCell(screenDataNotifier,
+                productTotalStockPriceKey, S.of(context).product_stock_amount),
             if (!hideProductProfit)
-              SortableMainScreenHeaderCell(
-                  screenDataNotifier, productProfitKey, S.of(context).product_profits),
+              SortableMainScreenHeaderCell(screenDataNotifier, productProfitKey,
+                  S.of(context).product_profits),
           ],
         ),
         VerticalGap.m,
@@ -167,8 +178,10 @@ class HeaderTotalsRow extends ConsumerWidget {
     final summary = screenDataNotifier.summary;
     final totalStockPrice = summary[productTotalStockPriceKey]?['value'] ?? '';
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
-    final hideProductProfit = settingsController.getProperty(hideProductProfitKey) || isAccountant;
+    final hideProductBuyingPrice =
+        settingsController.getProperty(hideProductBuyingPriceKey);
+    final hideProductProfit =
+        settingsController.getProperty(hideProductProfitKey) || isAccountant;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -199,8 +212,10 @@ class DataRow extends ConsumerWidget {
     final userInfo = ref.watch(userInfoProvider);
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideProductBuyingPrice = settingsController.getProperty(hideProductBuyingPriceKey);
-    final hideProductProfit = settingsController.getProperty(hideProductProfitKey) || isAccountant;
+    final hideProductBuyingPrice =
+        settingsController.getProperty(hideProductBuyingPriceKey);
+    final hideProductProfit =
+        settingsController.getProperty(hideProductProfitKey) || isAccountant;
     final reportController = ref.read(productReportControllerProvider);
     final productRef = productScreenData[productDbRefKey];
     final productDbCache = ref.read(productDbCacheProvider.notifier);
@@ -212,24 +227,26 @@ class DataRow extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          MainScreenNumberedEditButton(sequence, () => _showEditProductForm(context, ref, product)),
+          MainScreenNumberedEditButton(
+              sequence, () => _showEditProductForm(context, ref, product)),
           MainScreenTextCell(productScreenData[productNameKey]),
           MainScreenTextCell(productCode),
           MainScreenTextCell(productScreenData[productCategoryKey]),
           MainScreenTextCell(productScreenData[productCommissionKey]),
-          if (!hideProductBuyingPrice) MainScreenTextCell(productScreenData[productBuyingPriceKey]),
+          if (!hideProductBuyingPrice)
+            MainScreenTextCell(productScreenData[productBuyingPriceKey]),
           MainScreenTextCell(productScreenData[productSellingWholeSaleKey]),
           MainScreenTextCell(productScreenData[productSellingRetailKey]),
           MainScreenClickableCell(
               productScreenData[productQuantityKey],
-              () => reportController.showHistoryReport(
-                  context, productScreenData[productQuantityDetailsKey], product.name)),
+              () => reportController.showHistoryReport(context,
+                  productScreenData[productQuantityDetailsKey], product.name)),
           MainScreenTextCell(productScreenData[productTotalStockPriceKey]),
           if (!hideProductProfit)
             MainScreenClickableCell(
                 (productScreenData[productProfitKey]),
-                () => reportController.showProfitReport(
-                    context, productScreenData[productProfitDetailsKey], product.name)),
+                () => reportController.showProfitReport(context,
+                    productScreenData[productProfitDetailsKey], product.name)),
         ],
       ),
     );
@@ -238,7 +255,8 @@ class DataRow extends ConsumerWidget {
 
 // this method return List of Maps, in the form {'productName': 'بطيخ احمر', 'productQuantity': 10}
 // filter product if it is hidden, and if it is equal or less than zero
-List<Map<String, dynamic>> getFilterProductInventory(WidgetRef ref, bool specialReport) {
+List<Map<String, dynamic>> getFilterProductInventory(
+    WidgetRef ref, bool specialReport) {
   final productDbCache = ref.read(productDbCacheProvider.notifier);
 
   final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
@@ -251,14 +269,14 @@ List<Map<String, dynamic>> getFilterProductInventory(WidgetRef ref, bool special
     final product = Product.fromMap(productMap);
     final productQuantity = productData[productQuantityKey];
     if (!specialReport) {
-      filteredProductInventory
-          .add({'productName': product.name, 'productQuantity': productQuantity});
+      filteredProductInventory.add(
+          {'productName': product.name, 'productQuantity': productQuantity});
     } else if (specialReport &&
         productQuantity > 0 &&
         product.isHiddenInSpecialReports != null &&
         !product.isHiddenInSpecialReports!) {
-      filteredProductInventory
-          .add({'productName': product.name, 'productQuantity': productQuantity});
+      filteredProductInventory.add(
+          {'productName': product.name, 'productQuantity': productQuantity});
     } else {
       errorPrint('error when printing inventory');
     }
@@ -326,7 +344,8 @@ void _showPrintDialog(BuildContext context, WidgetRef ref) {
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Make buttons stretch
+          crossAxisAlignment:
+              CrossAxisAlignment.stretch, // Make buttons stretch
           children: <Widget>[
             const SizedBox(
               height: 10,
@@ -346,7 +365,8 @@ void _showPrintDialog(BuildContext context, WidgetRef ref) {
                 },
               ),
             ),
-            const SizedBox(height: spacingBetweenButtons), // Space between buttons
+            const SizedBox(
+                height: spacingBetweenButtons), // Space between buttons
 
             // Button 2 with increased height and padding
             SizedBox(
@@ -363,7 +383,8 @@ void _showPrintDialog(BuildContext context, WidgetRef ref) {
                 },
               ),
             ),
-            const SizedBox(height: spacingBelowButtons), // Space below the buttons
+            const SizedBox(
+                height: spacingBelowButtons), // Space below the buttons
           ],
         ),
         actions: <Widget>[
@@ -379,7 +400,8 @@ void _showPrintDialog(BuildContext context, WidgetRef ref) {
   );
 }
 
-void _showEditProductForm(BuildContext context, WidgetRef ref, Product product) {
+void _showEditProductForm(
+    BuildContext context, WidgetRef ref, Product product) {
   final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
   final formDataNotifier = ref.read(productFormDataProvider.notifier);
   formDataNotifier.initialize(initialData: product.toMap());
@@ -392,6 +414,15 @@ void _showEditProductForm(BuildContext context, WidgetRef ref, Product product) 
 
 class ProductFloatingButtons extends ConsumerWidget {
   const ProductFloatingButtons({super.key});
+
+  Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
+    successUserMessage(context, "تحديث البيانات");
+    final cacheService = ref.read(screenCacheServiceProvider);
+    await cacheService.refreshProductScreenData(context);
+    if (context.mounted) {
+      successUserMessage(context, "تم تحديث البيانات بنجاح");
+    }
+  }
 
   void showAddProductForm(BuildContext context, WidgetRef ref) {
     final formDataNotifier = ref.read(productFormDataProvider.notifier);
@@ -419,6 +450,11 @@ class ProductFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () => _refreshScreenData(context, ref),
+        ),
         SpeedDialChild(
           child: const Icon(Icons.print, color: Colors.white),
           backgroundColor: iconsColor,

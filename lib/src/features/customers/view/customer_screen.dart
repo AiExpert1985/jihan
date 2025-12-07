@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
-import 'package:tablets/src/common/values/gaps.dart';
-import 'package:tablets/src/common/widgets/empty_screen.dart';
-import 'package:tablets/src/common/widgets/page_loading.dart';
-import 'package:tablets/src/features/home/view/home_screen.dart';
-import 'package:tablets/src/common/widgets/main_frame.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
+import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
+import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
+import 'package:tablets/src/common/providers/screen_cache_service.dart';
+import 'package:tablets/src/common/providers/user_info_provider.dart';
+import 'package:tablets/src/common/values/gaps.dart';
+import 'package:tablets/src/common/widgets/empty_screen.dart';
+import 'package:tablets/src/common/widgets/main_frame.dart';
+import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
+import 'package:tablets/src/common/widgets/page_loading.dart';
+import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/features/customers/controllers/customer_drawer_provider.dart';
 import 'package:tablets/src/features/customers/controllers/customer_form_data_notifier.dart';
-import 'package:tablets/src/features/customers/controllers/customer_screen_data_notifier.dart';
-import 'package:tablets/src/features/customers/view/customer_form.dart';
-import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/features/customers/controllers/customer_report_controller.dart';
 import 'package:tablets/src/features/customers/controllers/customer_screen_controller.dart';
-import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/customers/controllers/customer_screen_data_notifier.dart';
 import 'package:tablets/src/features/customers/model/customer.dart';
+import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/customers/view/customer_form.dart';
+import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
-import 'package:tablets/src/common/providers/user_info_provider.dart';
-import 'package:tablets/src/features/authentication/model/user_account.dart';
 
 class CustomerScreen extends ConsumerWidget {
   const CustomerScreen({super.key});
@@ -107,8 +110,10 @@ class ListHeaders extends ConsumerWidget {
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final hideMainScreenColumnTotals =
-        settingsController.getProperty(hideMainScreenColumnTotalsKey) || isAccountant;
-    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
+        settingsController.getProperty(hideMainScreenColumnTotalsKey) ||
+            isAccountant;
+    final hideCustomerProfit =
+        settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
     final screenDataNotifier = ref.read(customerScreenDataNotifier.notifier);
     return Column(
       children: [
@@ -118,23 +123,23 @@ class ListHeaders extends ConsumerWidget {
             const MainScreenPlaceholder(width: 20, isExpanded: false),
             SortableMainScreenHeaderCell(
                 screenDataNotifier, customerNameKey, S.of(context).customer),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, customerSalesmanKey, S.of(context).salesman_selection),
+            SortableMainScreenHeaderCell(screenDataNotifier,
+                customerSalesmanKey, S.of(context).salesman_selection),
             SortableMainScreenHeaderCell(
                 screenDataNotifier, customerRegionKey, S.of(context).region),
             SortableMainScreenHeaderCell(
                 screenDataNotifier, totalDebtKey, S.of(context).current_debt),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, openInvoicesKey, S.of(context).num_open_invoice),
+            SortableMainScreenHeaderCell(screenDataNotifier, openInvoicesKey,
+                S.of(context).num_open_invoice),
             SortableMainScreenHeaderCell(
                 screenDataNotifier, dueDebtKey, S.of(context).due_debt_amount),
             SortableMainScreenHeaderCell(screenDataNotifier, avgClosingDaysKey,
                 S.of(context).average_invoice_closing_duration),
             if (!hideCustomerProfit)
-              SortableMainScreenHeaderCell(
-                  screenDataNotifier, invoicesProfitKey, S.of(context).customer_invoice_profit),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, giftsKey, S.of(context).customer_gifts_and_discounts),
+              SortableMainScreenHeaderCell(screenDataNotifier,
+                  invoicesProfitKey, S.of(context).customer_invoice_profit),
+            SortableMainScreenHeaderCell(screenDataNotifier, giftsKey,
+                S.of(context).customer_gifts_and_discounts),
           ],
         ),
         VerticalGap.m,
@@ -152,7 +157,8 @@ class HeaderTotalsRow extends ConsumerWidget {
     final userInfo = ref.watch(userInfoProvider);
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
+    final hideCustomerProfit =
+        settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
     ref.watch(customerScreenDataNotifier);
     final screenDataNotifier = ref.read(customerScreenDataNotifier.notifier);
     final summary = screenDataNotifier.summary;
@@ -175,7 +181,8 @@ class HeaderTotalsRow extends ConsumerWidget {
         MainScreenHeaderCell('$openInvoices ($dueInvoices)'),
         MainScreenHeaderCell(dueDebt, isColumnTotal: true),
         MainScreenHeaderCell('($averageClosingDays ${S.of(context).days} )'),
-        if (!hideCustomerProfit) MainScreenHeaderCell(profit, isColumnTotal: true),
+        if (!hideCustomerProfit)
+          MainScreenHeaderCell(profit, isColumnTotal: true),
         MainScreenHeaderCell(gifts, isColumnTotal: true),
       ],
     );
@@ -192,24 +199,29 @@ class DataRow extends ConsumerWidget {
     final userInfo = ref.watch(userInfoProvider);
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
     final settingsController = ref.read(settingsFormDataProvider.notifier);
-    final hideCustomerProfit = settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
+    final hideCustomerProfit =
+        settingsController.getProperty(hideCustomerProfitKey) || isAccountant;
     final reportController = ref.read(customerReportControllerProvider);
     final customerRef = customerScreenData[customerDbRefKey];
     final customerDbCache = ref.read(customerDbCacheProvider.notifier);
     final customerData = customerDbCache.getItemByDbRef(customerRef);
     final customer = Customer.fromMap(customerData);
-    final invoiceAverageClosingDays = customerScreenData[avgClosingDaysKey] as int;
-    final closedInvoices = customerScreenData[avgClosingDaysDetailsKey] as List<List<dynamic>>;
+    final invoiceAverageClosingDays =
+        customerScreenData[avgClosingDaysKey] as int;
+    final closedInvoices =
+        toNestedList(customerScreenData[avgClosingDaysDetailsKey]);
     final numOpenInvoices = customerScreenData[openInvoicesKey] as int;
-    final openInvoices = customerScreenData[openInvoicesDetailsKey] as List<List<dynamic>>;
-    final dueInvoices = customerScreenData[dueDebtDetailsKey] as List<List<dynamic>>;
+    final openInvoices =
+        toNestedList(customerScreenData[openInvoicesDetailsKey]);
+    final dueInvoices = toNestedList(customerScreenData[dueDebtDetailsKey]);
     final numDueInvoices = customerScreenData[dueInvoicesKey] as int;
     final totalDebt = customerScreenData[totalDebtKey] as double;
-    final matchingList = customerScreenData[totalDebtDetailsKey] as List<List<dynamic>>;
+    final matchingList = toNestedList(customerScreenData[totalDebtDetailsKey]);
     final dueDebt = customerScreenData[dueDebtKey];
-    final invoiceWithProfit = customerScreenData[invoicesProfitDetailsKey] as List<List<dynamic>>;
+    final invoiceWithProfit =
+        toNestedList(customerScreenData[invoicesProfitDetailsKey]);
     final profit = customerScreenData[invoicesProfitKey] as double;
-    final giftTransactions = customerScreenData[giftsDetailsKey] as List<List<dynamic>>;
+    final giftTransactions = toNestedList(customerScreenData[giftsDetailsKey]);
     final totalGiftsAmount = customerScreenData[giftsKey] as double;
     final inValidCustomer = customerScreenData[inValidUserKey] as bool;
 
@@ -225,13 +237,14 @@ class DataRow extends ConsumerWidget {
           MainScreenTextCell(customer.region, isWarning: inValidCustomer),
           MainScreenClickableCell(
             totalDebt,
-            () => reportController.showCustomerMatchingReport(context, matchingList, customer.name),
+            () => reportController.showCustomerMatchingReport(
+                context, matchingList, customer.name),
             isWarning: inValidCustomer,
           ),
           MainScreenClickableCell(
             '$numOpenInvoices ($numDueInvoices)',
-            () => reportController.showInvoicesReport(
-                context, openInvoices, '${customer.name}  ( $numOpenInvoices )'),
+            () => reportController.showInvoicesReport(context, openInvoices,
+                '${customer.name}  ( $numOpenInvoices )'),
             isWarning: inValidCustomer,
           ),
           MainScreenClickableCell(
@@ -242,19 +255,21 @@ class DataRow extends ConsumerWidget {
           ),
           MainScreenClickableCell(
             invoiceAverageClosingDays,
-            () => reportController.showInvoicesReport(
-                context, closedInvoices, '${customer.name}  ( $invoiceAverageClosingDays )'),
+            () => reportController.showInvoicesReport(context, closedInvoices,
+                '${customer.name}  ( $invoiceAverageClosingDays )'),
             isWarning: inValidCustomer,
           ),
           if (!hideCustomerProfit)
             MainScreenClickableCell(
               profit,
-              () => reportController.showProfitReport(context, invoiceWithProfit, customer.name),
+              () => reportController.showProfitReport(
+                  context, invoiceWithProfit, customer.name),
               isWarning: inValidCustomer,
             ),
           MainScreenClickableCell(
             totalGiftsAmount,
-            () => reportController.showGiftsReport(context, giftTransactions, customer.name),
+            () => reportController.showGiftsReport(
+                context, giftTransactions, customer.name),
             isWarning: inValidCustomer,
           ),
         ],
@@ -262,7 +277,8 @@ class DataRow extends ConsumerWidget {
     );
   }
 
-  void _showEditCustomerForm(BuildContext context, WidgetRef ref, Customer customer) {
+  void _showEditCustomerForm(
+      BuildContext context, WidgetRef ref, Customer customer) {
     final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
     final formDataNotifier = ref.read(customerFormDataProvider.notifier);
     formDataNotifier.initialize(initialData: customer.toMap());
@@ -279,10 +295,21 @@ class DataRow extends ConsumerWidget {
 class CustomerFloatingButtons extends ConsumerWidget {
   const CustomerFloatingButtons({super.key});
 
+  Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
+    successUserMessage(context, "تحديث البيانات");
+    final cacheService = ref.read(screenCacheServiceProvider);
+    await cacheService.refreshCustomerScreenData(context);
+    if (context.mounted) {
+      successUserMessage(context, "تم تحديث البيانات بنجاح");
+    }
+  }
+
   void showAddCustomerForm(BuildContext context, WidgetRef ref) {
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
-    final maxDebtAmount = settingsDataNotifier.getProperty(settingsMaxDebtAmountKey) ?? 1000000;
-    final maxDebtDuration = settingsDataNotifier.getProperty(settingsMaxDebtDurationKey);
+    final maxDebtAmount =
+        settingsDataNotifier.getProperty(settingsMaxDebtAmountKey) ?? 1000000;
+    final maxDebtDuration =
+        settingsDataNotifier.getProperty(settingsMaxDebtDurationKey);
     final formDataNotifier = ref.read(customerFormDataProvider.notifier);
     formDataNotifier.initialize();
     formDataNotifier.updateProperties({
@@ -313,11 +340,11 @@ class CustomerFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
-        // SpeedDialChild(
-        //   child: const Icon(Icons.pie_chart, color: Colors.white),
-        //   backgroundColor: iconsColor,
-        //   onTap: () => drawerController.showReports(context),
-        // ),
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () => _refreshScreenData(context, ref),
+        ),
         SpeedDialChild(
           child: const Icon(Icons.search, color: Colors.white),
           backgroundColor: iconsColor,

@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tablets/generated/l10n.dart';
+import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/functions/utils.dart';
+import 'package:tablets/src/common/providers/image_picker_provider.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
+import 'package:tablets/src/common/providers/screen_cache_service.dart';
 import 'package:tablets/src/common/providers/user_info_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/widgets/empty_screen.dart';
+import 'package:tablets/src/common/widgets/main_frame.dart';
+import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/common/widgets/page_loading.dart';
 import 'package:tablets/src/features/authentication/model/user_account.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
-import 'package:tablets/src/common/widgets/main_frame.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:tablets/src/common/providers/image_picker_provider.dart';
-import 'package:tablets/src/common/widgets/main_screen_list_cells.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_drawer_provider.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_form_controller.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_report_controller.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_controller.dart';
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_data_notifier.dart';
+import 'package:tablets/src/features/salesmen/model/salesman.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
 import 'package:tablets/src/features/salesmen/view/salesman_form.dart';
-import 'package:tablets/src/features/salesmen/model/salesman.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
 
@@ -110,7 +112,8 @@ class ListHeaders extends ConsumerWidget {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final userInfo = ref.watch(userInfoProvider);
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
-    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
+    final hideSalesmanProfit =
+        settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
     final hideMainScreenColumnTotals =
         settingsController.getProperty(hideMainScreenColumnTotalsKey);
     return Column(
@@ -119,28 +122,31 @@ class ListHeaders extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const MainScreenPlaceholder(width: 20, isExpanded: false),
+            SortableMainScreenHeaderCell(screenDataNotifier, salesmanNameKey,
+                S.of(context).salesman_name),
+            SortableMainScreenHeaderCell(screenDataNotifier, commissionKey,
+                S.of(context).sum_of_commissions),
             SortableMainScreenHeaderCell(
-                screenDataNotifier, salesmanNameKey, S.of(context).salesman_name),
+                screenDataNotifier, customersKey, S.of(context).customers),
             SortableMainScreenHeaderCell(
-                screenDataNotifier, commissionKey, S.of(context).sum_of_commissions),
-            SortableMainScreenHeaderCell(screenDataNotifier, customersKey, S.of(context).customers),
-            SortableMainScreenHeaderCell(screenDataNotifier, totalDebtsKey, S.of(context).debts),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, openInvoicesKey, S.of(context).open_invoices),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, numReceiptsKey, S.of(context).receipts_number),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, receiptsAmountKey, S.of(context).receipts_amount),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, numInvoicesKey, S.of(context).invoices_number),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, invoicesAmountKey, S.of(context).invoices_amount),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, numReturnsKey, S.of(context).returns_number),
-            SortableMainScreenHeaderCell(
-                screenDataNotifier, receiptsAmountKey, S.of(context).returns_amount),
+                screenDataNotifier, totalDebtsKey, S.of(context).debts),
+            SortableMainScreenHeaderCell(screenDataNotifier, openInvoicesKey,
+                S.of(context).open_invoices),
+            SortableMainScreenHeaderCell(screenDataNotifier, numReceiptsKey,
+                S.of(context).receipts_number),
+            SortableMainScreenHeaderCell(screenDataNotifier, receiptsAmountKey,
+                S.of(context).receipts_amount),
+            SortableMainScreenHeaderCell(screenDataNotifier, numInvoicesKey,
+                S.of(context).invoices_number),
+            SortableMainScreenHeaderCell(screenDataNotifier, invoicesAmountKey,
+                S.of(context).invoices_amount),
+            SortableMainScreenHeaderCell(screenDataNotifier, numReturnsKey,
+                S.of(context).returns_number),
+            SortableMainScreenHeaderCell(screenDataNotifier, receiptsAmountKey,
+                S.of(context).returns_amount),
             if (!hideSalesmanProfit)
-              SortableMainScreenHeaderCell(screenDataNotifier, profitKey, S.of(context).profits),
+              SortableMainScreenHeaderCell(
+                  screenDataNotifier, profitKey, S.of(context).profits),
           ],
         ),
         VerticalGap.m,
@@ -158,7 +164,8 @@ class HeaderTotalsRow extends ConsumerWidget {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final userInfo = ref.watch(userInfoProvider);
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
-    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
+    final hideSalesmanProfit =
+        settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -189,7 +196,8 @@ class DataRow extends ConsumerWidget {
     final settingsController = ref.read(settingsFormDataProvider.notifier);
     final userInfo = ref.watch(userInfoProvider);
     final isAccountant = userInfo?.privilage == UserPrivilage.accountant.name;
-    final hideSalesmanProfit = settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
+    final hideSalesmanProfit =
+        settingsController.getProperty(hideSalesmanProfitKey) || isAccountant;
     final reportController = ref.read(salesmanReportControllerProvider);
     final customerRef = salesmanScreenData[salesmanDbRefKey];
     final salesmanDbCache = ref.read(salesmanDbCacheProvider.notifier);
@@ -197,24 +205,27 @@ class DataRow extends ConsumerWidget {
     final salesman = Salesman.fromMap(customerData);
     final name = salesmanScreenData[salesmanNameKey] as String;
     final commission = salesmanScreenData[commissionKey].toDouble();
-    final commissionDetails = salesmanScreenData[commissionDetailsKey] as List<List<dynamic>>;
+    final commissionDetails =
+        toNestedList(salesmanScreenData[commissionDetailsKey]);
     final numCustomers = salesmanScreenData[customersKey].toDouble();
-    final customersList = salesmanScreenData[customersDetailsKey] as List<List<dynamic>>;
+    final customersList = toNestedList(salesmanScreenData[customersDetailsKey]);
     final totalDebt = salesmanScreenData[totalDebtsKey].toDouble();
     final dueDebt = salesmanScreenData[dueDbetsKey].toDouble();
-    final debtDetails = salesmanScreenData[debtsDetailsKey] as List<List<dynamic>>;
+    final debtDetails = toNestedList(salesmanScreenData[debtsDetailsKey]);
     final openInvoices = salesmanScreenData[openInvoicesKey].toDouble();
     final dueInvoices = salesmanScreenData[dueInvoicesKey].toDouble();
-    final openInvoicesDetails = salesmanScreenData[openInvoicesDetailsKey] as List<List<dynamic>>;
+    final openInvoicesDetails =
+        toNestedList(salesmanScreenData[openInvoicesDetailsKey]);
     final profit = salesmanScreenData[profitKey].toDouble();
-    final profitTransactions = salesmanScreenData[profitDetailsKey] as List<List<dynamic>>;
+    final profitTransactions =
+        toNestedList(salesmanScreenData[profitDetailsKey]);
     final numInvoices = salesmanScreenData[numInvoicesKey].toDouble();
-    final invoices = salesmanScreenData[invoicesKey] as List<List<dynamic>>;
+    final invoices = toNestedList(salesmanScreenData[invoicesKey]);
     final numReceipts = salesmanScreenData[numReceiptsKey].toDouble();
-    final receipts = salesmanScreenData[receiptsKey] as List<List<dynamic>>;
+    final receipts = toNestedList(salesmanScreenData[receiptsKey]);
     final invoicesAmount = salesmanScreenData[invoicesAmountKey].toDouble();
     final receiptAmount = salesmanScreenData[receiptsAmountKey].toDouble();
-    final returns = salesmanScreenData[returnsKey] as List<List<dynamic>>;
+    final returns = toNestedList(salesmanScreenData[returnsKey]);
     final numReturns = salesmanScreenData[numReturnsKey].toDouble();
     final returnsAmount = salesmanScreenData[returnsAmountKey].toDouble();
 
@@ -230,7 +241,8 @@ class DataRow extends ConsumerWidget {
           MainScreenTextCell(name),
           MainScreenClickableCell(
             commission,
-            () => reportController.showTransactionReport(context, commissionDetails, name,
+            () => reportController.showTransactionReport(
+                context, commissionDetails, name,
                 sumIndex: 6, isProfit: true),
           ),
           MainScreenClickableCell(
@@ -243,36 +255,44 @@ class DataRow extends ConsumerWidget {
           ),
           MainScreenClickableCell(
             '${doubleToStringWithComma(openInvoices)} (${doubleToStringWithComma(dueInvoices)})',
-            () => reportController.showInvoicesReport(context, openInvoicesDetails, name),
+            () => reportController.showInvoicesReport(
+                context, openInvoicesDetails, name),
           ),
           MainScreenClickableCell(
             numReceipts,
-            () => reportController.showTransactionReport(context, receipts, name),
+            () =>
+                reportController.showTransactionReport(context, receipts, name),
           ),
           MainScreenClickableCell(
             receiptAmount,
-            () => reportController.showTransactionReport(context, receipts, name, sumIndex: 6),
+            () => reportController
+                .showTransactionReport(context, receipts, name, sumIndex: 6),
           ),
           MainScreenClickableCell(
             numInvoices,
-            () => reportController.showTransactionReport(context, invoices, name),
+            () =>
+                reportController.showTransactionReport(context, invoices, name),
           ),
           MainScreenClickableCell(
             invoicesAmount,
-            () => reportController.showTransactionReport(context, invoices, name, sumIndex: 6),
+            () => reportController
+                .showTransactionReport(context, invoices, name, sumIndex: 6),
           ),
           MainScreenClickableCell(
             numReturns,
-            () => reportController.showTransactionReport(context, returns, name),
+            () =>
+                reportController.showTransactionReport(context, returns, name),
           ),
           MainScreenClickableCell(
             returnsAmount,
-            () => reportController.showTransactionReport(context, returns, name, sumIndex: 6),
+            () => reportController.showTransactionReport(context, returns, name,
+                sumIndex: 6),
           ),
           if (!hideSalesmanProfit)
             MainScreenClickableCell(
               profit,
-              () => reportController.showTransactionReport(context, profitTransactions, name,
+              () => reportController.showTransactionReport(
+                  context, profitTransactions, name,
                   sumIndex: 6, isProfit: true),
             ),
         ],
@@ -280,8 +300,11 @@ class DataRow extends ConsumerWidget {
     );
   }
 
-  void _showEditSalesmanForm(BuildContext context, WidgetRef ref, Salesman salesman) {
-    ref.read(salesmanFormDataProvider.notifier).initialize(initialData: salesman.toMap());
+  void _showEditSalesmanForm(
+      BuildContext context, WidgetRef ref, Salesman salesman) {
+    ref
+        .read(salesmanFormDataProvider.notifier)
+        .initialize(initialData: salesman.toMap());
     final imagePicker = ref.read(imagePickerProvider.notifier);
     imagePicker.initialize(urls: salesman.imageUrls);
     showDialog(
@@ -295,6 +318,15 @@ class DataRow extends ConsumerWidget {
 
 class SalesmanFloatingButtons extends ConsumerWidget {
   const SalesmanFloatingButtons({super.key});
+
+  Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
+    successUserMessage(context, "تحديث البيانات");
+    final cacheService = ref.read(screenCacheServiceProvider);
+    await cacheService.refreshSalesmanScreenData(context);
+    if (context.mounted) {
+      successUserMessage(context, "تم تحديث البيانات بنجاح");
+    }
+  }
 
   void showAddSalesmanForm(BuildContext context, WidgetRef ref) {
     ref.read(salesmanFormDataProvider.notifier).initialize();
@@ -319,11 +351,11 @@ class SalesmanFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
-        // SpeedDialChild(
-        //   child: const Icon(Icons.pie_chart, color: Colors.white),
-        //   backgroundColor: iconsColor,
-        //   onTap: () => drawerController.showReports(context),
-        // ),
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () => _refreshScreenData(context, ref),
+        ),
         SpeedDialChild(
           child: const Icon(Icons.search, color: Colors.white),
           backgroundColor: iconsColor,

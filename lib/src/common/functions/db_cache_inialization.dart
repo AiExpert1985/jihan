@@ -23,6 +23,7 @@ import 'package:tablets/src/features/transactions/repository/transaction_db_cach
 import 'package:tablets/src/features/transactions/repository/transaction_repository_provider.dart';
 import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider.dart';
 import 'package:tablets/src/features/vendors/repository/vendor_repository_provider.dart';
+import 'package:tablets/src/common/providers/daily_reconciliation_service.dart';
 
 //! Important note
 //! setting the values in the dbCache is done only once for each feature
@@ -87,6 +88,12 @@ Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   }
   if (context.mounted) {
     await initializePendingTransactionsDbCache(context, ref);
+  }
+
+  // Check and schedule daily reconciliation for screen cache
+  if (context.mounted) {
+    final reconciliationService = ref.read(dailyReconciliationServiceProvider);
+    reconciliationService.checkAndScheduleReconciliation(context);
   }
 }
 

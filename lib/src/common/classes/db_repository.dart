@@ -35,6 +35,49 @@ class DbRepository {
     });
   }
 
+  /// Add or update an item using its dbRef as the document ID
+  /// This is preferred for cache collections where we need predictable IDs
+  Future<void> addOrUpdateItemWithRef(BaseItem item) async {
+    try {
+      final itemMap = item.toMap();
+      final collectionRef = _firestore.collection(_collectionName);
+      final docRef = collectionRef.doc(item.dbRef);
+      // Use merge: true for Flutter Web compatibility
+      await docRef.set(itemMap, SetOptions(merge: true));
+    } catch (e) {
+      errorPrint('Error saving item to $_collectionName: $e');
+    }
+  }
+
+  /// Batch add or update multiple items using their dbRef as document IDs
+  /// Firebase allows max 500 operations per batch, so we chunk the items
+  /// This is MUCH faster than individual writes for large collections
+  Future<void> batchAddOrUpdateItemsWithRef(List<BaseItem> items) async {
+    if (items.isEmpty) return;
+
+    const int batchSize = 500; // Firebase batch limit
+    final collectionRef = _firestore.collection(_collectionName);
+
+    // Process items in chunks of 500
+    for (var i = 0; i < items.length; i += batchSize) {
+      final chunk = items.skip(i).take(batchSize).toList();
+      final batch = _firestore.batch();
+
+      for (var item in chunk) {
+        final docRef = collectionRef.doc(item.dbRef);
+        // Use merge: true for Flutter Web compatibility
+        batch.set(docRef, item.toMap(), SetOptions(merge: true));
+      }
+
+      try {
+        await batch.commit();
+        debugLog('Batch committed ${chunk.length} items to $_collectionName');
+      } catch (e) {
+        errorPrint('Error in batch commit to $_collectionName: $e');
+      }
+    }
+  }
+
   Future<void> updateItem(BaseItem updatedItem) async {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.wifi) ||
@@ -46,7 +89,8 @@ class DbRepository {
         final query = _firestore
             .collection(_collectionName)
             .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
-        final querySnapshot = await query.get(const GetOptions(source: Source.cache));
+        final querySnapshot =
+            await query.get(const GetOptions(source: Source.cache));
         if (querySnapshot.size > 0) {
           final documentRef = querySnapshot.docs[0].reference;
           await documentRef.update(updatedItem.toMap());
@@ -59,9 +103,11 @@ class DbRepository {
       }
     }
     // when offline
-    final query =
-        _firestore.collection(_collectionName).where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
-    final querySnapshot = await query.get(const GetOptions(source: Source.cache));
+    final query = _firestore
+        .collection(_collectionName)
+        .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
+    final querySnapshot =
+        await query.get(const GetOptions(source: Source.cache));
     if (querySnapshot.size > 0) {
       final documentRef = querySnapshot.docs[0].reference;
       await documentRef.update(updatedItem.toMap()).then((_) {
@@ -111,24 +157,26 @@ class DbRepository {
 
   Stream<List<Map<String, dynamic>>> watchItemListAsMaps() {
     final ref = _firestore.collection(_collectionName);
-    return ref
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
+    return ref.snapshots().map((snapshot) =>
+        snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
   }
 
   // watch collection that is filtered by on one criterial, example watch specific date
-  Stream<List<Map<String, dynamic>>> watchItemListAsFilteredMaps(String key, dynamic value) {
-    final ref = _firestore.collection(_collectionName).where(key, isEqualTo: value);
-    return ref
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
+  Stream<List<Map<String, dynamic>>> watchItemListAsFilteredMaps(
+      String key, dynamic value) {
+    final ref =
+        _firestore.collection(_collectionName).where(key, isEqualTo: value);
+    return ref.snapshots().map((snapshot) =>
+        snapshot.docs.map((docSnapshot) => docSnapshot.data()).toList());
   }
 
   Stream<List<Map<String, dynamic>>> watchItemListAsFilteredDateMaps(
       String key, DateTime targetDate) {
     // Get the start and end of the target date in UTC
-    final startOfDay = DateTime(targetDate.year, targetDate.month, targetDate.day, 00, 00, 00);
-    final endOfDay = DateTime(targetDate.year, targetDate.month, targetDate.day, 23, 59, 59);
+    final startOfDay =
+        DateTime(targetDate.year, targetDate.month, targetDate.day, 00, 00, 00);
+    final endOfDay =
+        DateTime(targetDate.year, targetDate.month, targetDate.day, 23, 59, 59);
 
     // Log the start and end dates for debugging
     tempPrint('Filtering from $startOfDay to $endOfDay');
@@ -253,7 +301,8 @@ class DbRepository {
             .toList();
       } else {
         tempPrint('data fetched from cache ($_collectionName)');
-        final cachedSnapshot = await query.get(const GetOptions(source: Source.cache));
+        final cachedSnapshot =
+            await query.get(const GetOptions(source: Source.cache));
         return cachedSnapshot.docs
             .map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>)
             .toList();

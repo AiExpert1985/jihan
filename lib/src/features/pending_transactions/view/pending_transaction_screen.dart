@@ -46,6 +46,7 @@ import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/view/forms/item_list.dart';
 import 'package:tablets/src/features/counters/repository/counter_repository_provider.dart';
+import 'package:tablets/src/common/providers/screen_cache_update_service.dart';
 
 class PendingTransactions extends ConsumerWidget {
   const PendingTransactions({super.key});
@@ -105,7 +106,8 @@ class ListData extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenDataNotifier = ref.read(pendingTransactionScreenDataNotifier.notifier);
+    final screenDataNotifier =
+        ref.read(pendingTransactionScreenDataNotifier.notifier);
     final screenData = screenDataNotifier.data;
     ref.watch(pendingTransactionScreenDataNotifier);
     return Expanded(
@@ -130,23 +132,27 @@ class ListHeaders extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenDataNotifier = ref.read(pendingTransactionScreenDataNotifier.notifier);
+    final screenDataNotifier =
+        ref.read(pendingTransactionScreenDataNotifier.notifier);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const MainScreenPlaceholder(width: 20, isExpanded: false),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, 'transactionType', S.of(context).transaction_type),
+        SortableMainScreenHeaderCell(screenDataNotifier, 'transactionType',
+            S.of(context).transaction_type),
         SortableMainScreenHeaderCell(
             screenDataNotifier, 'number', S.of(context).transaction_number),
-        SortableMainScreenHeaderCell(screenDataNotifier, 'date', S.of(context).transaction_date),
-        SortableMainScreenHeaderCell(screenDataNotifier, 'name', S.of(context).transaction_name),
+        SortableMainScreenHeaderCell(
+            screenDataNotifier, 'date', S.of(context).transaction_date),
+        SortableMainScreenHeaderCell(
+            screenDataNotifier, 'name', S.of(context).transaction_name),
         SortableMainScreenHeaderCell(
             screenDataNotifier, 'salesman', S.of(context).salesman_selection),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, 'totalAmount', S.of(context).transaction_amount),
+        SortableMainScreenHeaderCell(screenDataNotifier, 'totalAmount',
+            S.of(context).transaction_amount),
         MainScreenHeaderCell(S.of(context).print_status),
-        SortableMainScreenHeaderCell(screenDataNotifier, 'notes', S.of(context).notes),
+        SortableMainScreenHeaderCell(
+            screenDataNotifier, 'notes', S.of(context).notes),
         const MainScreenPlaceholder(width: 40, isExpanded: false),
         const MainScreenPlaceholder(width: 40, isExpanded: false),
       ],
@@ -165,17 +171,20 @@ class DataRow extends ConsumerWidget {
     final dbRef = transactionScreenData['dbRef'];
     final dbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
     final transactionData = dbCache.getItemByDbRef(dbRef);
-    final translatedTransactionType =
-        translateScreenTextToDbText(context, transactionData[transactionTypeKey]);
-    final transaction =
-        Transaction.fromMap({...transactionData, transactionTypeKey: translatedTransactionType});
+    final translatedTransactionType = translateScreenTextToDbText(
+        context, transactionData[transactionTypeKey]);
+    final transaction = Transaction.fromMap(
+        {...transactionData, transactionTypeKey: translatedTransactionType});
     final date = transactionScreenData[transactionDateKey].toDate();
     final color = _getSequnceColor(transaction.transactionType);
     final transactionType = transactionScreenData[transactionTypeKey];
-    bool isWarning = transactionType.contains(S.of(context).transaction_type_customer_receipt) ||
-        transactionType.contains(S.of(context).transaction_type_customer_return);
-    final printStatus =
-        transactionScreenData[isPrintedKey] ? S.of(context).printed : S.of(context).not_printed;
+    bool isWarning = transactionType
+            .contains(S.of(context).transaction_type_customer_receipt) ||
+        transactionType
+            .contains(S.of(context).transaction_type_customer_return);
+    final printStatus = transactionScreenData[isPrintedKey]
+        ? S.of(context).printed
+        : S.of(context).not_printed;
     return Column(
       children: [
         Padding(
@@ -188,18 +197,25 @@ class DataRow extends ConsumerWidget {
                 () => showReadOnlyTransaction(context, transaction),
                 color: color,
               ),
-              MainScreenTextCell(transactionScreenData[transactionTypeKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionTypeKey],
+                  isWarning: isWarning),
               // we don't add thousand separators to transaction number, so I made it String here
-              MainScreenTextCell(transactionScreenData[transactionNumberKey].round().toString(),
+              MainScreenTextCell(
+                  transactionScreenData[transactionNumberKey]
+                      .round()
+                      .toString(),
                   isWarning: isWarning),
               MainScreenTextCell(date, isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionNameKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNameKey],
+                  isWarning: isWarning),
               MainScreenTextCell(transactionScreenData[transactionSalesmanKey],
                   isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionTotalAmountKey],
+              MainScreenTextCell(
+                  transactionScreenData[transactionTotalAmountKey],
                   isWarning: isWarning),
               MainScreenTextCell(printStatus, isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionNotesKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNotesKey],
+                  isWarning: isWarning),
               IconButton(
                   onPressed: () async {
                     await approveTransaction(context, ref, transaction);
@@ -244,7 +260,8 @@ class PendingTransactionsFloatingButtons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final drawerController = ref.watch(pendingTransactionDrawerControllerProvider);
+    final drawerController =
+        ref.watch(pendingTransactionDrawerControllerProvider);
     const iconsColor = Color.fromARGB(255, 126, 106, 211);
     return SpeedDial(
       direction: SpeedDialDirection.up,
@@ -265,7 +282,8 @@ class PendingTransactionsFloatingButtons extends ConsumerWidget {
   }
 }
 
-void deletePendingTransaction(BuildContext context, WidgetRef ref, Transaction transaction,
+void deletePendingTransaction(
+    BuildContext context, WidgetRef ref, Transaction transaction,
     {addToDeletedTransaction = true}) async {
   final Map<String, dynamic> formData = transaction.toMap();
   // only show dialog when user press delete button, in case addToDeletedTransaction = false, it means the item
@@ -294,7 +312,8 @@ void deletePendingTransaction(BuildContext context, WidgetRef ref, Transaction t
     const operationType = DbCacheOperationTypes.delete;
     dbCache.update(itemData, operationType);
     // redo screenData calculations
-    final screenController = ref.read(pendingTransactionScreenControllerProvider);
+    final screenController =
+        ref.read(pendingTransactionScreenControllerProvider);
     screenController.setFeatureScreenData(context);
     if (addToDeletedTransaction) {
       successUserMessage(context, 'تم حذف التعامل');
@@ -305,9 +324,11 @@ void deletePendingTransaction(BuildContext context, WidgetRef ref, Transaction t
 void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
   final deletionItemData = {...itemData, 'deleteDateTime': DateTime.now()};
   final deletedTransaction = DeletedTransaction.fromMap(deletionItemData);
-  final deletedTransactionRepository = ref.read(deletedTransactionRepositoryProvider);
+  final deletedTransactionRepository =
+      ref.read(deletedTransactionRepositoryProvider);
   deletedTransactionRepository.addItem(deletedTransaction);
-  final deletedTransactionsDbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
+  final deletedTransactionsDbCache =
+      ref.read(deletedTransactionDbCacheProvider.notifier);
   // update the bdCache (database mirror) so that we don't need to fetch data from db
   if (deletionItemData[transactionDateKey] is DateTime) {
     // in our form the data type usually is DateTime, but the date type in dbCache should be
@@ -322,7 +343,8 @@ void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
     deletionItemData['deleteDateTime'] =
         firebase.Timestamp.fromDate(deletionItemData['deleteDateTime']);
   }
-  deletedTransactionsDbCache.update(deletionItemData, DbCacheOperationTypes.add);
+  deletedTransactionsDbCache.update(
+      deletionItemData, DbCacheOperationTypes.add);
 }
 
 Future<void> approveTransaction(
@@ -333,8 +355,6 @@ Future<void> approveTransaction(
     errorPrint('item was previously approved, duplication is not allowed');
     return;
   }
-  // first of all, we delete the transaction (before changing its number)
-  deletePendingTransaction(context, ref, transaction, addToDeletedTransaction: false);
   // then we udpate the transaction number if transaction is a customer invoice
   // for receipts, the number is given by the salesman in the mobile app
   if (transaction.transactionType == TransactionType.customerInvoice.name) {
@@ -344,25 +364,11 @@ Future<void> approveTransaction(
 
   if (!context.mounted) return;
 
-  // save transaction to transaction database
+  // save transaction to transaction database (MUST happen before deleting from pending)
   saveToTransactionCollection(context, ref, transaction);
-  // // finally, we open it form edit (it opens unEditable, if user want he press the edit button)
-  // final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
-  // final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
-  // final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
-  // final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
-  // final formNavigator = ref.read(formNavigatorProvider);
-  // formNavigator.isReadOnly = true;
-  // TransactionShowForm.showForm(
-  //   context,
-  //   ref,
-  //   imagePickerNotifier,
-  //   formDataNotifier,
-  //   settingsDataNotifier,
-  //   textEditingNotifier,
-  //   transaction: transaction,
-  //   formType: transaction.transactionType,
-  // );
+  // delete the pending transaction after saving to transactions collection
+  deletePendingTransaction(context, ref, transaction,
+      addToDeletedTransaction: false);
 }
 
 void saveToTransactionCollection(
@@ -376,14 +382,16 @@ void saveToTransactionCollection(
   // since Item buyingPrice added by Salesman is the default (not the correct one) we need to update it
   // note that I can't calculate buyingPrice at mobile, because it is CPU expensive
   updateBuyingPricesAndProfit(context, ref, transaction);
-  formController.saveItemToDb(context, transaction, false, keepDialogOpen: true);
+  formController.saveItemToDb(context, transaction, false,
+      keepDialogOpen: true);
   // update the bdCache (database mirror) so that we don't need to fetch data from db
   final itemData = transaction.toMap();
 
   if (itemData[transactionDateKey] is DateTime) {
     // in our form the data type usually is DateTime, but the date type in dbCache should be
     // Timestamp, as to mirror the datatype of firebase
-    itemData[transactionDateKey] = firebase.Timestamp.fromDate(itemData[transactionDateKey]);
+    itemData[transactionDateKey] =
+        firebase.Timestamp.fromDate(itemData[transactionDateKey]);
   }
   const operationType = DbCacheOperationTypes.add;
   dbCache.update(itemData, operationType);
@@ -391,9 +399,25 @@ void saveToTransactionCollection(
   if (context.mounted) {
     screenController.setFeatureScreenData(context);
   }
+
+  // Update customer/product/salesman screen caches in Firebase
+  final cacheUpdateService = ref.read(screenCacheUpdateServiceProvider);
+  if (context.mounted) {
+    final preCalculatedData = cacheUpdateService.calculateAffectedEntities(
+      context,
+      null, // no old transaction (this is a new add)
+      itemData,
+      TransactionOperation.add,
+    );
+    // Save to Firebase asynchronously
+    Future.delayed(Duration.zero, () async {
+      await cacheUpdateService.savePreCalculatedData(preCalculatedData);
+    });
+  }
 }
 
-void updateBuyingPricesAndProfit(BuildContext context, WidgetRef ref, Transaction transaction) {
+void updateBuyingPricesAndProfit(
+    BuildContext context, WidgetRef ref, Transaction transaction) {
   try {
     if (transaction.items == null) return;
     double itemsTotalProfit = 0;
@@ -418,7 +442,8 @@ double _getItemPrice(BuildContext context, WidgetRef ref, String productDbRef) {
   final productDbCache = ref.read(productDbCacheProvider.notifier);
   final productData = productDbCache.getItemByDbRef(productDbRef);
   final productScreenController = ref.read(productScreenControllerProvider);
-  final prodcutScreenData = productScreenController.getItemScreenData(context, productData);
+  final prodcutScreenData =
+      productScreenController.getItemScreenData(context, productData);
   final productQuantity = prodcutScreenData[productQuantityKey];
   return getBuyingPrice(ref, productQuantity, productData['dbRef']);
 }
@@ -427,16 +452,19 @@ double _getItemPrice(BuildContext context, WidgetRef ref, String productDbRef) {
 // Uses atomic increment to prevent duplicate numbers in multi-user environment
 Future<int> getNextCustomerInvoiceNumber(WidgetRef ref) async {
   final counterRepository = ref.read(counterRepositoryProvider);
-  return await counterRepository.getNextNumber(TransactionType.customerInvoice.name);
+  return await counterRepository
+      .getNextNumber(TransactionType.customerInvoice.name);
 }
 
 // here I am giving the next number after the maximumn number previously given in both transactions & deleted
 // transactions
-int getNextCustomerInvoiceNumberFromLocalData(BuildContext context, WidgetRef ref) {
+int getNextCustomerInvoiceNumberFromLocalData(
+    BuildContext context, WidgetRef ref) {
   final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
   final transactions = transactionDbCache.data;
   int maxDeletedNumber = getHighestDeletedCustomerInvoiceNumber(ref) ?? 0;
-  int maxTransactionNumber = getHighestCustomerInvoiceNumber(context, transactions) ?? 0;
+  int maxTransactionNumber =
+      getHighestCustomerInvoiceNumber(context, transactions) ?? 0;
   return max(maxDeletedNumber, maxTransactionNumber) + 1;
 }
 
@@ -446,16 +474,18 @@ int? getHighestCustomerInvoiceNumber(
   List<Map<String, dynamic>> transactions,
 ) {
   // Step 1: Filter the list for the given transaction type
-  final filteredTransactions = transactions.where(
-      (transaction) => transaction[transactionTypeKey] == TransactionType.customerInvoice.name);
+  final filteredTransactions = transactions.where((transaction) =>
+      transaction[transactionTypeKey] == TransactionType.customerInvoice.name);
   if (filteredTransactions.isEmpty) return 0;
   // Step 2: Extract the transaction numbers and convert them to integers
   final transactionNumbers = filteredTransactions.map((transaction) =>
-      transaction[numberKey] is int ? transaction[numberKey] : transaction[numberKey].toInt());
+      transaction[numberKey] is int
+          ? transaction[numberKey]
+          : transaction[numberKey].toInt());
   // Step 3: Find the maximum transaction number
-  int maxNumber =
-      transactionNumbers.reduce((a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??
-          0;
+  int maxNumber = transactionNumbers.reduce(
+          (a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??
+      0;
   return maxNumber;
 }
 
@@ -463,16 +493,18 @@ int? getHighestDeletedCustomerInvoiceNumber(WidgetRef ref) {
   final dbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
   final dbCacheData = dbCache.data;
   // Step 1: Filter the list for the given transaction type
-  final filteredTransactions = dbCacheData.where(
-      (transaction) => transaction[transactionTypeKey] == TransactionType.customerInvoice.name);
+  final filteredTransactions = dbCacheData.where((transaction) =>
+      transaction[transactionTypeKey] == TransactionType.customerInvoice.name);
   if (filteredTransactions.isEmpty) return 0;
   // Step 2: Extract the transaction numbers and convert them to integers
   final transactionNumbers = filteredTransactions.map((transaction) =>
-      transaction[numberKey] is int ? transaction[numberKey] : transaction[numberKey].toInt());
+      transaction[numberKey] is int
+          ? transaction[numberKey]
+          : transaction[numberKey].toInt());
   // Step 3: Find the maximum transaction number
-  int maxNumber =
-      transactionNumbers.reduce((a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??
-          0;
+  int maxNumber = transactionNumbers.reduce(
+          (a, b) => (a != null && b != null) ? (a > b ? a : b) : (a ?? b)) ??
+      0;
   return maxNumber;
 }
 
@@ -480,7 +512,8 @@ class TransactionsFilters extends ConsumerStatefulWidget {
   const TransactionsFilters({super.key});
 
   @override
-  ConsumerState<TransactionsFilters> createState() => _TransactionsFiltersState();
+  ConsumerState<TransactionsFilters> createState() =>
+      _TransactionsFiltersState();
 }
 
 class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
@@ -519,7 +552,9 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          quickFilters.isNotEmpty ? _buildClearButton(context, ref) : const SizedBox(width: 40),
+          quickFilters.isNotEmpty
+              ? _buildClearButton(context, ref)
+              : const SizedBox(width: 40),
           HorizontalGap.l,
           _buildTypeQuickFilter(context, ref),
           HorizontalGap.xxl,
@@ -545,7 +580,9 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   Widget _buildClearButton(BuildContext context, WidgetRef ref) {
     return IconButton(
         onPressed: () {
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).reset(context);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .reset(context);
           _dateController.text = '';
           _numberController.text = '';
           _notesController.text = '';
@@ -558,7 +595,8 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   }
 
   Widget _buildCustomerQuickFilter(BuildContext context, WidgetRef ref) {
-    final pendingTransactionsDbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
+    final pendingTransactionsDbCache =
+        ref.read(pendingTransactionDbCacheProvider.notifier);
     const propertyName = 'name';
 
     // Extract unique customer names from pending transactions to ensure exact match
@@ -573,19 +611,26 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final customerList = customersInTransactions.values.toList();
 
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (customer) {
           final customerName = customer['name'];
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, customerName);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+          QuickFilter filter =
+              QuickFilter(propertyName, QuickFilterType.equals, customerName);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: customerList);
   }
 
   Widget _buildSalesmanQuickFilter(BuildContext context, WidgetRef ref) {
-    final pendingTransactionsDbCache = ref.read(pendingTransactionDbCacheProvider.notifier);
+    final pendingTransactionsDbCache =
+        ref.read(pendingTransactionDbCacheProvider.notifier);
     const propertyName = 'salesman';
 
     // Extract unique salesman names from pending transactions to ensure exact match
@@ -600,21 +645,29 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final salesmanList = salesmenInTransactions.values.toList();
 
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (salesman) {
           final salesmanName = salesman['name'];
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, salesmanName);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+          QuickFilter filter =
+              QuickFilter(propertyName, QuickFilterType.equals, salesmanName);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: salesmanList);
   }
 
   Widget _buildTypeQuickFilter(BuildContext context, WidgetRef ref) {
     final typesList = [
-      translateDbTextToScreenText(context, TransactionType.customerInvoice.name),
-      translateDbTextToScreenText(context, TransactionType.customerReceipt.name),
+      translateDbTextToScreenText(
+          context, TransactionType.customerInvoice.name),
+      translateDbTextToScreenText(
+          context, TransactionType.customerReceipt.name),
       translateDbTextToScreenText(context, TransactionType.customerReturn.name),
       translateDbTextToScreenText(context, TransactionType.gifts.name),
       translateDbTextToScreenText(context, TransactionType.vendorInvoice.name),
@@ -626,13 +679,19 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final typesListMap = typesList.map((type) => {'name': type}).toList();
     const propertyName = 'transactionType';
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (type) {
           final typeName = type['name']?.toString().trim() ?? '';
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, typeName);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+          QuickFilter filter =
+              QuickFilter(propertyName, QuickFilterType.equals, typeName);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: typesListMap);
   }
@@ -642,13 +701,20 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final printStatusMap = printStatus.map((type) => {'name': type}).toList();
     const propertyName = 'isPrinted';
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (type) {
-          final boolValue = type['name'] == S.of(context).printed ? true : false;
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, boolValue);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+          final boolValue =
+              type['name'] == S.of(context).printed ? true : false;
+          QuickFilter filter =
+              QuickFilter(propertyName, QuickFilterType.equals, boolValue);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(pendingTransactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: printStatusMap);
   }
@@ -656,13 +722,19 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   Widget _buildNumberQuickFilter(BuildContext context, WidgetRef ref) {
     const propertyName = 'number';
     return FormInputField(
-      initialValue:
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      initialValue: ref
+          .read(pendingTransactionQuickFiltersProvider.notifier)
+          .getFilterValue(propertyName),
       onChangedFn: (transactionNumber) {
         final trimmedNumber = transactionNumber?.toString().trim() ?? '';
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, trimmedNumber);
-        ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-        ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+        QuickFilter filter =
+            QuickFilter(propertyName, QuickFilterType.equals, trimmedNumber);
+        ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .updateFilters(filter);
+        ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .applyListFilter(context);
       },
       controller: _numberController,
       isOnSubmit: true,
@@ -674,12 +746,18 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   Widget _buildAmountQuickFilter(BuildContext context, WidgetRef ref) {
     const propertyName = 'totalAmount';
     return FormInputField(
-      initialValue:
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      initialValue: ref
+          .read(pendingTransactionQuickFiltersProvider.notifier)
+          .getFilterValue(propertyName),
       onChangedFn: (amount) {
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, amount);
-        ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-        ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+        QuickFilter filter =
+            QuickFilter(propertyName, QuickFilterType.equals, amount);
+        ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .updateFilters(filter);
+        ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .applyListFilter(context);
       },
       controller: _amountController,
       isOnSubmit: true,
@@ -691,13 +769,19 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   Widget _buildNotesQuickFilter(BuildContext context, WidgetRef ref) {
     const propertyName = 'notes';
     return FormInputField(
-      initialValue:
-          ref.read(pendingTransactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      initialValue: ref
+          .read(pendingTransactionQuickFiltersProvider.notifier)
+          .getFilterValue(propertyName),
       onChangedFn: (notes) {
         final trimmedNotes = notes?.toString().trim() ?? '';
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.contains, trimmedNotes);
-        ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-        ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+        QuickFilter filter =
+            QuickFilter(propertyName, QuickFilterType.contains, trimmedNotes);
+        ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .updateFilters(filter);
+        ref
+            .read(pendingTransactionQuickFiltersProvider.notifier)
+            .applyListFilter(context);
       },
       controller: _notesController,
       isOnSubmit: true,
@@ -718,9 +802,14 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
         format: DateFormat('dd-MM-yyyy'),
         onChanged: (date) {
           if (date != null) {
-            QuickFilter filter = QuickFilter(propertyName, QuickFilterType.dateSameDay, date);
-            ref.read(pendingTransactionQuickFiltersProvider.notifier).updateFilters(filter);
-            ref.read(pendingTransactionQuickFiltersProvider.notifier).applyListFilter(context);
+            QuickFilter filter =
+                QuickFilter(propertyName, QuickFilterType.dateSameDay, date);
+            ref
+                .read(pendingTransactionQuickFiltersProvider.notifier)
+                .updateFilters(filter);
+            ref
+                .read(pendingTransactionQuickFiltersProvider.notifier)
+                .applyListFilter(context);
             // _dateController.text = DateFormat('dd-MM-yyyy').format(date);
           }
         },

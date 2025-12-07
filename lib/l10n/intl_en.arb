@@ -280,5 +280,7 @@
     "deleted_transactions": "Deleted transactions",
     "deletion_time": "Deletion time",
     "alert_before_signout": "Do you want to signout",
-    "last_invoice_date": "Last invoice date"
+    "last_invoice_date": "Last invoice date",
+    "refreshing_data": "Refreshing data...",
+    "data_refreshed_successfully": "Data refreshed successfully"
 }

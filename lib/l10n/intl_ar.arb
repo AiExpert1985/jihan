@@ -280,5 +280,7 @@
     "deleted_transactions": "التعاملات المحذوفة",
     "deletion_time": "وقت الحذف",
     "alert_before_signout": "هل ترغب بالخروج من البرنامج",
-    "last_invoice_date": "اخر قائمة تسديد"
+    "last_invoice_date": "اخر قائمة تسديد",
+    "refreshing_data": "جاري تحديث البيانات...",
+    "data_refreshed_successfully": "تم تحديث البيانات بنجاح"
 }
