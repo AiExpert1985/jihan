@@ -24,6 +24,7 @@ const List<String> _detailFieldsWithTransactions = [
   'invoices', // Full transaction lists in salesman data
   'receipts',
   'returns',
+  'customersDetails',
 ];
 
 /// Converts screen data for saving to Firebase cache
