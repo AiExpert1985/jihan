@@ -38,7 +38,8 @@ class FromNavigator {
       navigatorTransactions = dbCacheData.where((formData) {
         return formData[transTypeKey] == transactionType;
       }).toList();
-      navigatorTransactions.sort((a, b) => a[numberKey].compareTo(b[numberKey]));
+      navigatorTransactions
+          .sort((a, b) => a[numberKey].compareTo(b[numberKey]));
       // // and add empty form to the end (new form)
       // navigatorTransactions!.add({});
       // then search for dbRef, if found means user is editing new form so we use its inde
@@ -68,8 +69,10 @@ class FromNavigator {
 
   Map<String, dynamic> next() {
     if (!isValidRequest()) return {};
+    // always save changes to current form before leaving or staying,
+    // (safe to call because it only saves if at last index)
+    saveNewFormData();
     if (currentIndex < navigatorTransactions.length - 1) {
-      saveNewFormData();
       currentIndex = currentIndex + 1;
       isReadOnly = true;
     }

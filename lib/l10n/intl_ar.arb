@@ -282,5 +282,8 @@
     "alert_before_signout": "هل ترغب بالخروج من البرنامج",
     "last_invoice_date": "اخر قائمة تسديد",
     "refreshing_data": "جاري تحديث البيانات...",
-    "data_refreshed_successfully": "تم تحديث البيانات بنجاح"
+    "data_refreshed_successfully": "تم تحديث البيانات بنجاح",
+    "transaction_save_failed": "فشل حفظ التعامل، يرجى المحاولة مرة أخرى",
+    "transaction_delete_failed": "فشل حذف التعامل، يرجى المحاولة مرة أخرى",
+    "transaction_approval_failed": "فشل اعتماد التعامل، يرجى المحاولة مرة أخرى"
 }

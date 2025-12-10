@@ -69,11 +69,14 @@ class ScreenCacheService {
       } else {
         // Cache is empty - calculate and save
         debugLog('Customer cache is empty, falling back to calculation...');
+
+        if (!context.mounted) return;
         await _calculateAndSaveCustomerData(context);
       }
     } catch (e) {
       errorPrint('Error loading customer screen cache: $e');
       // Fall back to calculation
+      if (!context.mounted) return;
       await _calculateAndSaveCustomerData(context);
     }
   }
@@ -101,11 +104,13 @@ class ScreenCacheService {
       } else {
         // Cache is empty - calculate and save
         debugLog('Product cache is empty, falling back to calculation...');
+        if (!context.mounted) return;
         await _calculateAndSaveProductData(context);
       }
     } catch (e) {
       errorPrint('Error loading product screen cache: $e');
       // Fall back to calculation
+      if (!context.mounted) return;
       await _calculateAndSaveProductData(context);
     }
   }
@@ -133,11 +138,13 @@ class ScreenCacheService {
       } else {
         // Cache is empty - calculate and save
         debugLog('Salesman cache is empty, falling back to calculation...');
+        if (!context.mounted) return;
         await _calculateAndSaveSalesmanData(context);
       }
     } catch (e) {
       errorPrint('Error loading salesman screen cache: $e');
       // Fall back to calculation
+      if (!context.mounted) return;
       await _calculateAndSaveSalesmanData(context);
     }
   }
@@ -161,7 +168,9 @@ class ScreenCacheService {
   Future<void> refreshAllScreenData(BuildContext context) async {
     debugLog('Starting full cache refresh...');
     await refreshProductScreenData(context);
+    if (!context.mounted) return;
     await refreshCustomerScreenData(context);
+    if (!context.mounted) return;
     await refreshSalesmanScreenData(context);
     debugLog('Full cache refresh completed');
   }

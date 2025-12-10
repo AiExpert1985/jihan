@@ -13,19 +13,26 @@ class ItemFormController {
 
   // void submitData() => formKey.currentState!.save();
 
-  void saveItemToDb(BuildContext context, BaseItem item, bool isEditMode,
+  /// Saves item to database and returns true if successful, false if failed
+  Future<bool> saveItemToDb(BuildContext context, BaseItem item, bool isEditMode,
       {bool keepDialogOpen = false}) async {
-    isEditMode ? _repository.updateItem(item) : _repository.addItem(item);
-    if (!keepDialogOpen) {
+    final success = isEditMode
+        ? await _repository.updateItem(item)
+        : await _repository.addItem(item);
+    if (!keepDialogOpen && context.mounted) {
       _closeForm(context);
     }
+    return success;
   }
 
-  void deleteItemFromDb(BuildContext context, BaseItem item, {bool keepDialogOpen = false}) async {
-    _repository.deleteItem(item);
-    if (!keepDialogOpen) {
+  /// Deletes item from database and returns true if successful, false if failed
+  Future<bool> deleteItemFromDb(BuildContext context, BaseItem item,
+      {bool keepDialogOpen = false}) async {
+    final success = await _repository.deleteItem(item);
+    if (!keepDialogOpen && context.mounted) {
       _closeForm(context);
     }
+    return success;
   }
 
   void _closeForm(BuildContext context) {

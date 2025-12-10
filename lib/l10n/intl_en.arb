@@ -282,5 +282,8 @@
     "alert_before_signout": "Do you want to signout",
     "last_invoice_date": "Last invoice date",
     "refreshing_data": "Refreshing data...",
-    "data_refreshed_successfully": "Data refreshed successfully"
+    "data_refreshed_successfully": "Data refreshed successfully",
+    "transaction_save_failed": "Failed to save transaction, please try again",
+    "transaction_delete_failed": "Failed to delete transaction, please try again",
+    "transaction_approval_failed": "Failed to approve transaction, please try again"
 }

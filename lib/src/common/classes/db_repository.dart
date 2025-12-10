@@ -10,7 +10,9 @@ class DbRepository {
   final String _collectionName;
   final String _dbReferenceKey = 'dbRef';
 
-  Future<void> addItem(BaseItem item) async {
+  /// Returns true if save succeeded, false if failed
+  /// Uses dbRef as document ID to ensure idempotency (prevents duplicates)
+  Future<bool> addItem(BaseItem item) async {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.wifi) ||
         connectivityResult.contains(ConnectivityResult.ethernet) ||
@@ -18,21 +20,24 @@ class DbRepository {
         connectivityResult.contains(ConnectivityResult.mobile)) {
       // Device is connected to the internet
       try {
-        await _firestore.collection(_collectionName).doc().set(item.toMap());
+        await _firestore.collection(_collectionName).doc(item.dbRef).set(item.toMap());
         tempPrint('Item added to live firestore successfully!');
-        return;
+        return true;
       } catch (e) {
         errorPrint('Error adding item to live firestore: $e');
-        return;
+        return false;
       }
     }
-    // Device is offline
-    final docRef = _firestore.collection(_collectionName).doc();
-    docRef.set(item.toMap()).then((_) {
+    // Device is offline - Firestore handles offline persistence
+    try {
+      final docRef = _firestore.collection(_collectionName).doc(item.dbRef);
+      await docRef.set(item.toMap());
       tempPrint('Item added to firestore cache!');
-    }).catchError((e) {
+      return true; // Offline write counts as success (will sync later)
+    } catch (e) {
       errorPrint('Error adding item to firestore cache: $e');
-    });
+      return false;
+    }
   }
 
   /// Add or update an item using its dbRef as the document ID
@@ -78,7 +83,8 @@ class DbRepository {
     }
   }
 
-  Future<void> updateItem(BaseItem updatedItem) async {
+  /// Returns true if update succeeded, false if failed
+  Future<bool> updateItem(BaseItem updatedItem) async {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.wifi) ||
         connectivityResult.contains(ConnectivityResult.ethernet) ||
@@ -96,29 +102,33 @@ class DbRepository {
           await documentRef.update(updatedItem.toMap());
           debugLog('Item updated in live firestore successfully!');
         }
-        return;
+        return true;
       } catch (e) {
         errorPrint('Error updating item in live firestore: $e');
-        return;
+        return false;
       }
     }
-    // when offline
-    final query = _firestore
-        .collection(_collectionName)
-        .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
-    final querySnapshot =
-        await query.get(const GetOptions(source: Source.cache));
-    if (querySnapshot.size > 0) {
-      final documentRef = querySnapshot.docs[0].reference;
-      await documentRef.update(updatedItem.toMap()).then((_) {
+    // when offline - Firestore handles offline persistence
+    try {
+      final query = _firestore
+          .collection(_collectionName)
+          .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef);
+      final querySnapshot =
+          await query.get(const GetOptions(source: Source.cache));
+      if (querySnapshot.size > 0) {
+        final documentRef = querySnapshot.docs[0].reference;
+        await documentRef.update(updatedItem.toMap());
         tempPrint('Item updated in firestore cache!');
-      }).catchError((e) {
-        errorPrint('Error updating item in firebase cache: $e');
-      });
+      }
+      return true; // Offline write counts as success (will sync later)
+    } catch (e) {
+      errorPrint('Error updating item in firebase cache: $e');
+      return false;
     }
   }
 
-  Future<void> deleteItem(BaseItem item) async {
+  /// Returns true if delete succeeded, false if failed
+  Future<bool> deleteItem(BaseItem item) async {
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.wifi) ||
         connectivityResult.contains(ConnectivityResult.ethernet) ||
@@ -135,23 +145,27 @@ class DbRepository {
           await documentRef.delete();
           tempPrint('Item deleted from live firestore successfully!');
         }
-        return;
+        return true;
       } catch (e) {
         errorPrint('Error deleting item from firestore cache: $e');
-        return;
+        return false;
       }
     }
-    final querySnapshot = await _firestore
-        .collection(_collectionName)
-        .where(_dbReferenceKey, isEqualTo: item.dbRef)
-        .get(const GetOptions(source: Source.cache));
-    if (querySnapshot.size > 0) {
-      final documentRef = querySnapshot.docs[0].reference;
-      await documentRef.delete().then((_) {
+    // when offline - Firestore handles offline persistence
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collectionName)
+          .where(_dbReferenceKey, isEqualTo: item.dbRef)
+          .get(const GetOptions(source: Source.cache));
+      if (querySnapshot.size > 0) {
+        final documentRef = querySnapshot.docs[0].reference;
+        await documentRef.delete();
         tempPrint('Item deleted from firestore cache!');
-      }).catchError((e) {
-        errorPrint('Error deleting item from firestore cache: $e');
-      });
+      }
+      return true; // Offline write counts as success (will sync later)
+    } catch (e) {
+      errorPrint('Error deleting item from firestore cache: $e');
+      return false;
     }
   }
 
