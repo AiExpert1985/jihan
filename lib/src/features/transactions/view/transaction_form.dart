@@ -649,7 +649,7 @@ class TransactionForm extends ConsumerWidget {
     }
 
     // Update counter if transaction number is >= current counter
-    _updateCounterIfNeeded(ref, formDataCopy);
+    await _updateCounterIfNeeded(ref, formDataCopy);
 
     // PRE-CALCULATE affected entities synchronously while context is still valid
     final cacheUpdateService = ref.read(screenCacheUpdateServiceProvider);
@@ -681,14 +681,20 @@ class TransactionForm extends ConsumerWidget {
     });
   }
 
-  static void _updateCounterIfNeeded(
-      WidgetRef ref, Map<String, dynamic> formData) {
+  static Future<void> _updateCounterIfNeeded(
+      WidgetRef ref, Map<String, dynamic> formData) async {
     final transactionType = formData[transactionTypeKey];
-    final transactionNumber = formData[numberKey];
+    var transactionNumber = formData[numberKey];
 
-    if (transactionType != null && transactionNumber != null) {
+    if (transactionNumber is double) {
+      transactionNumber = transactionNumber.toInt();
+    }
+
+    if (transactionType != null &&
+        transactionNumber != null &&
+        transactionNumber is int) {
       final counterRepository = ref.read(counterRepositoryProvider);
-      counterRepository.ensureCounterAtLeast(
+      await counterRepository.ensureCounterAtLeast(
           transactionType, transactionNumber);
     }
   }
@@ -696,7 +702,11 @@ class TransactionForm extends ConsumerWidget {
   static Future<void> _decrementCounterIfLastTransaction(
       WidgetRef ref, Map<String, dynamic> formData) async {
     final transactionType = formData[transactionTypeKey];
-    final transactionNumber = formData[numberKey];
+    var transactionNumber = formData[numberKey];
+
+    if (transactionNumber is double) {
+      transactionNumber = transactionNumber.toInt();
+    }
 
     if (transactionType != null && transactionNumber != null) {
       final counterRepository = ref.read(counterRepositoryProvider);
