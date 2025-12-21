@@ -7,6 +7,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
 import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
+import 'package:tablets/src/common/classes/db_repository.dart';
+import 'package:tablets/src/features/transactions/model/transaction.dart'
+    as transaction_model;
 import 'package:tablets/src/features/warehouse/model/warehouse_queue_item.dart';
 
 class WarehouseService {
@@ -101,6 +104,9 @@ class WarehouseService {
         'printedAt': Timestamp.fromDate(DateTime.now()),
       });
 
+      // Update original transaction status
+      await _updateTransactionPrintStatus(invoiceId);
+
       final docSnapshot = await docRef.get();
       final pdfPath = docSnapshot.data()?['pdfPath'];
       if (pdfPath != null) {
@@ -113,6 +119,28 @@ class WarehouseService {
     } catch (e) {
       debugPrint('Failed to mark as printed: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _updateTransactionPrintStatus(String invoiceId) async {
+    try {
+      final dbRepository = DbRepository('transactions');
+      final transactions = await dbRepository.fetchItemListAsMaps(
+        filterKey: 'dbRef',
+        filterValue: invoiceId,
+      );
+
+      if (transactions.isNotEmpty) {
+        final transactionMap = transactions.first;
+        final transaction =
+            transaction_model.Transaction.fromMap(transactionMap);
+        transaction.isPrinted = true;
+        await dbRepository.updateItem(transaction);
+      }
+    } catch (e) {
+      debugPrint('Failed to update transaction print status: $e');
+      // We don't rethrow here as this is a secondary action
+      // and shouldn't fail the printing process if it fails
     }
   }
 

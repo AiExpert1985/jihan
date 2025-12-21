@@ -129,20 +129,21 @@ class ListHeaders extends ConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const MainScreenPlaceholder(width: 20, isExpanded: false),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, transactionTypeKey, S.of(context).transaction_type),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, transactionNumberKey, S.of(context).transaction_number),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, transactionDateKey, S.of(context).transaction_date),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, transactionNameKey, S.of(context).transaction_name),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, transactionSalesmanKey, S.of(context).salesman_selection),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, transactionTotalAmountKey, S.of(context).transaction_amount),
+        SortableMainScreenHeaderCell(screenDataNotifier, transactionTypeKey,
+            S.of(context).transaction_type),
+        SortableMainScreenHeaderCell(screenDataNotifier, transactionNumberKey,
+            S.of(context).transaction_number),
+        SortableMainScreenHeaderCell(screenDataNotifier, transactionDateKey,
+            S.of(context).transaction_date),
+        SortableMainScreenHeaderCell(screenDataNotifier, transactionNameKey,
+            S.of(context).transaction_name),
+        SortableMainScreenHeaderCell(screenDataNotifier, transactionSalesmanKey,
+            S.of(context).salesman_selection),
+        SortableMainScreenHeaderCell(screenDataNotifier,
+            transactionTotalAmountKey, S.of(context).transaction_amount),
         MainScreenHeaderCell(S.of(context).print_status),
-        SortableMainScreenHeaderCell(screenDataNotifier, transactionNotesKey, S.of(context).notes),
+        SortableMainScreenHeaderCell(
+            screenDataNotifier, transactionNotesKey, S.of(context).notes),
       ],
     );
   }
@@ -160,20 +161,24 @@ class DataRow extends ConsumerWidget {
     final productRef = transactionScreenData[productDbRefKey];
     final productDbCache = ref.read(transactionDbCacheProvider.notifier);
     final transactionData = productDbCache.getItemByDbRef(productRef);
-    final translatedTransactionType =
-        translateScreenTextToDbText(context, transactionData[transactionTypeKey]);
-    final transaction =
-        Transaction.fromMap({...transactionData, transactionTypeKey: translatedTransactionType});
+    final translatedTransactionType = translateScreenTextToDbText(
+        context, transactionData[transactionTypeKey]);
+    final transaction = Transaction.fromMap(
+        {...transactionData, transactionTypeKey: translatedTransactionType});
     final date = transactionScreenData[transactionDateKey].toDate();
     final color = _getSequnceColor(transaction.transactionType);
     final transactionType = transactionScreenData[transactionTypeKey];
-    bool isWarning = transactionType.contains(S.of(context).transaction_type_customer_receipt) ||
-        transactionType.contains(S.of(context).transaction_type_customer_return);
-    final printStatus =
-        transactionScreenData[isPrintedKey] ? S.of(context).printed : S.of(context).not_printed;
+    bool isWarning = transactionType
+            .contains(S.of(context).transaction_type_customer_receipt) ||
+        transactionType
+            .contains(S.of(context).transaction_type_customer_return);
+    final printStatus = transactionScreenData[isPrintedKey]
+        ? S.of(context).printed
+        : S.of(context).not_printed;
 
     // Check if accountant should not be able to click this transaction
-    final isReceiptTransaction = transaction.transactionType == TransactionType.customerReceipt.name;
+    final isReceiptTransaction =
+        transaction.transactionType == TransactionType.customerReceipt.name;
     final isDisabled = isAccountant && isReceiptTransaction;
 
     return Column(
@@ -185,21 +190,30 @@ class DataRow extends ConsumerWidget {
             children: [
               MainScreenNumberedEditButton(
                 sequence,
-                isDisabled ? () {} : () => _showEditTransactionForm(context, ref, transaction),
+                isDisabled
+                    ? () {}
+                    : () => _showEditTransactionForm(context, ref, transaction),
                 color: color,
               ),
-              MainScreenTextCell(transactionScreenData[transactionTypeKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionTypeKey],
+                  isWarning: isWarning),
               // we don't add thousand separators to transaction number, so I made it String here
-              MainScreenTextCell(transactionScreenData[transactionNumberKey].round().toString(),
+              MainScreenTextCell(
+                  transactionScreenData[transactionNumberKey]
+                      .round()
+                      .toString(),
                   isWarning: isWarning),
               MainScreenTextCell(date, isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionNameKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNameKey],
+                  isWarning: isWarning),
               MainScreenTextCell(transactionScreenData[transactionSalesmanKey],
                   isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionTotalAmountKey],
+              MainScreenTextCell(
+                  transactionScreenData[transactionTotalAmountKey],
                   isWarning: isWarning),
               MainScreenTextCell(printStatus, isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionNotesKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNotesKey],
+                  isWarning: isWarning),
             ],
           ),
         ),
@@ -207,7 +221,8 @@ class DataRow extends ConsumerWidget {
     );
   }
 
-  void _showEditTransactionForm(BuildContext context, WidgetRef ref, Transaction transaction) {
+  void _showEditTransactionForm(
+      BuildContext context, WidgetRef ref, Transaction transaction) {
     final imagePickerNotifier = ref.read(imagePickerProvider.notifier);
     final formDataNotifier = ref.read(transactionFormDataProvider.notifier);
     final textEditingNotifier = ref.read(textFieldsControllerProvider.notifier);
@@ -259,13 +274,31 @@ class TransactionsFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () async {
+            ref.read(pageIsLoadingNotifier.notifier).state = true;
+            final newData = await ref
+                .read(transactionRepositoryProvider)
+                .fetchItemListAsMaps();
+            ref.read(transactionDbCacheProvider.notifier).set(newData);
+            if (context.mounted) {
+              ref
+                  .read(transactionScreenControllerProvider)
+                  .setFeatureScreenData(context);
+            }
+            ref.read(pageIsLoadingNotifier.notifier).state = false;
+          },
+        ),
         if (!isAccountant)
           SpeedDialChild(
               child: const Icon(Icons.pie_chart, color: Colors.white),
               backgroundColor: iconsColor,
               onTap: () async {
-                final allTransactions =
-                    await ref.read(transactionRepositoryProvider).fetchItemListAsMaps();
+                final allTransactions = await ref
+                    .read(transactionRepositoryProvider)
+                    .fetchItemListAsMaps();
                 if (context.mounted) {
                   drawerController.showReports(context, allTransactions);
                 }
@@ -283,7 +316,8 @@ class TransactionsFloatingButtons extends ConsumerWidget {
             ref.read(backgroundColorProvider.notifier).state = normalColor!;
             Navigator.push(
               context,
-              CupertinoPageRoute(builder: (context) => const TransactionGroupSelection()),
+              CupertinoPageRoute(
+                  builder: (context) => const TransactionGroupSelection()),
             );
           },
         ),
@@ -296,7 +330,8 @@ class TransactionsFilters extends ConsumerStatefulWidget {
   const TransactionsFilters({super.key});
 
   @override
-  ConsumerState<TransactionsFilters> createState() => _TransactionsFiltersState();
+  ConsumerState<TransactionsFilters> createState() =>
+      _TransactionsFiltersState();
 }
 
 class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
@@ -335,7 +370,9 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          quickFilters.isNotEmpty ? _buildClearButton(context, ref) : const SizedBox(width: 40),
+          quickFilters.isNotEmpty
+              ? _buildClearButton(context, ref)
+              : const SizedBox(width: 40),
           HorizontalGap.l,
           _buildTypeQuickFilter(context, ref),
           HorizontalGap.xxl,
@@ -376,12 +413,18 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final dbCache = ref.read(customerDbCacheProvider.notifier);
     const propertyName = 'name';
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(transactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (customer) {
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, customer['name']);
-          ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+          QuickFilter filter = QuickFilter(
+              propertyName, QuickFilterType.equals, customer['name']);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: dbCache.data);
   }
@@ -390,20 +433,28 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final dbCache = ref.read(salesmanDbCacheProvider.notifier);
     const propertyName = 'salesman';
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(transactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (salesman) {
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, salesman['name']);
-          ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+          QuickFilter filter = QuickFilter(
+              propertyName, QuickFilterType.equals, salesman['name']);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: dbCache.data);
   }
 
   Widget _buildTypeQuickFilter(BuildContext context, WidgetRef ref) {
     final typesList = [
-      translateDbTextToScreenText(context, TransactionType.customerInvoice.name),
-      translateDbTextToScreenText(context, TransactionType.customerReceipt.name),
+      translateDbTextToScreenText(
+          context, TransactionType.customerInvoice.name),
+      translateDbTextToScreenText(
+          context, TransactionType.customerReceipt.name),
       translateDbTextToScreenText(context, TransactionType.customerReturn.name),
       translateDbTextToScreenText(context, TransactionType.gifts.name),
       translateDbTextToScreenText(context, TransactionType.vendorInvoice.name),
@@ -415,12 +466,18 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final typesListMap = typesList.map((type) => {'name': type}).toList();
     const propertyName = 'transactionType';
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(transactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (type) {
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, type['name']);
-          ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+          QuickFilter filter =
+              QuickFilter(propertyName, QuickFilterType.equals, type['name']);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: typesListMap);
   }
@@ -430,13 +487,20 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
     final printStatusMap = printStatus.map((type) => {'name': type}).toList();
     const propertyName = 'isPrinted';
     return DropDownWithSearchFormField(
-        initialValue:
-            ref.read(transactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+        initialValue: ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .getFilterValue(propertyName),
         onChangedFn: (type) {
-          final boolValue = type['name'] == S.of(context).printed ? true : false;
-          QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, boolValue);
-          ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-          ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+          final boolValue =
+              type['name'] == S.of(context).printed ? true : false;
+          QuickFilter filter =
+              QuickFilter(propertyName, QuickFilterType.equals, boolValue);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .updateFilters(filter);
+          ref
+              .read(transactionQuickFiltersProvider.notifier)
+              .applyListFilter(context);
         },
         itemsList: printStatusMap);
   }
@@ -444,11 +508,18 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   Widget _buildNumberQuickFilter(BuildContext context, WidgetRef ref) {
     const propertyName = 'number';
     return FormInputField(
-      initialValue: ref.read(transactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      initialValue: ref
+          .read(transactionQuickFiltersProvider.notifier)
+          .getFilterValue(propertyName),
       onChangedFn: (transactionNumber) {
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, transactionNumber);
-        ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-        ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+        QuickFilter filter = QuickFilter(
+            propertyName, QuickFilterType.equals, transactionNumber);
+        ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .updateFilters(filter);
+        ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .applyListFilter(context);
       },
       controller: _numberController,
       isOnSubmit: true,
@@ -460,11 +531,18 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   Widget _buildAmountQuickFilter(BuildContext context, WidgetRef ref) {
     const propertyName = 'totalAmount';
     return FormInputField(
-      initialValue: ref.read(transactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      initialValue: ref
+          .read(transactionQuickFiltersProvider.notifier)
+          .getFilterValue(propertyName),
       onChangedFn: (amount) {
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.equals, amount);
-        ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-        ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+        QuickFilter filter =
+            QuickFilter(propertyName, QuickFilterType.equals, amount);
+        ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .updateFilters(filter);
+        ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .applyListFilter(context);
       },
       controller: _amountController,
       isOnSubmit: true,
@@ -476,11 +554,18 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
   Widget _buildNotesQuickFilter(BuildContext context, WidgetRef ref) {
     const propertyName = 'notes';
     return FormInputField(
-      initialValue: ref.read(transactionQuickFiltersProvider.notifier).getFilterValue(propertyName),
+      initialValue: ref
+          .read(transactionQuickFiltersProvider.notifier)
+          .getFilterValue(propertyName),
       onChangedFn: (notes) {
-        QuickFilter filter = QuickFilter(propertyName, QuickFilterType.contains, notes);
-        ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-        ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+        QuickFilter filter =
+            QuickFilter(propertyName, QuickFilterType.contains, notes);
+        ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .updateFilters(filter);
+        ref
+            .read(transactionQuickFiltersProvider.notifier)
+            .applyListFilter(context);
       },
       controller: _notesController,
       isOnSubmit: true,
@@ -501,9 +586,14 @@ class _TransactionsFiltersState extends ConsumerState<TransactionsFilters> {
         format: DateFormat('dd-MM-yyyy'),
         onChanged: (date) {
           if (date != null) {
-            QuickFilter filter = QuickFilter(propertyName, QuickFilterType.dateSameDay, date);
-            ref.read(transactionQuickFiltersProvider.notifier).updateFilters(filter);
-            ref.read(transactionQuickFiltersProvider.notifier).applyListFilter(context);
+            QuickFilter filter =
+                QuickFilter(propertyName, QuickFilterType.dateSameDay, date);
+            ref
+                .read(transactionQuickFiltersProvider.notifier)
+                .updateFilters(filter);
+            ref
+                .read(transactionQuickFiltersProvider.notifier)
+                .applyListFilter(context);
             // _dateController.text = DateFormat('dd-MM-yyyy').format(date);
           }
         },

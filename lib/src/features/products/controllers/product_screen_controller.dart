@@ -13,11 +13,13 @@ import 'package:tablets/src/features/products/model/product.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'dart:collection';
 
-final productScreenControllerProvider = Provider<ProductScreenController>((ref) {
+final productScreenControllerProvider =
+    Provider<ProductScreenController>((ref) {
   final screenDataNotifier = ref.read(productScreenDataNotifier.notifier);
   final transactionsDbCache = ref.read(transactionDbCacheProvider.notifier);
   final productDbCache = ref.read(productDbCacheProvider.notifier);
-  return ProductScreenController(screenDataNotifier, transactionsDbCache, productDbCache);
+  return ProductScreenController(
+      screenDataNotifier, transactionsDbCache, productDbCache);
 });
 
 class ProductScreenController implements ScreenDataController {
@@ -41,7 +43,8 @@ class ProductScreenController implements ScreenDataController {
     for (var productData in allProductsData) {
       final product = Product.fromMap(productData);
       final productTransactions = transactionsByProduct[product.dbRef] ?? [];
-      final newRow = _createProductScreenData(context, product, productTransactions);
+      final newRow =
+          _createProductScreenData(context, product, productTransactions);
       screenData.add(newRow);
     }
 
@@ -83,7 +86,8 @@ class ProductScreenController implements ScreenDataController {
   }
 
   /// Handles the type conversion for a single transaction map.
-  Map<String, dynamic> _convertTransactionMap(Map<String, dynamic> transactionMap) {
+  Map<String, dynamic> _convertTransactionMap(
+      Map<String, dynamic> transactionMap) {
     final newMap = Map<String, dynamic>.from(transactionMap);
     newMap.forEach((key, value) {
       if (value is int) {
@@ -95,7 +99,8 @@ class ProductScreenController implements ScreenDataController {
   }
 
   @override
-  Map<String, dynamic> getItemScreenData(BuildContext context, Map<String, dynamic>? productData) {
+  Map<String, dynamic> getItemScreenData(
+      BuildContext context, Map<String, dynamic>? productData) {
     // If no product data is provided, we can't calculate anything.
     if (productData == null) {
       // Return a map with a zero quantity to be safe.
@@ -121,7 +126,8 @@ class ProductScreenController implements ScreenDataController {
     }
 
     // 3. Use your existing logic to do the final calculation for this single product.
-    final screenDataMap = _createProductScreenData(context, product, productTransactions);
+    final screenDataMap =
+        _createProductScreenData(context, product, productTransactions);
 
     // 4. Return the complete data map.
     return screenDataMap;
@@ -134,13 +140,14 @@ class ProductScreenController implements ScreenDataController {
 
     // Add initial quantity transaction if it exists.
     if (product.initialQuantity > 0) {
-      productProcessedTransactions.add(_createInitialTransactionRow(context, product));
+      productProcessedTransactions
+          .add(_createInitialTransactionRow(context, product));
     }
 
     // Process all other transactions for this product.
     for (var transaction in transactions) {
-      productProcessedTransactions
-          .addAll(_processTransactionItems(context, transaction, product.dbRef));
+      productProcessedTransactions.addAll(
+          _processTransactionItems(context, transaction, product.dbRef));
     }
 
     // Sort transactions by date.
@@ -156,19 +163,21 @@ class ProductScreenController implements ScreenDataController {
       productNameKey: product.name,
       productCategoryKey: product.category,
       productCommissionKey: product.salesmanCommission,
-      productSellingWholeSaleKey: product.sellRetailPrice,
-      productSellingRetailKey: product.sellWholePrice,
+      productSellingWholeSaleKey: product.sellWholePrice,
+      productSellingRetailKey: product.sellRetailPrice,
       productBuyingPriceKey: product.buyingPrice,
       productQuantityKey: totalQuantity,
       productQuantityDetailsKey: productProcessedTransactions,
       productProfitKey: totalProfit,
-      productProfitDetailsKey: _getOnlyProfitInvoices(productProcessedTransactions, 5),
+      productProfitDetailsKey:
+          _getOnlyProfitInvoices(productProcessedTransactions, 5),
       productTotalStockPriceKey: totalQuantity * product.buyingPrice,
     };
   }
 
   /// Creates a row for the initial product quantity.
-  List<dynamic> _createInitialTransactionRow(BuildContext context, Product product) {
+  List<dynamic> _createInitialTransactionRow(
+      BuildContext context, Product product) {
     final initialTransaction = _createInitialQuantityTransaction(product);
     return [
       initialTransaction,
@@ -196,12 +205,14 @@ class ProductScreenController implements ScreenDataController {
 
       if (type == TransactionType.customerInvoice.name ||
           type == TransactionType.vendorReturn.name) {
-        totalQuantity -= (item['soldQuantity'] ?? 0) + (item['giftQuantity'] ?? 0);
+        totalQuantity -=
+            (item['soldQuantity'] ?? 0) + (item['giftQuantity'] ?? 0);
         totalProfit += item['itemTotalProfit'] ?? 0;
         totalSalesmanCommission += item['salesmanTotalCommission'] ?? 0;
       } else if (type == TransactionType.vendorInvoice.name ||
           type == TransactionType.customerReturn.name) {
-        totalQuantity += (item['soldQuantity'] ?? 0) + (item['giftQuantity'] ?? 0);
+        totalQuantity +=
+            (item['soldQuantity'] ?? 0) + (item['giftQuantity'] ?? 0);
         if (type == TransactionType.customerReturn.name) {
           totalProfit -= item['itemTotalProfit'] ?? 0;
         }

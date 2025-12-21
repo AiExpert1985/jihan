@@ -32,6 +32,7 @@ Future<void> _printPDf(Document pdf, int numCopies) async {
         onLayout: (PdfPageFormat format) async {
           return await pdf.save();
         },
+        format: PdfPageFormat.a4,
       );
     }
   } catch (e) {
@@ -39,7 +40,8 @@ Future<void> _printPDf(Document pdf, int numCopies) async {
   }
 }
 
-Future<void> printForm(BuildContext context, WidgetRef ref, Map<String, dynamic> transactionData,
+Future<void> printForm(
+    BuildContext context, WidgetRef ref, Map<String, dynamic> transactionData,
     {bool isLogoB = false}) async {
   try {
     final settings = ref.read(settingsFormDataProvider.notifier);
@@ -48,8 +50,9 @@ Future<void> printForm(BuildContext context, WidgetRef ref, Map<String, dynamic>
             transactionData['transactionType'].contains('expenditure')
         ? 1
         : settingInvoiceCopies;
-    final imagePath =
-        isLogoB ? 'assets/images/invoice_logo_b.png' : 'assets/images/invoice_logo.PNG';
+    final imagePath = isLogoB
+        ? 'assets/images/invoice_logo_b.png'
+        : 'assets/images/invoice_logo.PNG';
     final image = await loadImage(imagePath);
     final filePath = gePdfpath('test_file');
     if (context.mounted) {
@@ -159,8 +162,10 @@ pw.Widget arabicText(Font arabicFont, String text,
     width: width,
     decoration: isBordered
         ? pw.BoxDecoration(
-            borderRadius: const pw.BorderRadius.all(Radius.circular(1)), // Rounded corners
-            border: pw.Border.all(color: borderColor ?? PdfColors.grey600), // Border color
+            borderRadius: const pw.BorderRadius.all(
+                Radius.circular(1)), // Rounded corners
+            border: pw.Border.all(
+                color: borderColor ?? PdfColors.grey600), // Border color
           )
         : null,
     color: bgColor,
@@ -207,12 +212,14 @@ pw.Widget coloredContainer(pw.Widget childWidget, double width,
     height: height, // Increased height to provide more space for the label
     decoration: isDecorated
         ? pw.BoxDecoration(
-            borderRadius: const pw.BorderRadius.all(Radius.circular(4)), // Rounded corners
+            borderRadius: const pw.BorderRadius.all(
+                Radius.circular(4)), // Rounded corners
             border: pw.Border.all(color: borderColor), // Border color
             color: bgColor,
           )
         : null,
-    padding: const pw.EdgeInsets.only(bottom: 0, left: 0), // Set padding to 0 to avoid extra space
+    padding: const pw.EdgeInsets.only(
+        bottom: 0, left: 0), // Set padding to 0 to avoid extra space
     child: childWidget,
   );
 }
@@ -239,7 +246,8 @@ pw.Widget labedContainer(String text, String label, Font arabicFont,
   ]);
 }
 
-pw.Widget separateLabelContainer(Font arabicFont, String content, String label, double width) {
+pw.Widget separateLabelContainer(
+    Font arabicFont, String content, String label, double width) {
   return pw.Row(
     mainAxisAlignment: pw.MainAxisAlignment.center,
     children: [
