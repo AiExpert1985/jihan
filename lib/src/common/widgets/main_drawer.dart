@@ -23,6 +23,7 @@ import 'package:tablets/src/features/regions/controllers/region_screen_controlle
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_controller.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/invoice_validation_controller.dart';
 
 class MainDrawer extends ConsumerWidget {
   const MainDrawer({super.key});
@@ -581,6 +582,8 @@ class SettingsDialog extends ConsumerWidget {
             const BulkCustomerReassignmentButton(),
             const SizedBox(height: 20),
             const BackupButton(),
+            const SizedBox(height: 20),
+            const InvoiceValidationButton(),
           ],
         ),
       ),
@@ -655,6 +658,78 @@ class BackupButton extends ConsumerWidget {
                 S.of(context).save_data_backup, // Use the corresponding name
                 style: const TextStyle(fontSize: 18),
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class InvoiceValidationButton extends ConsumerStatefulWidget {
+  const InvoiceValidationButton({super.key});
+
+  @override
+  ConsumerState<InvoiceValidationButton> createState() => _InvoiceValidationButtonState();
+}
+
+class _InvoiceValidationButtonState extends ConsumerState<InvoiceValidationButton> {
+  bool _isValidating = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 125,
+      child: InkWell(
+        onTap: _isValidating
+            ? null
+            : () async {
+                setState(() {
+                  _isValidating = true;
+                });
+
+                try {
+                  final mismatches = await validateCustomerInvoices(ref);
+
+                  if (mounted) {
+                    setState(() {
+                      _isValidating = false;
+                    });
+
+                    ref.read(invoiceValidationResultsProvider.notifier).state = mismatches;
+
+                    if (context.mounted) {
+                      Navigator.of(context).pop(); // Close the dialog
+                      context.goNamed(AppRoute.invoiceValidationResults.name);
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setState(() {
+                      _isValidating = false;
+                    });
+                    if (context.mounted) {
+                      failureUserMessage(context, 'خطأ في المطابقة: $e');
+                    }
+                  }
+                }
+              },
+        child: Card(
+          elevation: 4,
+          margin: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 40,
+            child: Center(
+              child: _isValidating
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'مطابقة مبالغ القوائم',
+                      style: TextStyle(fontSize: 18),
+                    ),
             ),
           ),
         ),

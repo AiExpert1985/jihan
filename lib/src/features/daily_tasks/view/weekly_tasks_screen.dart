@@ -33,11 +33,42 @@ class DayPicker extends ConsumerWidget {
   }
 }
 
-class WeeklyTasksScreen extends ConsumerWidget {
+class WeeklyTasksScreen extends ConsumerStatefulWidget {
   const WeeklyTasksScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WeeklyTasksScreen> createState() => _WeeklyTasksScreenState();
+}
+
+class _WeeklyTasksScreenState extends ConsumerState<WeeklyTasksScreen> {
+  bool _isCreatingDocument = false;
+
+  Future<void> _createWeeklyTaskDocument(int selectedDayIndex) async {
+    if (_isCreatingDocument) return;
+
+    setState(() {
+      _isCreatingDocument = true;
+    });
+
+    final dayTasks = {
+      'weekDay': selectedDayIndex,
+      'tasks': [],
+      'dbRef': generateRandomString(len: 8),
+      'name': generateRandomString(len: 8),
+      'imageUrls': []
+    };
+
+    await ref.read(weeklyTasksRepositoryProvider).addItem(WeeklyTask.fromMap(dayTasks));
+
+    if (mounted) {
+      setState(() {
+        _isCreatingDocument = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final dailyTasksAsyncValue = ref.watch(weeklyTasksStreamProvider);
     final selectedDayIndex = ref.watch(selectedWeekdayIndexProvider);
     return Scaffold(
@@ -50,23 +81,17 @@ class WeeklyTasksScreen extends ConsumerWidget {
             Expanded(
               child: dailyTasksAsyncValue.when(
                 data: (dailyTasks) {
-                  late Map<String, dynamic> dayTasks;
                   if (dailyTasks.isEmpty) {
-                    dayTasks = {
-                      'weekDay': selectedDayIndex,
-                      'tasks': [],
-                      'dbRef': generateRandomString(len: 8),
-                      'name': generateRandomString(len: 8),
-                      'imageUrls': []
-                    };
-                    ref.read(weeklyTasksRepositoryProvider).addItem(WeeklyTask.fromMap(dayTasks));
-                  } else {
-                    dayTasks = dailyTasks.first;
+                    if (!_isCreatingDocument) {
+                      // Schedule document creation after this frame
+                      Future.microtask(() => _createWeeklyTaskDocument(selectedDayIndex));
+                    }
+                    return const Center(child: CircularProgressIndicator());
                   }
-                  return SalesPoints(dayTasks);
+                  return SalesPoints(dailyTasks.first);
                 },
-                loading: () => const CircularProgressIndicator(), // Show loading indicator
-                error: (error, stack) => Text('Error: $error'), // Handle errors
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
               ),
             ),
           ],

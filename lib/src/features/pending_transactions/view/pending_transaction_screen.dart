@@ -379,6 +379,19 @@ void addToDeletedTransactionsDb(WidgetRef ref, Map<String, dynamic> itemData) {
       deletionItemData, DbCacheOperationTypes.add);
 }
 
+/// Checks if a Customer Receipt with the same number already exists in transactions collection.
+/// Returns true if duplicate found, false otherwise.
+bool _isDuplicateCustomerReceipt(WidgetRef ref, Transaction transaction) {
+  if (transaction.transactionType != TransactionType.customerReceipt.name) {
+    return false;
+  }
+
+  final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
+  return transactionDbCache.data.any((t) =>
+      t['transactionType'] == TransactionType.customerReceipt.name &&
+      t['number'] == transaction.number);
+}
+
 /// Approves a pending transaction by saving it to transactions collection.
 /// Returns true if approval succeeded, false otherwise.
 Future<bool> approveTransaction(
@@ -387,6 +400,14 @@ Future<bool> approveTransaction(
   // below check is added to prevent the bug of duplicating of pressing approve button multiple times
   if (transactionDbCache.getItemByDbRef(transaction.dbRef).isNotEmpty) {
     errorPrint('item was previously approved, duplication is not allowed');
+    return false;
+  }
+
+  // Check for duplicate Customer Receipt number
+  if (_isDuplicateCustomerReceipt(ref, transaction)) {
+    if (context.mounted) {
+      failureUserMessage(context, "رقم الوصل مكرر");
+    }
     return false;
   }
   // then we udpate the transaction number if transaction is a customer invoice

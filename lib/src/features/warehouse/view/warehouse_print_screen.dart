@@ -81,13 +81,20 @@ class WarehousePrintScreen extends ConsumerWidget {
   }
 }
 
-class InvoiceCard extends ConsumerWidget {
+class InvoiceCard extends ConsumerStatefulWidget {
   const InvoiceCard({required this.invoice, super.key});
 
   final WarehouseQueueItem invoice;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InvoiceCard> createState() => _InvoiceCardState();
+}
+
+class _InvoiceCardState extends ConsumerState<InvoiceCard> {
+  bool _isPrinting = false;
+
+  @override
+  Widget build(BuildContext context) {
     final warehouseService = ref.read(warehouseServiceProvider);
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
@@ -103,7 +110,7 @@ class InvoiceCard extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'رقم الفاتورة: ${invoice.invoiceNumber}',
+                    'رقم الفاتورة: ${widget.invoice.invoiceNumber}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -111,22 +118,22 @@ class InvoiceCard extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'اسم الزبون: ${invoice.clientName}',
+                    'اسم الزبون: ${widget.invoice.clientName}',
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'التاريخ: ${dateFormat.format(invoice.createdAt)}',
+                    'التاريخ: ${dateFormat.format(widget.invoice.createdAt)}',
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'عدد المواد: ${invoice.itemCount}',
+                    'عدد المواد: ${widget.invoice.itemCount}',
                     style: const TextStyle(fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'المجموع: ${invoice.totalPrice.toStringAsFixed(0)}',
+                    'المجموع: ${widget.invoice.totalPrice.toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -137,11 +144,31 @@ class InvoiceCard extends ConsumerWidget {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () async {
-                await _printInvoice(context, ref, invoice, warehouseService);
-              },
-              icon: const Icon(Icons.print),
-              label: const Text('طباعة'),
+              onPressed: _isPrinting
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isPrinting = true;
+                      });
+                      await _printInvoice(
+                          context, ref, widget.invoice, warehouseService);
+                      if (mounted) {
+                        setState(() {
+                          _isPrinting = false;
+                        });
+                      }
+                    },
+              icon: _isPrinting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.print),
+              label: Text(_isPrinting ? 'جاري الطباعة...' : 'طباعة'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
