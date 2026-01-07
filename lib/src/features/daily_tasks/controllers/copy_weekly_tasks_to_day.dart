@@ -22,6 +22,7 @@ void copyWeeklyDayTasks(WidgetRef ref) async {
     salesPoint.isVisited = false;
     salesPoint.hasTransaction = false;
     salesPoint.date = selectedDate;
+    salesPoint.salesmanName = salesPoint.salesmanName.trim();
     tasksRepo.addItem(salesPoint);
   }
 }

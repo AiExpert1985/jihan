@@ -77,7 +77,8 @@ class TasksScreen extends ConsumerWidget {
           Expanded(
             child: salesPointsAsyncValue.when(
               data: (salespoints) => SalesPoints(salespoints),
-              loading: () => const CircularProgressIndicator(), // Show loading indicator
+              loading: () =>
+                  const CircularProgressIndicator(), // Show loading indicator
               error: (error, stack) => Text('Error: $error'), // Handle errors
             ),
           ),
@@ -103,7 +104,8 @@ class SalesPoints extends ConsumerWidget {
       copyWeeklyDayTasks(ref);
     }
     bool isReadOnly = true;
-    final userInfo = ref.watch(userInfoProvider); // to update UI when user info finally loaded
+    final userInfo = ref
+        .watch(userInfoProvider); // to update UI when user info finally loaded
     if (userInfo != null && userInfo.privilage != 'guest') {
       isReadOnly = false;
     }
@@ -112,11 +114,12 @@ class SalesPoints extends ConsumerWidget {
     Set<String> uniqueSalesmanNames = {};
     for (var salesPoint in salesPoints) {
       String salesmanName = salesPoint['salesmanName'] as String;
-      uniqueSalesmanNames.add(salesmanName);
+      uniqueSalesmanNames.add(salesmanName.trim());
     }
     // Then add the salesmen not found in that day
     final salesmenDbCache = ref.read(salesmanDbCacheProvider.notifier).data;
-    final allSalemenNames = salesmenDbCache.map((salesman) => salesman['name']).toList();
+    final allSalemenNames =
+        salesmenDbCache.map((salesman) => salesman['name']).toList();
     for (var salesmanName in allSalemenNames) {
       uniqueSalesmanNames.add(salesmanName);
     }
@@ -126,7 +129,7 @@ class SalesPoints extends ConsumerWidget {
       salesmenTasks[name] = []; // Initialize each key with an empty list
     }
     for (var salesPoint in salesPoints) {
-      String salesmanName = salesPoint['salesmanName'] as String;
+      String salesmanName = salesPoint['salesmanName'].trim() as String;
       salesmenTasks[salesmanName]?.add(salesPoint);
     }
 
@@ -137,8 +140,10 @@ class SalesPoints extends ConsumerWidget {
       // Sort customers by the 'region' property
       tasks.sort((a, b) {
         // --- Primary Sort: visitDate (DateTime?, nulls last) ---
-        final DateTime? visitDateA = a['visitDate']?.toDate(); // Get visitDate or null
-        final DateTime? visitDateB = b['visitDate']?.toDate(); // Get visitDate or null
+        final DateTime? visitDateA =
+            a['visitDate']?.toDate(); // Get visitDate or null
+        final DateTime? visitDateB =
+            b['visitDate']?.toDate(); // Get visitDate or null
 
         int dateComparison;
         if (visitDateA == null && visitDateB == null) {
@@ -166,9 +171,13 @@ class SalesPoints extends ConsumerWidget {
         final regionB = b['region'];
 
         // Use the exact null-handling logic from your original snippet for 'region'
-        if (regionA == null && regionB == null) return 0; // Both are null, equal
+        if (regionA == null && regionB == null) {
+          return 0; // Both are null, equal
+        }
         if (regionA == null) return 1; // Null regionA is considered greater
-        if (regionB == null) return -1; // Non-null regionA comes before null regionB
+        if (regionB == null) {
+          return -1; // Non-null regionA comes before null regionB
+        }
 
         // Assuming non-null regions are Comparable (like String)
         // Use compareTo as in the original snippet
@@ -197,7 +206,9 @@ class SalesPoints extends ConsumerWidget {
                           .read(salesmanDbCacheProvider.notifier)
                           .getItemByProperty('name', salesmanName);
                       final selectedCustomerNames =
-                          await _showMultiSelectDialog(context, ref, salesmanName) ?? [];
+                          await _showMultiSelectDialog(
+                                  context, ref, salesmanName) ??
+                              [];
                       for (var customerName in selectedCustomerNames) {
                         if (tasksCustomerNames.contains(customerName)) {
                           // if name already exists (it is surely same dates no need to check it), pass it
@@ -223,7 +234,9 @@ class SalesPoints extends ConsumerWidget {
                           null,
                         );
                         //TODO to prevent adding new salespoint if it already exists
-                        ref.read(tasksRepositoryProvider).addItem(newSalesPoint);
+                        ref
+                            .read(tasksRepositoryProvider)
+                            .addItem(newSalesPoint);
                       }
                     },
                   ),
@@ -239,7 +252,8 @@ class SalesPoints extends ConsumerWidget {
                   padding: const EdgeInsets.all(5),
                   child: Text(
                     salesmanName, // The name as title
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -262,15 +276,18 @@ class SalesPoints extends ConsumerWidget {
                     : item['hasTransaction']
                         ? Colors.green
                         : Colors.amber;
-                final fontColor = item['isVisited'] ? Colors.black : Colors.white;
+                final fontColor =
+                    item['isVisited'] ? Colors.black : Colors.white;
                 return Stack(
                   children: [
                     Container(
                       width: 140,
                       height: 90,
-                      padding: const EdgeInsets.only(top: 20, bottom: 10, left: 10, right: 10),
+                      padding: const EdgeInsets.only(
+                          top: 20, bottom: 10, left: 10, right: 10),
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(8)),
                         color: bgColor,
                       ),
                       child: Column(
@@ -278,7 +295,8 @@ class SalesPoints extends ConsumerWidget {
                           Text(
                             item['customerName'],
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: fontColor, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                                color: fontColor, fontWeight: FontWeight.w500),
                           ),
                           const Spacer(),
                           Row(
@@ -287,16 +305,20 @@ class SalesPoints extends ConsumerWidget {
                               Text(
                                 item['visitDate'] == null
                                     ? ''
-                                    : DateFormat('hh:mm a').format(item['visitDate'].toDate()),
-                                style: const TextStyle(fontSize: 12, color: Colors.black),
+                                    : DateFormat('hh:mm a')
+                                        .format(item['visitDate'].toDate()),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.black),
                               ),
-                              if (item['transactionDate'] != null) const Spacer(),
+                              if (item['transactionDate'] != null)
+                                const Spacer(),
                               Text(
                                 item['transactionDate'] == null
                                     ? ''
-                                    : DateFormat('hh:mm a')
-                                        .format(item['transactionDate'].toDate()),
-                                style: const TextStyle(fontSize: 12, color: Colors.black),
+                                    : DateFormat('hh:mm a').format(
+                                        item['transactionDate'].toDate()),
+                                style: const TextStyle(
+                                    fontSize: 12, color: Colors.black),
                               ),
                             ],
                           )
@@ -354,12 +376,14 @@ Future<List<String>?> _showMultiSelectDialog(
       customerDbCache.map((customer) => customer['name'] as String).toList();
 
   final regionDbCache = ref.read(regionDbCacheProvider.notifier).data;
-  List<String> regionNames = regionDbCache.map((region) => region['name'] as String).toList();
+  List<String> regionNames =
+      regionDbCache.map((region) => region['name'] as String).toList();
 
   final selectedValues = showDialog<List<String>?>(
     context: context,
     builder: (BuildContext context) {
-      List<String> selectedCustomerNames = []; // to store customers selection from both dropdowns
+      List<String> selectedCustomerNames =
+          []; // to store customers selection from both dropdowns
       List<String> selectedRegions = [];
       return Dialog(
         child: Container(
@@ -368,14 +392,17 @@ Future<List<String>?> _showMultiSelectDialog(
           height: 800,
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min, // Use min size to avoid unnecessary height
+              mainAxisSize:
+                  MainAxisSize.min, // Use min size to avoid unnecessary height
 
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 40, left: 25.0, right: 25.0),
+                  padding: const EdgeInsets.only(
+                      top: 10, bottom: 40, left: 25.0, right: 25.0),
                   child: Text(
                     salesmanName,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
 
@@ -393,7 +420,8 @@ Future<List<String>?> _showMultiSelectDialog(
                     style: TextStyle(color: Colors.black26, fontSize: 15),
                   ),
                   items: customerNames
-                      .map((String value) => MultiSelectItem<String>(value, value))
+                      .map((String value) =>
+                          MultiSelectItem<String>(value, value))
                       .toList(),
                   onConfirm: (List<String> newCustomerNames) {
                     for (var newName in newCustomerNames) {
@@ -425,18 +453,21 @@ Future<List<String>?> _showMultiSelectDialog(
                     style: TextStyle(color: Colors.black26, fontSize: 15),
                   ),
                   items: regionNames
-                      .map((String value) => MultiSelectItem<String>(value, value))
+                      .map((String value) =>
+                          MultiSelectItem<String>(value, value))
                       .toList(),
                   onConfirm: (List<String> selectedRegionNames) {
-                    selectedRegions = selectedRegionNames; // to reflect selected regions
+                    selectedRegions =
+                        selectedRegionNames; // to reflect selected regions
                     // convert regions to customer names, and then add it to selected names
                     // note that selected names is for both regions and customers
                     for (var regionName in selectedRegionNames) {
                       final regionCustomers = customerDbCache
                           .where((customer) => customer['region'] == regionName)
                           .toList();
-                      final regionCustomerNames =
-                          regionCustomers.map((customer) => customer['name'] as String).toList();
+                      final regionCustomerNames = regionCustomers
+                          .map((customer) => customer['name'] as String)
+                          .toList();
                       for (var customerName in regionCustomerNames) {
                         // to avoid duplicate customer names
                         if (!selectedCustomerNames.contains(customerName)) {
@@ -458,7 +489,8 @@ Future<List<String>?> _showMultiSelectDialog(
 
                 IconButton(
                   onPressed: () {
-                    Navigator.of(context).pop(selectedCustomerNames); // Return both selected values
+                    Navigator.of(context).pop(
+                        selectedCustomerNames); // Return both selected values
                   },
                   icon: const ApproveIcon(),
                 ),
@@ -480,8 +512,8 @@ Future<void> printReport(List<Map<String, dynamic>> salesPointMaps) async {
       salesPoints.add(SalesPoint.fromMap(map));
     }
     // 1. Generate the PDF bytes
-    final Uint8List pdfBytes =
-        await SalesPointPdfGenerator.generatePdf(salesPoints); // Use your actual list here
+    final Uint8List pdfBytes = await SalesPointPdfGenerator.generatePdf(
+        salesPoints); // Use your actual list here
 
     // 2. Use the printing package to preview and print
     await Printing.layoutPdf(

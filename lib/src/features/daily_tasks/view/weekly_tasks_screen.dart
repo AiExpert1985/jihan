@@ -58,7 +58,9 @@ class _WeeklyTasksScreenState extends ConsumerState<WeeklyTasksScreen> {
       'imageUrls': []
     };
 
-    await ref.read(weeklyTasksRepositoryProvider).addItem(WeeklyTask.fromMap(dayTasks));
+    await ref
+        .read(weeklyTasksRepositoryProvider)
+        .addItem(WeeklyTask.fromMap(dayTasks));
 
     if (mounted) {
       setState(() {
@@ -84,7 +86,8 @@ class _WeeklyTasksScreenState extends ConsumerState<WeeklyTasksScreen> {
                   if (dailyTasks.isEmpty) {
                     if (!_isCreatingDocument) {
                       // Schedule document creation after this frame
-                      Future.microtask(() => _createWeeklyTaskDocument(selectedDayIndex));
+                      Future.microtask(
+                          () => _createWeeklyTaskDocument(selectedDayIndex));
                     }
                     return const Center(child: CircularProgressIndicator());
                   }
@@ -109,7 +112,8 @@ class SalesPoints extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     bool isReadOnly = true;
     final salesPoints = dailyTasks['tasks'];
-    final userInfo = ref.watch(userInfoProvider); // to update UI when user info finally loaded
+    final userInfo = ref
+        .watch(userInfoProvider); // to update UI when user info finally loaded
     if (userInfo != null && userInfo.privilage != 'guest') {
       isReadOnly = false;
     }
@@ -117,11 +121,12 @@ class SalesPoints extends ConsumerWidget {
     Set<String> uniqueSalesmanNames = {};
     for (var salesPoint in salesPoints) {
       String salesmanName = salesPoint['salesmanName'] as String;
-      uniqueSalesmanNames.add(salesmanName);
+      uniqueSalesmanNames.add(salesmanName.trim());
     }
     // Then add the salesmen not found in that day
     final salesmenDbCache = ref.read(salesmanDbCacheProvider.notifier).data;
-    final allSalemenNames = salesmenDbCache.map((salesman) => salesman['name']).toList();
+    final allSalemenNames =
+        salesmenDbCache.map((salesman) => salesman['name']).toList();
     for (var salesmanName in allSalemenNames) {
       uniqueSalesmanNames.add(salesmanName);
     }
@@ -131,7 +136,7 @@ class SalesPoints extends ConsumerWidget {
       salesmenTasks[name] = []; // Initialize each key with an empty list
     }
     for (var salesPoint in salesPoints) {
-      String salesmanName = salesPoint['salesmanName'] as String;
+      String salesmanName = salesPoint['salesmanName'].trim() as String;
       salesmenTasks[salesmanName]?.add(salesPoint);
     }
 
@@ -142,8 +147,10 @@ class SalesPoints extends ConsumerWidget {
       // Sort customers by the 'region' property
       tasks.sort((a, b) {
         // --- Primary Sort: visitDate (DateTime?, nulls last) ---
-        final DateTime? visitDateA = a['visitDate']?.toDate(); // Get visitDate or null
-        final DateTime? visitDateB = b['visitDate']?.toDate(); // Get visitDate or null
+        final DateTime? visitDateA =
+            a['visitDate']?.toDate(); // Get visitDate or null
+        final DateTime? visitDateB =
+            b['visitDate']?.toDate(); // Get visitDate or null
 
         int dateComparison;
         if (visitDateA == null && visitDateB == null) {
@@ -171,9 +178,11 @@ class SalesPoints extends ConsumerWidget {
         final regionB = b['region'];
 
         // Use the exact null-handling logic from your original snippet for 'region'
-        if (regionA == null && regionB == null) return 0; // Both are null, equal
+        if (regionA == null && regionB == null)
+          return 0; // Both are null, equal
         if (regionA == null) return 1; // Null regionA is considered greater
-        if (regionB == null) return -1; // Non-null regionA comes before null regionB
+        if (regionB == null)
+          return -1; // Non-null regionA comes before null regionB
 
         // Assuming non-null regions are Comparable (like String)
         // Use compareTo as in the original snippet
@@ -202,7 +211,9 @@ class SalesPoints extends ConsumerWidget {
                           .read(salesmanDbCacheProvider.notifier)
                           .getItemByProperty('name', salesmanName);
                       final selectedCustomerNames =
-                          await _showMultiSelectDialog(context, ref, salesmanName) ?? [];
+                          await _showMultiSelectDialog(
+                                  context, ref, salesmanName) ??
+                              [];
                       for (var customerName in selectedCustomerNames) {
                         if (tasksCustomerNames.contains(customerName)) {
                           // if name already exists (it is surely same dates no need to check it), pass it
@@ -228,10 +239,13 @@ class SalesPoints extends ConsumerWidget {
                           null,
                         );
                         final newSalesPointMap = newSalesPoint.toMap();
-                        newSalesPointMap['date'] = Timestamp.fromDate(newSalesPointMap['date']);
+                        newSalesPointMap['date'] =
+                            Timestamp.fromDate(newSalesPointMap['date']);
                         dailyTasks['tasks'].add(newSalesPointMap);
                         final dailyTasksObject = WeeklyTask.fromMap(dailyTasks);
-                        ref.read(weeklyTasksRepositoryProvider).updateItem(dailyTasksObject);
+                        ref
+                            .read(weeklyTasksRepositoryProvider)
+                            .updateItem(dailyTasksObject);
                       }
                     },
                   ),
@@ -241,7 +255,8 @@ class SalesPoints extends ConsumerWidget {
                   padding: const EdgeInsets.all(5),
                   child: Text(
                     salesmanName, // The name as title
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -264,9 +279,11 @@ class SalesPoints extends ConsumerWidget {
                     Container(
                       width: 140,
                       height: 80,
-                      padding: const EdgeInsets.only(top: 20, bottom: 10, left: 10, right: 10),
+                      padding: const EdgeInsets.only(
+                          top: 20, bottom: 10, left: 10, right: 10),
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(8)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(8)),
                         color: Colors.blueGrey[100],
                       ),
                       child: Column(
@@ -288,9 +305,10 @@ class SalesPoints extends ConsumerWidget {
                           height: 22,
                           child: TextButton(
                             onPressed: () {
-                              const mapEquality = MapEquality<String, dynamic>();
-                              dailyTasks['tasks']
-                                  .removeWhere((item) => mapEquality.equals(item, task));
+                              const mapEquality =
+                                  MapEquality<String, dynamic>();
+                              dailyTasks['tasks'].removeWhere(
+                                  (item) => mapEquality.equals(item, task));
                               ref
                                   .read(weeklyTasksRepositoryProvider)
                                   .updateItem(WeeklyTask.fromMap(dailyTasks));
@@ -324,12 +342,14 @@ Future<List<String>?> _showMultiSelectDialog(
       customerDbCache.map((customer) => customer['name'] as String).toList();
 
   final regionDbCache = ref.read(regionDbCacheProvider.notifier).data;
-  List<String> regionNames = regionDbCache.map((region) => region['name'] as String).toList();
+  List<String> regionNames =
+      regionDbCache.map((region) => region['name'] as String).toList();
 
   final selectedValues = showDialog<List<String>?>(
     context: context,
     builder: (BuildContext context) {
-      List<String> selectedCustomerNames = []; // to store customers selection from both dropdowns
+      List<String> selectedCustomerNames =
+          []; // to store customers selection from both dropdowns
       List<String> selectedRegions = [];
       return Dialog(
         child: Container(
@@ -338,14 +358,17 @@ Future<List<String>?> _showMultiSelectDialog(
           height: 800,
           child: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min, // Use min size to avoid unnecessary height
+              mainAxisSize:
+                  MainAxisSize.min, // Use min size to avoid unnecessary height
 
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 10, bottom: 40, left: 25.0, right: 25.0),
+                  padding: const EdgeInsets.only(
+                      top: 10, bottom: 40, left: 25.0, right: 25.0),
                   child: Text(
                     salesmanName,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
 
@@ -363,7 +386,8 @@ Future<List<String>?> _showMultiSelectDialog(
                     style: TextStyle(color: Colors.black26, fontSize: 15),
                   ),
                   items: customerNames
-                      .map((String value) => MultiSelectItem<String>(value, value))
+                      .map((String value) =>
+                          MultiSelectItem<String>(value, value))
                       .toList(),
                   onConfirm: (List<String> newCustomerNames) {
                     for (var newName in newCustomerNames) {
@@ -395,18 +419,21 @@ Future<List<String>?> _showMultiSelectDialog(
                     style: TextStyle(color: Colors.black26, fontSize: 15),
                   ),
                   items: regionNames
-                      .map((String value) => MultiSelectItem<String>(value, value))
+                      .map((String value) =>
+                          MultiSelectItem<String>(value, value))
                       .toList(),
                   onConfirm: (List<String> selectedRegionNames) {
-                    selectedRegions = selectedRegionNames; // to reflect selected regions
+                    selectedRegions =
+                        selectedRegionNames; // to reflect selected regions
                     // convert regions to customer names, and then add it to selected names
                     // note that selected names is for both regions and customers
                     for (var regionName in selectedRegionNames) {
                       final regionCustomers = customerDbCache
                           .where((customer) => customer['region'] == regionName)
                           .toList();
-                      final regionCustomerNames =
-                          regionCustomers.map((customer) => customer['name'] as String).toList();
+                      final regionCustomerNames = regionCustomers
+                          .map((customer) => customer['name'] as String)
+                          .toList();
                       for (var customerName in regionCustomerNames) {
                         // to avoid duplicate customer names
                         if (!selectedCustomerNames.contains(customerName)) {
@@ -428,7 +455,8 @@ Future<List<String>?> _showMultiSelectDialog(
 
                 IconButton(
                   onPressed: () {
-                    Navigator.of(context).pop(selectedCustomerNames); // Return both selected values
+                    Navigator.of(context).pop(
+                        selectedCustomerNames); // Return both selected values
                   },
                   icon: const ApproveIcon(),
                 ),
@@ -471,7 +499,9 @@ class SimpleWeekdaySelector extends ConsumerWidget {
       // Distribute space nicely between the boxes
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(weekdays.length, (index) {
-        Color? bgColor = selectedIndex == (index + 1) ? Colors.orange[300] : Colors.orange[100];
+        Color? bgColor = selectedIndex == (index + 1)
+            ? Colors.orange[300]
+            : Colors.orange[100];
         return InkWell(
           // The function to call when tapped, passing the current index
           onTap: () => onWeekdayTap(index + 1),
@@ -482,7 +512,8 @@ class SimpleWeekdaySelector extends ConsumerWidget {
             height: 85,
             margin: const EdgeInsets.all(5),
             // Internal padding for the box content
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             decoration: BoxDecoration(
               // A simple background color for the box
               color: bgColor,
