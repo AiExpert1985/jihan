@@ -178,11 +178,13 @@ class SalesPoints extends ConsumerWidget {
         final regionB = b['region'];
 
         // Use the exact null-handling logic from your original snippet for 'region'
-        if (regionA == null && regionB == null)
+        if (regionA == null && regionB == null) {
           return 0; // Both are null, equal
+        }
         if (regionA == null) return 1; // Null regionA is considered greater
-        if (regionB == null)
+        if (regionB == null) {
           return -1; // Non-null regionA comes before null regionB
+        }
 
         // Assuming non-null regions are Comparable (like String)
         // Use compareTo as in the original snippet
