@@ -24,6 +24,7 @@ import 'package:tablets/src/features/transactions/controllers/transaction_screen
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_controller.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/invoice_validation_controller.dart';
+import 'package:tablets/src/features/transactions/controllers/missing_transactions_detector.dart';
 
 class MainDrawer extends ConsumerWidget {
   const MainDrawer({super.key});
@@ -584,6 +585,8 @@ class SettingsDialog extends ConsumerWidget {
             const BackupButton(),
             const SizedBox(height: 20),
             const InvoiceValidationButton(),
+            const SizedBox(height: 20),
+            const MissingTransactionsDetectionButton(),
           ],
         ),
       ),
@@ -735,6 +738,144 @@ class _InvoiceValidationButtonState extends ConsumerState<InvoiceValidationButto
         ),
       ),
     );
+  }
+}
+
+class MissingTransactionsDetectionButton extends ConsumerStatefulWidget {
+  const MissingTransactionsDetectionButton({super.key});
+
+  @override
+  ConsumerState<MissingTransactionsDetectionButton> createState() =>
+      _MissingTransactionsDetectionButtonState();
+}
+
+class _MissingTransactionsDetectionButtonState
+    extends ConsumerState<MissingTransactionsDetectionButton> {
+  bool _isDetecting = false;
+  bool _shouldCancel = false;
+  int _currentProgress = 0;
+  int _totalProgress = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 125,
+      child: InkWell(
+        onTap: _isDetecting ? null : _startDetection,
+        child: Card(
+          elevation: 4,
+          margin: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 40,
+            child: Center(
+              child: _isDetecting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'مطابقة القوائم مع النسخة الاحتياطية',
+                      style: TextStyle(fontSize: 18),
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _startDetection() async {
+    setState(() {
+      _isDetecting = true;
+      _shouldCancel = false;
+      _currentProgress = 0;
+      _totalProgress = 0;
+    });
+
+    // Show cancellable dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('جاري فحص القوائم المفقودة...'),
+              SizedBox(height: 8),
+              Text(
+                'يرجى الانتظار',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _shouldCancel = true;
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('إلغاء'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    try {
+      final success = await detectMissingTransactions(
+        context,
+        ref,
+        (current, total) {
+          if (mounted) {
+            setState(() {
+              _currentProgress = current;
+              _totalProgress = total;
+            });
+          }
+        },
+        () => _shouldCancel,
+      );
+
+      if (mounted) {
+        // Close progress dialog
+        Navigator.of(context).pop();
+
+        setState(() {
+          _isDetecting = false;
+        });
+
+        if (success) {
+          // Check if there are any missing transactions
+          final missingTransactions =
+              ref.read(missingTransactionsProvider);
+
+          if (missingTransactions.isEmpty) {
+            // Show success message
+            successUserMessage(context, 'لا توجد قوائم مفقودة');
+          } else {
+            // Navigate to results screen
+            if (context.mounted) {
+              Navigator.of(context).pop(); // Close settings dialog
+              context.goNamed(AppRoute.missingTransactionsResults.name);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Close progress dialog
+        setState(() {
+          _isDetecting = false;
+        });
+        if (context.mounted) {
+          failureUserMessage(context, 'خطأ في الفحص: $e');
+        }
+      }
+    }
   }
 }
 
