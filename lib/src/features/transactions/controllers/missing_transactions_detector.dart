@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/model/missing_transaction.dart';
@@ -290,7 +291,7 @@ Future<bool> detectMissingTransactionsMultiple(
       }
 
       final filePath = sortedFilePaths[fileIndex];
-      final filename = filePath.split('/').last; // Extract filename from path
+      final filename = path.basename(filePath); // Extract filename from path
 
       // Update progress
       onProgress(fileIndex + 1, sortedFilePaths.length, filename);
