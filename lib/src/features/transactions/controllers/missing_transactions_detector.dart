@@ -66,9 +66,8 @@ Future<bool> detectMissingTransactions(
       return false;
     }
 
-    // Store backup filename
+    // Get backup filename
     final filename = result.files.single.name;
-    ref.read(backupFilenameProvider.notifier).state = filename;
 
     // Step 2: Extract ZIP file
     File zipFile = File(filePath);
@@ -303,7 +302,6 @@ Future<bool> detectMissingTransactionsMultiple(
       onProgress(fileIndex + 1, sortedFilePaths.length, filename);
 
       int fileMissingCount = 0;
-      bool fileCorrupted = false;
 
       try {
         // Extract ZIP file
@@ -313,7 +311,6 @@ Future<bool> detectMissingTransactionsMultiple(
         try {
           bytes = await zipFile.readAsBytes();
         } catch (e) {
-          fileCorrupted = true;
           fileStats.add(FileProcessingResult(
             filename: filename,
             missingCount: 0,
@@ -326,7 +323,6 @@ Future<bool> detectMissingTransactionsMultiple(
         try {
           archive = ZipDecoder().decodeBytes(bytes);
         } catch (e) {
-          fileCorrupted = true;
           fileStats.add(FileProcessingResult(
             filename: filename,
             missingCount: 0,
@@ -345,7 +341,6 @@ Future<bool> detectMissingTransactionsMultiple(
         }
 
         if (transactionsFile == null) {
-          fileCorrupted = true;
           fileStats.add(FileProcessingResult(
             filename: filename,
             missingCount: 0,
@@ -359,7 +354,6 @@ Future<bool> detectMissingTransactionsMultiple(
         try {
           jsonContent = utf8.decode(transactionsFile.content as List<int>);
         } catch (e) {
-          fileCorrupted = true;
           fileStats.add(FileProcessingResult(
             filename: filename,
             missingCount: 0,
@@ -369,7 +363,6 @@ Future<bool> detectMissingTransactionsMultiple(
         }
 
         if (jsonContent.trim().isEmpty) {
-          fileCorrupted = true;
           fileStats.add(FileProcessingResult(
             filename: filename,
             missingCount: 0,
@@ -382,7 +375,6 @@ Future<bool> detectMissingTransactionsMultiple(
         try {
           backupTransactions = json.decode(jsonContent) as List<dynamic>;
         } catch (e) {
-          fileCorrupted = true;
           fileStats.add(FileProcessingResult(
             filename: filename,
             missingCount: 0,
@@ -392,7 +384,6 @@ Future<bool> detectMissingTransactionsMultiple(
         }
 
         if (backupTransactions.isEmpty) {
-          fileCorrupted = true;
           fileStats.add(FileProcessingResult(
             filename: filename,
             missingCount: 0,

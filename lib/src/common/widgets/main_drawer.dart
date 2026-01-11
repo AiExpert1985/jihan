@@ -879,7 +879,7 @@ class _MissingTransactionsDetectionButtonState
         () => _shouldCancel,
       );
 
-      if (mounted) {
+      if (mounted && context.mounted) {
         // Close progress dialog
         Navigator.of(context).pop();
 
@@ -889,21 +889,17 @@ class _MissingTransactionsDetectionButtonState
 
         if (success) {
           // Always navigate to results screen
-          if (context.mounted) {
-            Navigator.of(context).pop(); // Close settings dialog
-            context.goNamed(AppRoute.missingTransactionsResults.name);
-          }
+          Navigator.of(context).pop(); // Close settings dialog
+          context.goNamed(AppRoute.missingTransactionsResults.name);
         }
       }
     } catch (e) {
-      if (mounted) {
+      if (mounted && context.mounted) {
         Navigator.of(context).pop(); // Close progress dialog
         setState(() {
           _isDetecting = false;
         });
-        if (context.mounted) {
-          failureUserMessage(context, 'خطأ في الفحص: $e');
-        }
+        failureUserMessage(context, 'خطأ في الفحص: $e');
       }
     }
   }
