@@ -5,6 +5,7 @@ class MissingTransaction {
   final String transactionType;
   final String date;
   final double totalAmount;
+  final String backupDate; // Formatted date from backup filename (DD/MM/YYYY)
 
   MissingTransaction({
     required this.customerName,
@@ -12,5 +13,19 @@ class MissingTransaction {
     required this.transactionType,
     required this.date,
     required this.totalAmount,
+    required this.backupDate,
+  });
+}
+
+// Model for file processing result
+class FileProcessingResult {
+  final String filename; // Full filename: "tablets_backup_20260110.zip"
+  final int missingCount; // Number of missing transactions found, or 0 if corrupted
+  final bool isCorrupted;
+
+  FileProcessingResult({
+    required this.filename,
+    required this.missingCount,
+    required this.isCorrupted,
   });
 }

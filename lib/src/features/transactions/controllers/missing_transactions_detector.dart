@@ -15,8 +15,28 @@ import 'package:tablets/src/features/transactions/repository/transaction_db_cach
 final missingTransactionsProvider =
     StateProvider<List<MissingTransaction>>((ref) => []);
 
-// Provider to store backup filename
-final backupFilenameProvider = StateProvider<String>((ref) => '');
+// Provider to store file processing stats
+final fileProcessingStatsProvider =
+    StateProvider<List<FileProcessingResult>>((ref) => []);
+
+/// Extracts date from backup filename and formats it as DD/MM/YYYY
+/// Input: "tablets_backup_20260110.zip"
+/// Output: "10/01/2026"
+String extractAndFormatBackupDate(String filename) {
+  // Remove "tablets_backup_" prefix and ".zip" suffix
+  String dateStr = filename.replaceAll('tablets_backup_', '').replaceAll('.zip', '');
+
+  // dateStr should be "20260110" (YYYYMMDD)
+  if (dateStr.length == 8) {
+    String year = dateStr.substring(0, 4);
+    String month = dateStr.substring(4, 6);
+    String day = dateStr.substring(6, 8);
+    return '$day/$month/$year'; // DD/MM/YYYY
+  }
+
+  // Fallback: return as-is if format doesn't match
+  return dateStr;
+}
 
 /// Detects missing transactions by comparing backup file with current database
 /// Returns true if successful, false if user cancelled or error occurred
@@ -208,6 +228,7 @@ Future<bool> detectMissingTransactions(
           transactionType: transactionType,
           date: dateString,
           totalAmount: totalAmount,
+          backupDate: extractAndFormatBackupDate(filename),
         ));
       }
     }
@@ -217,6 +238,250 @@ Future<bool> detectMissingTransactions(
 
     // Store results
     ref.read(missingTransactionsProvider.notifier).state = missingTransactions;
+
+    return true;
+  } catch (e) {
+    if (context.mounted) {
+      failureUserMessage(context, 'خطأ غير متوقع: $e');
+    }
+    return false;
+  }
+}
+
+/// Detects missing transactions by comparing multiple backup files with current database
+/// Processes files sequentially from oldest to newest
+/// Returns true if successful (even if no missing transactions found)
+Future<bool> detectMissingTransactionsMultiple(
+  BuildContext context,
+  WidgetRef ref,
+  List<String> filePaths,
+  Function(int currentFile, int totalFiles, String currentFilename) onProgress,
+  bool Function() shouldCancel,
+) async {
+  try {
+    // Sort files alphabetically (works for chronological order with YYYYMMDD format)
+    final sortedFilePaths = List<String>.from(filePaths)..sort();
+
+    // Get current and deleted transactions
+    final currentTransactions = ref.read(transactionDbCacheProvider);
+    final deletedTransactions = ref.read(deletedTransactionDbCacheProvider);
+
+    // Build Sets of dbRefs for O(1) lookup
+    final currentDbRefs = <String>{};
+    for (final transaction in currentTransactions) {
+      final dbRef = transaction['dbRef'];
+      if (dbRef != null) {
+        currentDbRefs.add(dbRef.toString());
+      }
+    }
+
+    final deletedDbRefs = <String>{};
+    for (final transaction in deletedTransactions) {
+      final dbRef = transaction['dbRef'];
+      if (dbRef != null) {
+        deletedDbRefs.add(dbRef.toString());
+      }
+    }
+
+    // Track found missing transactions by dbRef for deduplication
+    final foundMissingDbRefs = <String>{};
+    final missingTransactions = <MissingTransaction>[];
+    final fileStats = <FileProcessingResult>[];
+    final dateFormat = DateFormat('dd/MM/yyyy');
+
+    // Process each file
+    for (int fileIndex = 0; fileIndex < sortedFilePaths.length; fileIndex++) {
+      // Check if should cancel
+      if (shouldCancel()) {
+        break;
+      }
+
+      final filePath = sortedFilePaths[fileIndex];
+      final filename = filePath.split('/').last; // Extract filename from path
+
+      // Update progress
+      onProgress(fileIndex + 1, sortedFilePaths.length, filename);
+
+      int fileMissingCount = 0;
+      bool fileCorrupted = false;
+
+      try {
+        // Extract ZIP file
+        File zipFile = File(filePath);
+        List<int> bytes;
+
+        try {
+          bytes = await zipFile.readAsBytes();
+        } catch (e) {
+          fileCorrupted = true;
+          fileStats.add(FileProcessingResult(
+            filename: filename,
+            missingCount: 0,
+            isCorrupted: true,
+          ));
+          continue; // Skip to next file
+        }
+
+        Archive? archive;
+        try {
+          archive = ZipDecoder().decodeBytes(bytes);
+        } catch (e) {
+          fileCorrupted = true;
+          fileStats.add(FileProcessingResult(
+            filename: filename,
+            missingCount: 0,
+            isCorrupted: true,
+          ));
+          continue; // Skip to next file
+        }
+
+        // Find "التعاملات.json" file in archive
+        ArchiveFile? transactionsFile;
+        for (final file in archive) {
+          if (file.name == 'التعاملات.json') {
+            transactionsFile = file;
+            break;
+          }
+        }
+
+        if (transactionsFile == null) {
+          fileCorrupted = true;
+          fileStats.add(FileProcessingResult(
+            filename: filename,
+            missingCount: 0,
+            isCorrupted: true,
+          ));
+          continue; // Skip to next file
+        }
+
+        // Parse JSON
+        String jsonContent;
+        try {
+          jsonContent = utf8.decode(transactionsFile.content as List<int>);
+        } catch (e) {
+          fileCorrupted = true;
+          fileStats.add(FileProcessingResult(
+            filename: filename,
+            missingCount: 0,
+            isCorrupted: true,
+          ));
+          continue; // Skip to next file
+        }
+
+        if (jsonContent.trim().isEmpty) {
+          fileCorrupted = true;
+          fileStats.add(FileProcessingResult(
+            filename: filename,
+            missingCount: 0,
+            isCorrupted: true,
+          ));
+          continue; // Skip to next file
+        }
+
+        List<dynamic> backupTransactions;
+        try {
+          backupTransactions = json.decode(jsonContent) as List<dynamic>;
+        } catch (e) {
+          fileCorrupted = true;
+          fileStats.add(FileProcessingResult(
+            filename: filename,
+            missingCount: 0,
+            isCorrupted: true,
+          ));
+          continue; // Skip to next file
+        }
+
+        if (backupTransactions.isEmpty) {
+          fileCorrupted = true;
+          fileStats.add(FileProcessingResult(
+            filename: filename,
+            missingCount: 0,
+            isCorrupted: true,
+          ));
+          continue; // Skip to next file
+        }
+
+        // Compare and find missing transactions
+        for (final backupTransaction in backupTransactions) {
+          if (backupTransaction is! Map<String, dynamic>) continue;
+
+          final dbRef = backupTransaction['dbRef'];
+          if (dbRef == null) continue;
+
+          final dbRefString = dbRef.toString();
+
+          // Check if already found in previous files (optimization)
+          if (foundMissingDbRefs.contains(dbRefString)) {
+            continue;
+          }
+
+          // Check if transaction exists in current OR deleted
+          if (!currentDbRefs.contains(dbRefString) &&
+              !deletedDbRefs.contains(dbRefString)) {
+            // Transaction is missing!
+            final customerName = backupTransaction['name']?.toString() ?? '';
+            final transactionNumber = backupTransaction['number'] is int
+                ? backupTransaction['number'] as int
+                : (backupTransaction['number']?.toInt() ?? 0);
+            final transactionType =
+                backupTransaction['transactionType']?.toString() ?? '';
+
+            // Parse date
+            String dateString = '';
+            try {
+              final dateValue = backupTransaction['date'];
+              if (dateValue is String) {
+                final parsedDate = DateTime.tryParse(dateValue);
+                if (parsedDate != null) {
+                  dateString = dateFormat.format(parsedDate);
+                } else {
+                  dateString = dateValue;
+                }
+              } else {
+                dateString = dateValue?.toString() ?? '';
+              }
+            } catch (e) {
+              dateString = backupTransaction['date']?.toString() ?? '';
+            }
+
+            final totalAmount = backupTransaction['totalAmount'] is double
+                ? backupTransaction['totalAmount'] as double
+                : (backupTransaction['totalAmount']?.toDouble() ?? 0.0);
+
+            missingTransactions.add(MissingTransaction(
+              customerName: customerName,
+              transactionNumber: transactionNumber,
+              transactionType: transactionType,
+              date: dateString,
+              totalAmount: totalAmount,
+              backupDate: extractAndFormatBackupDate(filename),
+            ));
+
+            // Mark as found to avoid duplicates
+            foundMissingDbRefs.add(dbRefString);
+            fileMissingCount++;
+          }
+        }
+
+        // Add file stats
+        fileStats.add(FileProcessingResult(
+          filename: filename,
+          missingCount: fileMissingCount,
+          isCorrupted: false,
+        ));
+      } catch (e) {
+        // Error processing this file, mark as corrupted
+        fileStats.add(FileProcessingResult(
+          filename: filename,
+          missingCount: 0,
+          isCorrupted: true,
+        ));
+      }
+    }
+
+    // Store results
+    ref.read(missingTransactionsProvider.notifier).state = missingTransactions;
+    ref.read(fileProcessingStatsProvider.notifier).state = fileStats;
 
     return true;
   } catch (e) {

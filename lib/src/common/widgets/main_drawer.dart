@@ -753,8 +753,9 @@ class _MissingTransactionsDetectionButtonState
     extends ConsumerState<MissingTransactionsDetectionButton> {
   bool _isDetecting = false;
   bool _shouldCancel = false;
-  int _currentProgress = 0;
-  int _totalProgress = 0;
+  int _currentFile = 0;
+  int _totalFiles = 0;
+  String _currentFilename = '';
 
   @override
   Widget build(BuildContext context) {
@@ -786,29 +787,65 @@ class _MissingTransactionsDetectionButtonState
   }
 
   Future<void> _startDetection() async {
+    // Pick multiple backup files
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+      allowMultiple: true,
+    );
+
+    if (result == null || result.files.isEmpty) {
+      // User cancelled
+      return;
+    }
+
+    // Check file limit
+    if (result.files.length > 40) {
+      if (mounted) {
+        failureUserMessage(
+            context, 'خطأ: يمكن اختيار 40 ملف كحد أقصى. تم اختيار ${result.files.length} ملف');
+      }
+      return;
+    }
+
+    // Get file paths
+    final filePaths = result.files
+        .where((file) => file.path != null)
+        .map((file) => file.path!)
+        .toList();
+
+    if (filePaths.isEmpty) {
+      if (mounted) {
+        failureUserMessage(context, 'خطأ: لا يمكن الوصول إلى الملفات');
+      }
+      return;
+    }
+
     setState(() {
       _isDetecting = true;
       _shouldCancel = false;
-      _currentProgress = 0;
-      _totalProgress = 0;
+      _currentFile = 0;
+      _totalFiles = filePaths.length;
+      _currentFilename = '';
     });
 
-    // Show cancellable dialog
+    // Show cancellable progress dialog
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
-          content: const Column(
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('جاري فحص القوائم المفقودة...'),
-              SizedBox(height: 8),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text('معالجة الملف $_currentFile من $_totalFiles'),
+              const SizedBox(height: 8),
               Text(
-                'يرجى الانتظار',
-                style: TextStyle(fontSize: 12),
+                _currentFilename,
+                style: const TextStyle(fontSize: 12),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -826,14 +863,16 @@ class _MissingTransactionsDetectionButtonState
     }
 
     try {
-      final success = await detectMissingTransactions(
+      final success = await detectMissingTransactionsMultiple(
         context,
         ref,
-        (current, total) {
+        filePaths,
+        (currentFile, totalFiles, currentFilename) {
           if (mounted) {
             setState(() {
-              _currentProgress = current;
-              _totalProgress = total;
+              _currentFile = currentFile;
+              _totalFiles = totalFiles;
+              _currentFilename = currentFilename;
             });
           }
         },
@@ -849,19 +888,10 @@ class _MissingTransactionsDetectionButtonState
         });
 
         if (success) {
-          // Check if there are any missing transactions
-          final missingTransactions =
-              ref.read(missingTransactionsProvider);
-
-          if (missingTransactions.isEmpty) {
-            // Show success message
-            successUserMessage(context, 'لا توجد قوائم مفقودة');
-          } else {
-            // Navigate to results screen
-            if (context.mounted) {
-              Navigator.of(context).pop(); // Close settings dialog
-              context.goNamed(AppRoute.missingTransactionsResults.name);
-            }
+          // Always navigate to results screen
+          if (context.mounted) {
+            Navigator.of(context).pop(); // Close settings dialog
+            context.goNamed(AppRoute.missingTransactionsResults.name);
           }
         }
       }

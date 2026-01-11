@@ -13,7 +13,7 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final missingTransactions = ref.watch(missingTransactionsProvider);
-    final backupFilename = ref.watch(backupFilenameProvider);
+    final fileStats = ref.watch(fileProcessingStatsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,8 +45,34 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
             ),
             VerticalGap.l,
 
-            // Results
-            if (missingTransactions.isEmpty)
+            // Check if all files are corrupted
+            if (fileStats.isNotEmpty &&
+                fileStats.every((stat) => stat.isCorrupted))
+              Expanded(
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red),
+                    ),
+                    child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.error, size: 64, color: Colors.red),
+                        VerticalGap.l,
+                        Text(
+                          'جميع الملفات غير صالحة',
+                          style: TextStyle(fontSize: 20, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            // Results: no missing transactions
+            else if (missingTransactions.isEmpty)
               Expanded(
                 child: Center(
                   child: Container(
@@ -82,6 +108,7 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'عدد القوائم المفقودة: ${missingTransactions.length}',
@@ -90,13 +117,27 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'ملف النسخة الاحتياطية: $backupFilename',
-                            style: const TextStyle(
-                              fontSize: 14,
+                          if (fileStats.isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            const Text(
+                              'تفاصيل الملفات:',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            ...fileStats.map((stat) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    stat.isCorrupted
+                                        ? '- ${stat.filename}: ملف تالف'
+                                        : '- ${stat.filename}: ${stat.missingCount} قوائم مفقودة',
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                )),
+                          ],
                         ],
                       ),
                     ),
@@ -165,6 +206,11 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
               child: Text('المبلغ الإجمالي',
                   style: TextStyle(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child: Text('ملف النسخة',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center)),
         ],
       ),
     );
@@ -221,6 +267,14 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
               numberFormat.format(missing.totalAmount.round()),
               textAlign: TextAlign.center,
               style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(
+              missing.backupDate,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 11),
             ),
           ),
         ],
