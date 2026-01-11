@@ -100,7 +100,29 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
               Expanded(
                 child: Column(
                   children: [
-                    // Summary
+                    // Table header
+                    _buildTableHeader(),
+                    const Divider(thickness: 2),
+
+                    // Table data
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: missingTransactions.length,
+                        itemBuilder: (context, index) {
+                          final missing = missingTransactions[index];
+                          return Column(
+                            children: [
+                              _buildTableRow(context, missing, index + 1),
+                              const Divider(thickness: 0.5),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+
+                    VerticalGap.l,
+
+                    // Summary at bottom
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -132,34 +154,13 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
                                       const EdgeInsets.symmetric(vertical: 2),
                                   child: Text(
                                     stat.isCorrupted
-                                        ? '- ${stat.filename}: ملف تالف'
-                                        : '- ${stat.filename}: ${stat.missingCount} قوائم مفقودة',
+                                        ? '- ${extractAndFormatBackupDate(stat.filename)}: ملف تالف'
+                                        : '- ${extractAndFormatBackupDate(stat.filename)}: ${stat.missingCount} قوائم مفقودة',
                                     style: const TextStyle(fontSize: 14),
                                   ),
                                 )),
                           ],
                         ],
-                      ),
-                    ),
-                    VerticalGap.l,
-
-                    // Table header
-                    _buildTableHeader(),
-                    const Divider(thickness: 2),
-
-                    // Table data
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: missingTransactions.length,
-                        itemBuilder: (context, index) {
-                          final missing = missingTransactions[index];
-                          return Column(
-                            children: [
-                              _buildTableRow(context, missing, index + 1),
-                              const Divider(thickness: 0.5),
-                            ],
-                          );
-                        },
                       ),
                     ),
                   ],

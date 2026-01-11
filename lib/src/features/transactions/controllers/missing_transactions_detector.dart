@@ -18,23 +18,15 @@ final missingTransactionsProvider =
 final fileProcessingStatsProvider =
     StateProvider<List<FileProcessingResult>>((ref) => []);
 
-/// Extracts date from backup filename and formats it as DD/MM/YYYY
+/// Extracts date from backup filename (returns YYYYMMDD format)
 /// Input: "tablets_backup_20260110.zip"
-/// Output: "10/01/2026"
+/// Output: "20260110"
 String extractAndFormatBackupDate(String filename) {
   // Remove "tablets_backup_" prefix and ".zip" suffix
   String dateStr =
       filename.replaceAll('tablets_backup_', '').replaceAll('.zip', '');
 
-  // dateStr should be "20260110" (YYYYMMDD)
-  if (dateStr.length == 8) {
-    String year = dateStr.substring(0, 4);
-    String month = dateStr.substring(4, 6);
-    String day = dateStr.substring(6, 8);
-    return '$day/$month/$year'; // DD/MM/YYYY
-  }
-
-  // Fallback: return as-is if format doesn't match
+  // Return the date string as-is (YYYYMMDD format)
   return dateStr;
 }
 
@@ -440,6 +432,11 @@ Future<bool> detectMissingTransactionsMultiple(
             final totalAmount = backupTransaction['totalAmount'] is double
                 ? backupTransaction['totalAmount'] as double
                 : (backupTransaction['totalAmount']?.toDouble() ?? 0.0);
+
+            // Filter out transactions with empty customer name or zero amount
+            if (customerName.trim().isEmpty || totalAmount == 0) {
+              continue;
+            }
 
             missingTransactions.add(MissingTransaction(
               customerName: customerName,
