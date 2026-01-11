@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:tablets/src/common/functions/user_messages.dart';
-import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/transactions/model/missing_transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
@@ -24,7 +23,8 @@ final fileProcessingStatsProvider =
 /// Output: "10/01/2026"
 String extractAndFormatBackupDate(String filename) {
   // Remove "tablets_backup_" prefix and ".zip" suffix
-  String dateStr = filename.replaceAll('tablets_backup_', '').replaceAll('.zip', '');
+  String dateStr =
+      filename.replaceAll('tablets_backup_', '').replaceAll('.zip', '');
 
   // dateStr should be "20260110" (YYYYMMDD)
   if (dateStr.length == 8) {
@@ -116,7 +116,8 @@ Future<bool> detectMissingTransactions(
       jsonContent = utf8.decode(transactionsFile.content as List<int>);
     } catch (e) {
       if (context.mounted) {
-        failureUserMessage(context, 'خطأ: ملف التعاملات تالف أو بصيغة غير صحيحة');
+        failureUserMessage(
+            context, 'خطأ: ملف التعاملات تالف أو بصيغة غير صحيحة');
       }
       return false;
     }
@@ -133,7 +134,8 @@ Future<bool> detectMissingTransactions(
       backupTransactions = json.decode(jsonContent) as List<dynamic>;
     } catch (e) {
       if (context.mounted) {
-        failureUserMessage(context, 'خطأ: ملف التعاملات تالف أو بصيغة غير صحيحة');
+        failureUserMessage(
+            context, 'خطأ: ملف التعاملات تالف أو بصيغة غير صحيحة');
       }
       return false;
     }
