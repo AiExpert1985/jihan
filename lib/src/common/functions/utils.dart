@@ -324,6 +324,52 @@ List<Map<String, dynamic>> formatDateForJson(
   return modifiedList;
 }
 
+/// convert ALL Timestamp fields in a List<Map<String, dynamic>> to formatted date strings
+/// This is useful for backup where we want to ensure all timestamps are JSON-compatible
+/// Handles nested structures recursively
+List<Map<String, dynamic>> formatAllTimestampsForJson(
+    List<Map<String, dynamic>> data) {
+  List<Map<String, dynamic>> modifiedList = [];
+  for (var item in data) {
+    modifiedList.add(_convertTimestampsInMap(item));
+  }
+  return modifiedList;
+}
+
+/// Recursively convert all Timestamp fields to formatted date strings in a map
+Map<String, dynamic> _convertTimestampsInMap(Map<String, dynamic> map) {
+  Map<String, dynamic> result = {};
+  map.forEach((key, value) {
+    if (value is Timestamp) {
+      result[key] = formatDate(value.toDate());
+    } else if (value is Map) {
+      result[key] = _convertTimestampsInMap(value.cast<String, dynamic>());
+    } else if (value is List) {
+      result[key] = _convertTimestampsInList(value);
+    } else {
+      result[key] = value;
+    }
+  });
+  return result;
+}
+
+/// Recursively convert all Timestamp fields in a list
+List<dynamic> _convertTimestampsInList(List<dynamic> list) {
+  List<dynamic> result = [];
+  for (var item in list) {
+    if (item is Timestamp) {
+      result.add(formatDate(item.toDate()));
+    } else if (item is Map) {
+      result.add(_convertTimestampsInMap(item.cast<String, dynamic>()));
+    } else if (item is List) {
+      result.add(_convertTimestampsInList(item));
+    } else {
+      result.add(item);
+    }
+  }
+  return result;
+}
+
 /// create completely new copy of dbCache or any List<Map<String, dynamic>>
 List<Map<String, dynamic>> deepCopyDbCache(
     List<Map<String, dynamic>> original) {

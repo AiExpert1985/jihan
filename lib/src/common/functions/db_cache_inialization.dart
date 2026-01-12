@@ -24,6 +24,10 @@ import 'package:tablets/src/features/transactions/repository/transaction_reposit
 import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider.dart';
 import 'package:tablets/src/features/vendors/repository/vendor_repository_provider.dart';
 import 'package:tablets/src/common/providers/daily_reconciliation_service.dart';
+import 'package:tablets/src/features/daily_tasks/repo/weekly_tasks_db_cache_provider.dart';
+import 'package:tablets/src/features/daily_tasks/repo/weekly_tasks_repo.dart';
+import 'package:tablets/src/features/authentication/repository/accounts_db_cache_provider.dart';
+import 'package:tablets/src/features/authentication/repository/accounts_repository.dart';
 
 //! Important note
 //! setting the values in the dbCache is done only once for each feature
@@ -55,6 +59,8 @@ Future<void> resetDbCaches(BuildContext context, WidgetRef ref) async {
   ref.read(regionDbCacheProvider.notifier).reset();
   ref.read(deletedTransactionDbCacheProvider.notifier).reset();
   ref.read(pendingTransactionDbCacheProvider.notifier).reset();
+  ref.read(weeklyTasksDbCacheProvider.notifier).reset();
+  ref.read(accountsDbCacheProvider.notifier).reset();
   await initializeAllDbCaches(context, ref);
 }
 
@@ -88,6 +94,12 @@ Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   }
   if (context.mounted) {
     await initializePendingTransactionsDbCache(context, ref);
+  }
+  if (context.mounted) {
+    await _initializeWeeklyTasksDbCache(context, ref);
+  }
+  if (context.mounted) {
+    await _initializeAccountsDbCache(context, ref);
   }
 
   // Check and schedule daily reconciliation for screen cache
@@ -222,5 +234,31 @@ List<Map<String, dynamic>> getSettingsDbCacheData(WidgetRef ref) {
 
 List<Map<String, dynamic>> getDeletedTransactionsDbCacheData(WidgetRef ref) {
   final dbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
+  return dbCache.data;
+}
+
+Future<void> _initializeWeeklyTasksDbCache(BuildContext context, WidgetRef ref) async {
+  final dbCache = ref.read(weeklyTasksDbCacheProvider.notifier);
+  if (dbCache.data.isEmpty) {
+    final dbCacheData = await ref.read(weeklyTasksRepositoryProvider).fetchItemListAsMaps();
+    dbCache.set(dbCacheData);
+  }
+}
+
+Future<void> _initializeAccountsDbCache(BuildContext context, WidgetRef ref) async {
+  final dbCache = ref.read(accountsDbCacheProvider.notifier);
+  if (dbCache.data.isEmpty) {
+    final dbCacheData = await ref.read(accountsRepositoryProvider).fetchItemListAsMaps();
+    dbCache.set(dbCacheData);
+  }
+}
+
+List<Map<String, dynamic>> getWeeklyTasksDbCacheData(WidgetRef ref) {
+  final dbCache = ref.read(weeklyTasksDbCacheProvider.notifier);
+  return dbCache.data;
+}
+
+List<Map<String, dynamic>> getAccountsDbCacheData(WidgetRef ref) {
+  final dbCache = ref.read(accountsDbCacheProvider.notifier);
   return dbCache.data;
 }

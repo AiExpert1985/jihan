@@ -50,6 +50,9 @@ Future<List<List<Map<String, dynamic>>>> _getDataBaseMaps(
       formatDateForJson(getCustomersDbCacheData(ref), 'initialDate');
   final vendorsData =
       formatDateForJson(getVendorsDbCacheData(ref), 'initialDate');
+  final weeklyTasksData = formatAllTimestampsForJson(getWeeklyTasksDbCacheData(ref));
+  final deletedTransactionData = formatAllTimestampsForJson(getDeletedTransactionsDbCacheData(ref));
+  final accountsData = formatAllTimestampsForJson(getAccountsDbCacheData(ref));
   // final dailyBackupNotifier = ref.read(dailyDatabaseBackupNotifier.notifier);
   // final dailyBackupStatus = dailyBackupNotifier.state;
   if (context.mounted && !isAuto) {
@@ -65,6 +68,9 @@ Future<List<List<Map<String, dynamic>>>> _getDataBaseMaps(
     regionsData,
     categoriesData,
     settingsData,
+    weeklyTasksData,
+    deletedTransactionData,
+    accountsData,
   ];
   return dataBaseMaps;
 }
@@ -78,7 +84,10 @@ List<String> _getDataBaseNames(BuildContext context) {
     S.of(context).vendors,
     S.of(context).regions,
     S.of(context).categories,
-    S.of(context).settings
+    S.of(context).settings,
+    'المهام الاسبوعية',
+    S.of(context).deleted_transactions,
+    'الحسابات',
   ];
 }
 
