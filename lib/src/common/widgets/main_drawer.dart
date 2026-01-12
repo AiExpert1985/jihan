@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +25,7 @@ import 'package:tablets/src/features/transactions/controllers/transaction_screen
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_controller.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/invoice_validation_controller.dart';
+import 'package:tablets/src/features/transactions/controllers/missing_transactions_detector.dart';
 
 class MainDrawer extends ConsumerWidget {
   const MainDrawer({super.key});
@@ -584,6 +586,8 @@ class SettingsDialog extends ConsumerWidget {
             const BackupButton(),
             const SizedBox(height: 20),
             const InvoiceValidationButton(),
+            const SizedBox(height: 20),
+            const MissingTransactionsDetectionButton(),
           ],
         ),
       ),
@@ -670,10 +674,12 @@ class InvoiceValidationButton extends ConsumerStatefulWidget {
   const InvoiceValidationButton({super.key});
 
   @override
-  ConsumerState<InvoiceValidationButton> createState() => _InvoiceValidationButtonState();
+  ConsumerState<InvoiceValidationButton> createState() =>
+      _InvoiceValidationButtonState();
 }
 
-class _InvoiceValidationButtonState extends ConsumerState<InvoiceValidationButton> {
+class _InvoiceValidationButtonState
+    extends ConsumerState<InvoiceValidationButton> {
   bool _isValidating = false;
 
   @override
@@ -696,7 +702,8 @@ class _InvoiceValidationButtonState extends ConsumerState<InvoiceValidationButto
                       _isValidating = false;
                     });
 
-                    ref.read(invoiceValidationResultsProvider.notifier).state = mismatches;
+                    ref.read(invoiceValidationResultsProvider.notifier).state =
+                        mismatches;
 
                     if (context.mounted) {
                       Navigator.of(context).pop(); // Close the dialog
@@ -735,6 +742,170 @@ class _InvoiceValidationButtonState extends ConsumerState<InvoiceValidationButto
         ),
       ),
     );
+  }
+}
+
+class MissingTransactionsDetectionButton extends ConsumerStatefulWidget {
+  const MissingTransactionsDetectionButton({super.key});
+
+  @override
+  ConsumerState<MissingTransactionsDetectionButton> createState() =>
+      _MissingTransactionsDetectionButtonState();
+}
+
+class _MissingTransactionsDetectionButtonState
+    extends ConsumerState<MissingTransactionsDetectionButton> {
+  bool _isDetecting = false;
+  bool _shouldCancel = false;
+  int _currentFile = 0;
+  int _totalFiles = 0;
+  String _currentFilename = '';
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 125,
+      child: InkWell(
+        onTap: _isDetecting ? null : _startDetection,
+        child: Card(
+          elevation: 4,
+          margin: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 40,
+            child: Center(
+              child: _isDetecting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'مطابقة القوائم مع النسخة الاحتياطية',
+                      style: TextStyle(fontSize: 18),
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _startDetection() async {
+    // Pick multiple backup files
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+      allowMultiple: true,
+    );
+
+    if (result == null || result.files.isEmpty) {
+      // User cancelled
+      return;
+    }
+
+    // Check file limit
+    if (result.files.length > 400) {
+      if (mounted) {
+        failureUserMessage(context,
+            'خطأ: يمكن اختيار 400 ملف كحد أقصى. تم اختيار ${result.files.length} ملف');
+      }
+      return;
+    }
+
+    // Get file paths
+    final filePaths = result.files
+        .where((file) => file.path != null)
+        .map((file) => file.path!)
+        .toList();
+
+    if (filePaths.isEmpty) {
+      if (mounted) {
+        failureUserMessage(context, 'خطأ: لا يمكن الوصول إلى الملفات');
+      }
+      return;
+    }
+
+    setState(() {
+      _isDetecting = true;
+      _shouldCancel = false;
+      _currentFile = 0;
+      _totalFiles = filePaths.length;
+      _currentFilename = '';
+    });
+
+    // Show cancellable progress dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text('معالجة الملف $_currentFile من $_totalFiles'),
+              const SizedBox(height: 8),
+              Text(
+                _currentFilename,
+                style: const TextStyle(fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _shouldCancel = true;
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('إلغاء'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    try {
+      final success = await detectMissingTransactionsMultiple(
+        context,
+        ref,
+        filePaths,
+        (currentFile, totalFiles, currentFilename) {
+          if (mounted) {
+            setState(() {
+              _currentFile = currentFile;
+              _totalFiles = totalFiles;
+              _currentFilename = currentFilename;
+            });
+          }
+        },
+        () => _shouldCancel,
+      );
+
+      if (mounted && context.mounted) {
+        // Close progress dialog
+        Navigator.of(context).pop();
+
+        setState(() {
+          _isDetecting = false;
+        });
+
+        if (success) {
+          // Always navigate to results screen
+          Navigator.of(context).pop(); // Close settings dialog
+          context.goNamed(AppRoute.missingTransactionsResults.name);
+        }
+      }
+    } catch (e) {
+      if (mounted && context.mounted) {
+        Navigator.of(context).pop(); // Close progress dialog
+        setState(() {
+          _isDetecting = false;
+        });
+        failureUserMessage(context, 'خطأ في الفحص: $e');
+      }
+    }
   }
 }
 
