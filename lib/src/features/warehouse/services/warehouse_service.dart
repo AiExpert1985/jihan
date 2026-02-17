@@ -149,8 +149,11 @@ class WarehouseService {
 
   Future<WarehouseQueueItem?> getQueueItem(String invoiceId) async {
     try {
-      final doc =
-          await _firestore.collection(collectionName).doc(invoiceId).get();
+      final doc = await _firestore
+          .collection(collectionName)
+          .doc(invoiceId)
+          .get()
+          .timeout(const Duration(seconds: 5));
       if (!doc.exists) return null;
       return WarehouseQueueItem.fromMap(doc.data()!);
     } catch (e) {

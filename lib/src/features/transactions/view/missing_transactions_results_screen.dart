@@ -22,7 +22,7 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
         title: const Text('القوائم المفقودة'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.goNamed(AppRoute.settings.name),
+          onPressed: () => context.goNamed(AppRoute.printLog.name),
         ),
       ),
       body: Container(
@@ -118,15 +118,26 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
                               InkWell(
                                 onTap: () {
                                   final transactionData = Map<String, dynamic>.from(missing.fullTransactionData);
-                                  // Convert date from String (DD-MM-YYYY) to DateTime
+                                  // Provide default for imageUrls if missing (older print-log entries)
+                                  transactionData['imageUrls'] ??= <String>[];
+                                  // Convert date from String to DateTime
                                   if (transactionData['date'] is String) {
                                     final dateStr = transactionData['date'] as String;
-                                    final parts = dateStr.split('-');
-                                    transactionData['date'] = DateTime(
-                                      int.parse(parts[2]), // year
-                                      int.parse(parts[1]), // month
-                                      int.parse(parts[0]), // day
-                                    );
+                                    // Try ISO format first (e.g. 2024-01-13T13:02:46)
+                                    final parsed = DateTime.tryParse(dateStr);
+                                    if (parsed != null) {
+                                      transactionData['date'] = parsed;
+                                    } else {
+                                      // Fallback: DD-MM-YYYY format
+                                      final parts = dateStr.split('-');
+                                      if (parts.length == 3) {
+                                        transactionData['date'] = DateTime(
+                                          int.parse(parts[2]),
+                                          int.parse(parts[1]),
+                                          int.parse(parts[0]),
+                                        );
+                                      }
+                                    }
                                   }
                                   final transaction = Transaction.fromMap(transactionData);
                                   showReadOnlyTransaction(context, transaction);
@@ -252,6 +263,11 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
               child: Text('اخر نسخة ظهر فيها',
                   style: TextStyle(fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center)),
+          Expanded(
+              flex: 1,
+              child: Text('المصدر',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center)),
         ],
       ),
     );
@@ -324,6 +340,14 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
             flex: 1,
             child: Text(
               missing.backupDate,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 11),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(
+              missing.source == 'print-log' ? 'سجل الطباعة' : 'نسخة احتياطية',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 11),
             ),

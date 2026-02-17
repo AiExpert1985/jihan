@@ -10,6 +10,7 @@ import 'package:path/path.dart' as path;
 import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
+import 'package:tablets/src/features/print_log/print_log_service.dart';
 import 'package:tablets/src/features/transactions/model/missing_transaction.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
@@ -527,16 +528,26 @@ Future<bool> restoreMissingTransaction(
     // Prepare transaction data
     final transactionData = Map<String, dynamic>.from(missingTransaction.fullTransactionData);
 
-    // Convert date from String (DD-MM-YYYY) to DateTime
+    // Convert date from String to DateTime (handles ISO and DD-MM-YYYY)
     if (transactionData['date'] is String) {
       final dateStr = transactionData['date'] as String;
-      final parts = dateStr.split('-');
-      transactionData['date'] = DateTime(
-        int.parse(parts[2]), // year
-        int.parse(parts[1]), // month
-        int.parse(parts[0]), // day
-      );
+      final parsed = DateTime.tryParse(dateStr);
+      if (parsed != null) {
+        transactionData['date'] = parsed;
+      } else {
+        final parts = dateStr.split('-');
+        if (parts.length == 3) {
+          transactionData['date'] = DateTime(
+            int.parse(parts[2]),
+            int.parse(parts[1]),
+            int.parse(parts[0]),
+          );
+        }
+      }
     }
+
+    // Provide default for imageUrls if missing (older print-log entries)
+    transactionData['imageUrls'] ??= <String>[];
 
     // Create Transaction object
     final transaction = Transaction.fromMap(transactionData);
@@ -576,4 +587,94 @@ Future<bool> restoreMissingTransaction(
     }
     return false;
   }
+}
+
+/// Detects missing transactions from print log
+/// Compares print log dbRefs against current transactions and deleted transactions
+/// Returns list of MissingTransaction with source='print-log'
+List<MissingTransaction> detectMissingFromPrintLog(WidgetRef ref) {
+  final printLogService = ref.read(printLogServiceProvider);
+  final loggedEntries = printLogService.getLoggedEntriesByDbRef();
+
+  if (loggedEntries.isEmpty) return [];
+
+  final currentTransactions = ref.read(transactionDbCacheProvider);
+  final deletedTransactions = ref.read(deletedTransactionDbCacheProvider);
+
+  // Build Sets of dbRefs for O(1) lookup
+  final currentDbRefs = <String>{};
+  for (final transaction in currentTransactions) {
+    final dbRef = transaction['dbRef'];
+    if (dbRef != null) {
+      currentDbRefs.add(dbRef.toString());
+    }
+  }
+
+  final deletedDbRefs = <String>{};
+  for (final transaction in deletedTransactions) {
+    final dbRef = transaction['dbRef'];
+    if (dbRef != null) {
+      deletedDbRefs.add(dbRef.toString());
+    }
+  }
+
+  final missingTransactions = <MissingTransaction>[];
+  final dateFormat = DateFormat('dd/MM/yyyy');
+
+  for (final entry in loggedEntries.entries) {
+    final dbRefString = entry.key;
+    final logEntry = entry.value;
+
+    if (!currentDbRefs.contains(dbRefString) &&
+        !deletedDbRefs.contains(dbRefString)) {
+      // Transaction is missing!
+      final transactionData = logEntry.transaction;
+      final customerName = transactionData['name']?.toString() ?? '';
+      final transactionNumber = transactionData['number'] is int
+          ? transactionData['number'] as int
+          : (transactionData['number']?.toInt() ?? 0);
+      final transactionType =
+          transactionData['transactionType']?.toString() ?? '';
+
+      // Skip empty transactions
+      if (customerName.trim().isEmpty) continue;
+
+      // Parse date
+      String dateString = '';
+      try {
+        final dateValue = transactionData['date'];
+        if (dateValue is String) {
+          final parsedDate = DateTime.tryParse(dateValue);
+          if (parsedDate != null) {
+            dateString = dateFormat.format(parsedDate);
+          } else {
+            dateString = dateValue;
+          }
+        } else if (dateValue is DateTime) {
+          dateString = dateFormat.format(dateValue);
+        } else {
+          dateString = dateValue?.toString() ?? '';
+        }
+      } catch (e) {
+        dateString = transactionData['date']?.toString() ?? '';
+      }
+
+      final totalAmount = transactionData['totalAmount'] is double
+          ? transactionData['totalAmount'] as double
+          : (transactionData['totalAmount']?.toDouble() ?? 0.0);
+
+      missingTransactions.add(MissingTransaction(
+        customerName: customerName,
+        transactionNumber: transactionNumber,
+        transactionType: transactionType,
+        date: dateString,
+        totalAmount: totalAmount,
+        backupDate: DateFormat('dd/MM/yyyy').format(logEntry.printTime),
+        fullTransactionData: transactionData,
+        source: 'print-log',
+      ));
+    }
+  }
+
+  return missingTransactions;
 }

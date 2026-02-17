@@ -44,6 +44,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
 import 'package:tablets/src/features/warehouse/services/warehouse_service.dart';
 import 'package:tablets/src/features/counters/repository/counter_repository_provider.dart';
 import 'package:tablets/src/common/providers/screen_cache_update_service.dart';
+import 'package:tablets/src/features/print_log/print_log_service.dart';
 
 final Map<String, dynamic> transactionFormDimenssions = {
   TransactionType.customerInvoice.name: {'height': 1100, 'width': 900},
@@ -271,26 +272,23 @@ class TransactionForm extends ConsumerWidget {
         },
         icon: const PrintIcon(),
       ),
-      IconButton(
-        onPressed: () {
-          _onPrintPressed(context, ref, formDataNotifier, isLogoB: true);
-          // if not printed due to empty name, don't continue
-          if (!formDataNotifier.getProperty(isPrintedKey)) return;
-          formNavigation.isReadOnly = true;
-          // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
-          // TODO later I might change formNavigation to StateNotifier and watch it in this widget
-          final formData = formDataNotifier.data;
-          onNavigationPressed(formDataNotifier, context, ref,
-              formImagesNotifier, formNavigation,
-              targetTransactionData: formData);
-        },
-        icon: const PrintIconB(),
-      ),
+      // Print 2 button - hidden for now, may be re-enabled later
+      const Visibility(visible: false, child: IconButton(
+        onPressed: null,
+        icon: PrintIconB(),
+      )),
       if (transactionType == TransactionType.customerInvoice.name)
         IconButton(
-            onPressed: () {
-              _onSendToWarehousePressed(
+            onPressed: () async {
+              await _onSendToWarehousePressed(
                   context, ref, formDataNotifier, formImagesNotifier);
+              formNavigation.isReadOnly = true;
+              final formData = formDataNotifier.data;
+              if (context.mounted) {
+                onNavigationPressed(formDataNotifier, context, ref,
+                    formImagesNotifier, formNavigation,
+                    targetTransactionData: formData);
+              }
             },
             icon: const SendIcon()),
     ];
@@ -310,13 +308,26 @@ class TransactionForm extends ConsumerWidget {
     // database matches the printed transaction.
     // isPrinted must be set BEFORE saveTransaction to avoid race condition with subsequent saves
     formDataNotifier.updateProperties({isPrintedKey: true});
-    final success =
-        await saveTransaction(context, ref, formDataNotifier.data, true);
-    if (!success || !context.mounted) return;
+    // Add timeout to prevent app freezing if save hangs (e.g. unstable internet)
+    bool success;
+    try {
+      success = await saveTransaction(context, ref, formDataNotifier.data, true)
+          .timeout(const Duration(seconds: 15), onTimeout: () => false);
+    } catch (e) {
+      success = false;
+    }
+    if (!context.mounted) return;
+    if (!success) {
+      failureUserMessage(context, 'فشل حفظ التعامل قبل الطباعة');
+      return;
+    }
+    ref.read(printLogServiceProvider).logPrint(
+        {...formDataNotifier.data, 'imageUrls': ref.read(imagePickerProvider)},
+        'local');
     printForm(context, ref, formDataNotifier.data, isLogoB: isLogoB);
   }
 
-  void _onSendToWarehousePressed(
+  Future<void> _onSendToWarehousePressed(
       BuildContext context,
       WidgetRef ref,
       ItemFormData formDataNotifier,
@@ -336,6 +347,9 @@ class TransactionForm extends ConsumerWidget {
     final pdf = await getPdfFile(context, ref, formDataNotifier.data, image);
     if (!context.mounted) return;
 
+    ref.read(printLogServiceProvider).logPrint(
+        {...formDataNotifier.data, 'imageUrls': ref.read(imagePickerProvider)},
+        'warehouse');
     final warehouseService = ref.read(warehouseServiceProvider);
     if (context.mounted) {
       await warehouseService.sendToWarehouse(
@@ -426,8 +440,9 @@ class TransactionForm extends ConsumerWidget {
       final transactionDbCache = ref.read(transactionDbCacheProvider.notifier);
       final screenController = ref.read(transactionScreenControllerProvider);
 
-      // Check if this is the last transaction and decrement counter
-      await _decrementCounterIfLastTransaction(ref, formData);
+      // Decrement counter in background - not critical for transaction flow
+      // ignore: unawaited_futures
+      _decrementCounterIfLastTransaction(ref, formData);
 
       if (!context.mounted) return false;
       return await deleteTransaction(
@@ -648,8 +663,9 @@ class TransactionForm extends ConsumerWidget {
       screenController.setFeatureScreenData(context);
     }
 
-    // Update counter if transaction number is >= current counter
-    await _updateCounterIfNeeded(ref, formDataCopy);
+    // Update counter in background - not critical for transaction save
+    // ignore: unawaited_futures
+    _updateCounterIfNeeded(ref, formDataCopy);
 
     // PRE-CALCULATE affected entities synchronously while context is still valid
     final cacheUpdateService = ref.read(screenCacheUpdateServiceProvider);

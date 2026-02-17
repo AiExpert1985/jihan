@@ -45,10 +45,12 @@ Future<void> printForm(
     {bool isLogoB = false}) async {
   try {
     final settings = ref.read(settingsFormDataProvider.notifier);
-    final settingInvoiceCopies = settings.data['printedCustomerInvoices'];
-    final numCopies = transactionData['transactionType'].contains('Receipt') ||
-            transactionData['transactionType'].contains('expenditure')
-        ? 1
+    final settingInvoiceCopies = settings.data['printedCustomerInvoices'] ?? 1;
+    final settingReceiptCopies = settings.data['printedCustomerReceipts'] ?? 1;
+    final transactionType = transactionData['transactionType'] ?? '';
+    final numCopies = transactionType.contains('Receipt') ||
+            transactionType.contains('expenditure')
+        ? settingReceiptCopies
         : settingInvoiceCopies;
     final imagePath = isLogoB
         ? 'assets/images/invoice_logo_b.png'

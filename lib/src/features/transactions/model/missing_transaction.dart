@@ -7,6 +7,7 @@ class MissingTransaction {
   final double totalAmount;
   final String backupDate; // Formatted date from backup filename (DD/MM/YYYY)
   final Map<String, dynamic> fullTransactionData; // Complete transaction data from backup
+  final String source; // 'backup' or 'print-log'
 
   MissingTransaction({
     required this.customerName,
@@ -16,6 +17,7 @@ class MissingTransaction {
     required this.totalAmount,
     required this.backupDate,
     required this.fullTransactionData,
+    this.source = 'backup',
   });
 }
 
