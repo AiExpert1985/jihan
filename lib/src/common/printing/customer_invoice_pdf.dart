@@ -53,7 +53,7 @@ Future<Document> getCustomerInvoicePdf(BuildContext context, WidgetRef ref,
   final arabicFont = pw.Font.ttf(await rootBundle
       .load("assets/fonts/NotoSansArabic-VariableFont_wdth,wght.ttf"));
 
-  if (items.length <= 20) {
+  if (items.length <= 19) {
     pdf.addPage(pw.Page(
       margin: pw.EdgeInsets.zero,
       build: (pw.Context ctx) {
@@ -88,6 +88,7 @@ Future<Document> getCustomerInvoicePdf(BuildContext context, WidgetRef ref,
       },
     ));
   } else if (items.length <= 50) {
+    final splitAt = items.length < 25 ? items.length : 25;
     pdf.addPage(
       pw.Page(
         margin: pw.EdgeInsets.zero,
@@ -117,7 +118,7 @@ Future<Document> getCustomerInvoicePdf(BuildContext context, WidgetRef ref,
             printingDate,
             printingTime,
             0,
-            25,
+            splitAt,
             addTotals: false,
             includeImage: true,
           );
@@ -152,9 +153,9 @@ Future<Document> getCustomerInvoicePdf(BuildContext context, WidgetRef ref,
             itemsWeigt,
             printingDate,
             printingTime,
-            25,
+            splitAt,
             items.length,
-            startSequence: 26,
+            startSequence: splitAt + 1,
           );
         },
       ),

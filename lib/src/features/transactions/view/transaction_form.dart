@@ -267,9 +267,11 @@ class TransactionForm extends ConsumerWidget {
           // TODO navigation to self  is added only to layout rebuild because formNavigation is not stateNotifier
           // TODO later I might change formNavigation to StateNotifier and watch it in this widget
           final formData = formDataNotifier.data;
-          onNavigationPressed(formDataNotifier, context, ref,
-              formImagesNotifier, formNavigation,
-              targetTransactionData: formData);
+          if (context.mounted) {
+            onNavigationPressed(formDataNotifier, context, ref,
+                formImagesNotifier, formNavigation,
+                targetTransactionData: formData);
+          }
         },
         icon: const PrintIcon(),
       ),
@@ -325,7 +327,7 @@ class TransactionForm extends ConsumerWidget {
     ref.read(printLogServiceProvider).logPrint(
         {...formDataNotifier.data, 'imageUrls': ref.read(imagePickerProvider)},
         'local');
-    printForm(context, ref, formDataNotifier.data, isLogoB: isLogoB);
+    await printForm(context, ref, formDataNotifier.data, isLogoB: isLogoB);
   }
 
   Future<void> _onSendToWarehousePressed(
