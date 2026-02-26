@@ -22,6 +22,7 @@ import 'package:tablets/src/common/widgets/custome_appbar_for_back_return.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/form_frame.dart';
 import 'package:tablets/src/common/widgets/custom_icons.dart';
+import 'package:tablets/src/common/widgets/spinner_icon_button.dart';
 import 'package:tablets/src/common/widgets/form_title.dart';
 import 'package:tablets/src/features/deleted_transactions/model/deleted_transactions.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
@@ -257,9 +258,9 @@ class TransactionForm extends ConsumerWidget {
           },
           icon: const DeleteIcon(),
         ),
-      IconButton(
-        onPressed: () {
-          _onPrintPressed(context, ref, formDataNotifier);
+      SpinnerIconButton(
+        onPressed: () async {
+          await _onPrintPressed(context, ref, formDataNotifier);
           // if not printed due to empty name, don't continue
           if (!formDataNotifier.getProperty(isPrintedKey)) return;
           formNavigation.isReadOnly = true;
@@ -278,7 +279,7 @@ class TransactionForm extends ConsumerWidget {
         icon: PrintIconB(),
       )),
       if (transactionType == TransactionType.customerInvoice.name)
-        IconButton(
+        SpinnerIconButton(
             onPressed: () async {
               await _onSendToWarehousePressed(
                   context, ref, formDataNotifier, formImagesNotifier);
@@ -294,7 +295,7 @@ class TransactionForm extends ConsumerWidget {
     ];
   }
 
-  void _onPrintPressed(
+  Future<void> _onPrintPressed(
       BuildContext context, WidgetRef ref, ItemFormData formDataNotifier,
       {bool isLogoB = false}) async {
     if (formDataNotifier.data[nameKey] == '') {

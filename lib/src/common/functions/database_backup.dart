@@ -17,9 +17,13 @@ import 'package:tablets/src/features/authentication/model/user_account.dart';
 Future<void> backupDataBase(BuildContext context, WidgetRef ref,
     {bool isAuto = false}) async {
   final userInfo = ref.read(userInfoProvider);
+  final allowedPrivilages = [
+    UserPrivilage.admin.name,
+    UserPrivilage.accountant.name
+  ];
   if (userInfo == null ||
       !userInfo.hasAccess ||
-      userInfo.privilage != UserPrivilage.admin.name) {
+      !allowedPrivilages.contains(userInfo.privilage)) {
     // only admin (who has access) can make backup
     return;
   }
@@ -50,8 +54,10 @@ Future<List<List<Map<String, dynamic>>>> _getDataBaseMaps(
       formatDateForJson(getCustomersDbCacheData(ref), 'initialDate');
   final vendorsData =
       formatDateForJson(getVendorsDbCacheData(ref), 'initialDate');
-  final weeklyTasksData = formatAllTimestampsForJson(getWeeklyTasksDbCacheData(ref));
-  final deletedTransactionData = formatAllTimestampsForJson(getDeletedTransactionsDbCacheData(ref));
+  final weeklyTasksData =
+      formatAllTimestampsForJson(getWeeklyTasksDbCacheData(ref));
+  final deletedTransactionData =
+      formatAllTimestampsForJson(getDeletedTransactionsDbCacheData(ref));
   final accountsData = formatAllTimestampsForJson(getAccountsDbCacheData(ref));
   // final dailyBackupNotifier = ref.read(dailyDatabaseBackupNotifier.notifier);
   // final dailyBackupStatus = dailyBackupNotifier.state;

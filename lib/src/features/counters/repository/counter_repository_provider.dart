@@ -43,8 +43,7 @@ class CounterRepository {
       return nextNumber;
     } catch (e) {
       errorPrint('Error getting next number for $transactionType: $e');
-      // Fallback to timestamp-based number to avoid blocking
-      return DateTime.now().millisecondsSinceEpoch % 100000;
+      rethrow;
     }
   }
 
