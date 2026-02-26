@@ -36,6 +36,7 @@ import 'package:tablets/src/features/products/repository/product_db_cache_provid
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_drawer_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_form_controller.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_controller.dart';
+import 'package:tablets/src/features/pending_transactions/repository/pending_transaction_repository_provider.dart';
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_data_notifier.dart';
 import 'package:tablets/src/features/pending_transactions/repository/pending_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
@@ -319,6 +320,19 @@ class PendingTransactionsFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () async {
+            ref.read(pageIsLoadingNotifier.notifier).state = true;
+            final newData = await ref.read(pendingTransactionRepositoryProvider).fetchItemListAsMaps();
+            ref.read(pendingTransactionDbCacheProvider.notifier).set(newData);
+            if (context.mounted) {
+              ref.read(pendingTransactionScreenControllerProvider).setFeatureScreenData(context);
+            }
+            ref.read(pageIsLoadingNotifier.notifier).state = false;
+          },
+        ),
         SpeedDialChild(
           child: const Icon(Icons.search, color: Colors.white),
           backgroundColor: iconsColor,

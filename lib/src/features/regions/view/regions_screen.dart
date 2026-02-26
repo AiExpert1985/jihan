@@ -13,6 +13,7 @@ import 'package:tablets/src/features/regions/controllers/region_screen_controlle
 import 'package:tablets/src/features/regions/controllers/region_screen_data_notifier.dart';
 import 'package:tablets/src/features/regions/model/region.dart';
 import 'package:tablets/src/features/regions/repository/region_db_cache_provider.dart';
+import 'package:tablets/src/features/regions/repository/region_repository_provider.dart';
 import 'package:tablets/src/features/regions/view/region_form.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tablets/src/features/settings/repository/settings_db_cache_provider.dart';
@@ -125,6 +126,19 @@ class RegionFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () async {
+            ref.read(pageIsLoadingNotifier.notifier).state = true;
+            final newData = await ref.read(regionRepositoryProvider).fetchItemListAsMaps();
+            ref.read(regionDbCacheProvider.notifier).set(newData);
+            if (context.mounted) {
+              ref.read(regionScreenControllerProvider).setFeatureScreenData(context);
+            }
+            ref.read(pageIsLoadingNotifier.notifier).state = false;
+          },
+        ),
         // SpeedDialChild(
         //   child: const Icon(Icons.pie_chart, color: Colors.white),
         //   backgroundColor: iconsColor,

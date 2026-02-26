@@ -11,8 +11,9 @@ import 'package:tablets/src/common/widgets/show_transaction_dialog.dart';
 import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_drawer_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_data_notifier.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
+import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_repository_provider.dart';
+import 'package:tablets/src/features/deleted_transactions/controllers/deleted_transaction_screen_controller.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
-import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/generated/l10n.dart';
 import 'package:tablets/src/common/functions/utils.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
@@ -74,7 +75,8 @@ class ListData extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenDataNotifier = ref.read(deletedTransactionScreenDataNotifier.notifier);
+    final screenDataNotifier =
+        ref.read(deletedTransactionScreenDataNotifier.notifier);
     final screenData = screenDataNotifier.data;
     ref.watch(deletedTransactionScreenDataNotifier);
     return Expanded(
@@ -99,23 +101,27 @@ class ListHeaders extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final screenDataNotifier = ref.read(deletedTransactionScreenDataNotifier.notifier);
+    final screenDataNotifier =
+        ref.read(deletedTransactionScreenDataNotifier.notifier);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const MainScreenPlaceholder(width: 20, isExpanded: false),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, 'transactionType', S.of(context).transaction_type),
+        SortableMainScreenHeaderCell(screenDataNotifier, 'transactionType',
+            S.of(context).transaction_type),
         SortableMainScreenHeaderCell(
             screenDataNotifier, 'number', S.of(context).transaction_number),
-        SortableMainScreenHeaderCell(screenDataNotifier, 'date', S.of(context).transaction_date),
-        SortableMainScreenHeaderCell(screenDataNotifier, 'name', S.of(context).transaction_name),
+        SortableMainScreenHeaderCell(
+            screenDataNotifier, 'date', S.of(context).transaction_date),
+        SortableMainScreenHeaderCell(
+            screenDataNotifier, 'name', S.of(context).transaction_name),
         SortableMainScreenHeaderCell(
             screenDataNotifier, 'salesman', S.of(context).salesman_selection),
-        SortableMainScreenHeaderCell(
-            screenDataNotifier, 'totalAmount', S.of(context).transaction_amount),
+        SortableMainScreenHeaderCell(screenDataNotifier, 'totalAmount',
+            S.of(context).transaction_amount),
         MainScreenHeaderCell(S.of(context).print_status),
-        SortableMainScreenHeaderCell(screenDataNotifier, 'notes', S.of(context).notes),
+        SortableMainScreenHeaderCell(
+            screenDataNotifier, 'notes', S.of(context).notes),
         SortableMainScreenHeaderCell(
             screenDataNotifier, 'deleteDateTime', S.of(context).deletion_time),
       ],
@@ -133,17 +139,20 @@ class DataRow extends ConsumerWidget {
     final dbRef = transactionScreenData['dbRef'];
     final dbCache = ref.read(deletedTransactionDbCacheProvider.notifier);
     final transactionData = dbCache.getItemByDbRef(dbRef);
-    final translatedTransactionType =
-        translateScreenTextToDbText(context, transactionData[transactionTypeKey]);
-    final transaction =
-        Transaction.fromMap({...transactionData, transactionTypeKey: translatedTransactionType});
+    final translatedTransactionType = translateScreenTextToDbText(
+        context, transactionData[transactionTypeKey]);
+    final transaction = Transaction.fromMap(
+        {...transactionData, transactionTypeKey: translatedTransactionType});
     final date = transactionScreenData[transactionDateKey].toDate();
     final color = _getSequnceColor(transaction.transactionType);
     final transactionType = transactionScreenData[transactionTypeKey];
-    bool isWarning = transactionType.contains(S.of(context).transaction_type_customer_receipt) ||
-        transactionType.contains(S.of(context).transaction_type_customer_return);
-    final printStatus =
-        transactionScreenData[isPrintedKey] ? S.of(context).printed : S.of(context).not_printed;
+    bool isWarning = transactionType
+            .contains(S.of(context).transaction_type_customer_receipt) ||
+        transactionType
+            .contains(S.of(context).transaction_type_customer_return);
+    final printStatus = transactionScreenData[isPrintedKey]
+        ? S.of(context).printed
+        : S.of(context).not_printed;
     return Column(
       children: [
         Padding(
@@ -156,18 +165,25 @@ class DataRow extends ConsumerWidget {
                 () => showReadOnlyTransaction(context, transaction),
                 color: color,
               ),
-              MainScreenTextCell(transactionScreenData[transactionTypeKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionTypeKey],
+                  isWarning: isWarning),
               // we don't add thousand separators to transaction number, so I made it String here
-              MainScreenTextCell(transactionScreenData[transactionNumberKey].round().toString(),
+              MainScreenTextCell(
+                  transactionScreenData[transactionNumberKey]
+                      .round()
+                      .toString(),
                   isWarning: isWarning),
               MainScreenTextCell(date, isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionNameKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNameKey],
+                  isWarning: isWarning),
               MainScreenTextCell(transactionScreenData[transactionSalesmanKey],
                   isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionTotalAmountKey],
+              MainScreenTextCell(
+                  transactionScreenData[transactionTotalAmountKey],
                   isWarning: isWarning),
               MainScreenTextCell(printStatus, isWarning: isWarning),
-              MainScreenTextCell(transactionScreenData[transactionNotesKey], isWarning: isWarning),
+              MainScreenTextCell(transactionScreenData[transactionNotesKey],
+                  isWarning: isWarning),
               MainScreenTextCell(
                 transactionScreenData['deleteDateTime'].toDate(),
                 isWarning: isWarning,
@@ -199,7 +215,8 @@ class DeletedTransactionsFloatingButtons extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final drawerController = ref.watch(deletedTransactionDrawerControllerProvider);
+    final drawerController =
+        ref.watch(deletedTransactionDrawerControllerProvider);
     const iconsColor = Color.fromARGB(255, 126, 106, 211);
     return SpeedDial(
       direction: SpeedDialDirection.up,
@@ -210,6 +227,23 @@ class DeletedTransactionsFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () async {
+            ref.read(pageIsLoadingNotifier.notifier).state = true;
+            final newData = await ref
+                .read(deletedTransactionRepositoryProvider)
+                .fetchItemListAsMaps();
+            ref.read(deletedTransactionDbCacheProvider.notifier).set(newData);
+            if (context.mounted) {
+              ref
+                  .read(deletedTransactionScreenControllerProvider)
+                  .setFeatureScreenData(context);
+            }
+            ref.read(pageIsLoadingNotifier.notifier).state = false;
+          },
+        ),
         SpeedDialChild(
           child: const Icon(Icons.search, color: Colors.white),
           backgroundColor: iconsColor,

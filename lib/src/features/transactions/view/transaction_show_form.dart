@@ -141,8 +141,9 @@ class TransactionShowForm {
       itemSalesmanTotalCommissionKey: 0,
       itemBuyingPriceKey: 0,
     });
-    if (transaction != null)
-      return; // if we are in edit, we don't need further initialization
+    if (transaction != null) {
+      return;
+    } // if we are in edit, we don't need further initialization
 
     // Get context-dependent values BEFORE async call
     String paymentType =

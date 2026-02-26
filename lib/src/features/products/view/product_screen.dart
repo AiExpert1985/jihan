@@ -28,6 +28,7 @@ import 'package:tablets/src/features/products/controllers/product_screen_data_no
 import 'package:tablets/src/features/products/model/product.dart';
 import 'package:tablets/src/features/products/printing/printing_inventory.dart';
 import 'package:tablets/src/features/products/repository/product_db_cache_provider.dart';
+import 'package:tablets/src/features/products/repository/product_repository_provider.dart';
 import 'package:tablets/src/features/products/view/product_form.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
@@ -424,6 +425,8 @@ class ProductFloatingButtons extends ConsumerWidget {
 
   Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
     successUserMessage(context, "تحديث البيانات");
+    final newData = await ref.read(productRepositoryProvider).fetchItemListAsMaps();
+    ref.read(productDbCacheProvider.notifier).set(newData);
     final cacheService = ref.read(screenCacheServiceProvider);
     await cacheService.refreshProductScreenData(context);
     if (context.mounted) {

@@ -18,6 +18,7 @@ import 'package:tablets/src/features/vendors/controllers/vendor_report_controlle
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_controller.dart';
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_data_notifier.dart';
 import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider.dart';
+import 'package:tablets/src/features/vendors/repository/vendor_repository_provider.dart';
 import 'package:tablets/src/features/vendors/view/vendor_form.dart';
 import 'package:tablets/src/features/vendors/model/vendor.dart';
 
@@ -224,6 +225,19 @@ class VendorFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () async {
+            ref.read(pageIsLoadingNotifier.notifier).state = true;
+            final newData = await ref.read(vendorRepositoryProvider).fetchItemListAsMaps();
+            ref.read(vendorDbCacheProvider.notifier).set(newData);
+            if (context.mounted) {
+              ref.read(vendorScreenControllerProvider).setFeatureScreenData(context);
+            }
+            ref.read(pageIsLoadingNotifier.notifier).state = false;
+          },
+        ),
         // SpeedDialChild(
         //   child: const Icon(Icons.pie_chart, color: Colors.white),
         //   backgroundColor: iconsColor,

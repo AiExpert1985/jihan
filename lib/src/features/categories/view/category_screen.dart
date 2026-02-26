@@ -13,6 +13,7 @@ import 'package:tablets/src/features/categories/controllers/category_screen_cont
 import 'package:tablets/src/features/categories/controllers/category_screen_data_notifier.dart';
 import 'package:tablets/src/features/categories/model/category.dart';
 import 'package:tablets/src/features/categories/repository/category_db_cache_provider.dart';
+import 'package:tablets/src/features/categories/repository/category_repository_provider.dart';
 import 'package:tablets/src/features/categories/view/category_form.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:tablets/src/features/settings/repository/settings_db_cache_provider.dart';
@@ -125,6 +126,19 @@ class CategoryFloatingButtons extends ConsumerWidget {
       visible: true,
       curve: Curves.bounceInOut,
       children: [
+        SpeedDialChild(
+          child: const Icon(Icons.refresh, color: Colors.white),
+          backgroundColor: iconsColor,
+          onTap: () async {
+            ref.read(pageIsLoadingNotifier.notifier).state = true;
+            final newData = await ref.read(categoryRepositoryProvider).fetchItemListAsMaps();
+            ref.read(categoryDbCacheProvider.notifier).set(newData);
+            if (context.mounted) {
+              ref.read(categoryScreenControllerProvider).setFeatureScreenData(context);
+            }
+            ref.read(pageIsLoadingNotifier.notifier).state = false;
+          },
+        ),
         // SpeedDialChild(
         //   child: const Icon(Icons.pie_chart, color: Colors.white),
         //   backgroundColor: iconsColor,

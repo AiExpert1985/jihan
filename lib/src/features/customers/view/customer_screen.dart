@@ -21,6 +21,7 @@ import 'package:tablets/src/features/customers/controllers/customer_screen_contr
 import 'package:tablets/src/features/customers/controllers/customer_screen_data_notifier.dart';
 import 'package:tablets/src/features/customers/model/customer.dart';
 import 'package:tablets/src/features/customers/repository/customer_db_cache_provider.dart';
+import 'package:tablets/src/features/customers/repository/customer_repository_provider.dart';
 import 'package:tablets/src/features/customers/view/customer_form.dart';
 import 'package:tablets/src/features/home/view/home_screen.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
@@ -343,6 +344,8 @@ class CustomerFloatingButtons extends ConsumerWidget {
 
   Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
     successUserMessage(context, "تحديث البيانات");
+    final newData = await ref.read(customerRepositoryProvider).fetchItemListAsMaps();
+    ref.read(customerDbCacheProvider.notifier).set(newData);
     final cacheService = ref.read(screenCacheServiceProvider);
     await cacheService.refreshCustomerScreenData(context);
     if (context.mounted) {

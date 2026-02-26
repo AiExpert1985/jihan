@@ -23,6 +23,7 @@ import 'package:tablets/src/features/salesmen/controllers/salesman_screen_contro
 import 'package:tablets/src/features/salesmen/controllers/salesman_screen_data_notifier.dart';
 import 'package:tablets/src/features/salesmen/model/salesman.dart';
 import 'package:tablets/src/features/salesmen/repository/salesman_db_cache_provider.dart';
+import 'package:tablets/src/features/salesmen/repository/salesman_repository_provider.dart';
 import 'package:tablets/src/features/salesmen/view/salesman_form.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/settings/view/settings_keys.dart';
@@ -382,6 +383,8 @@ class SalesmanFloatingButtons extends ConsumerWidget {
 
   Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
     successUserMessage(context, "تحديث البيانات");
+    final newData = await ref.read(salesmanRepositoryProvider).fetchItemListAsMaps();
+    ref.read(salesmanDbCacheProvider.notifier).set(newData);
     final cacheService = ref.read(screenCacheServiceProvider);
     await cacheService.refreshSalesmanScreenData(context);
     if (context.mounted) {

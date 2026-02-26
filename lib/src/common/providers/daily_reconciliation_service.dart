@@ -54,7 +54,7 @@ class DailyReconciliationService {
 
       if (hoursSinceLastReconciliation >= _reconciliationIntervalHours) {
         debugLog(
-            'Running reconciliation (${_reconciliationIntervalHours}+ hours since last)');
+            'Running reconciliation ($_reconciliationIntervalHours+ hours since last)');
         if (!context.mounted) return;
         // ignore: unawaited_futures - intentionally fire-and-forget, doesn't block app startup
         _runReconciliation(context);
