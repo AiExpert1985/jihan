@@ -425,9 +425,11 @@ class ProductFloatingButtons extends ConsumerWidget {
 
   Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
     successUserMessage(context, "تحديث البيانات");
-    final newData = await ref.read(productRepositoryProvider).fetchItemListAsMaps();
+    final newData =
+        await ref.read(productRepositoryProvider).fetchItemListAsMaps();
     ref.read(productDbCacheProvider.notifier).set(newData);
     final cacheService = ref.read(screenCacheServiceProvider);
+    // ignore: use_build_context_synchronously
     await cacheService.refreshProductScreenData(context);
     if (context.mounted) {
       successUserMessage(context, "تم تحديث البيانات بنجاح");

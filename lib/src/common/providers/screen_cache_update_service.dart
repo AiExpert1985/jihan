@@ -117,33 +117,41 @@ class ScreenCacheUpdateService {
   /// Phase 2: Save pre-calculated data to Firebase ASYNCHRONOUSLY
   /// This can run after navigation - no context needed
   Future<void> savePreCalculatedData(PreCalculatedCacheData data) async {
-    try {
-      debugLog('Saving pre-calculated data to Firebase...');
+    debugLog('Saving pre-calculated data to Firebase...');
 
-      // Save products
+    // Save products
+    try {
       final productRepository = _ref.read(productScreenCacheRepositoryProvider);
       for (var screenData in data.productData) {
         await _saveItemToCache(screenData, productRepository);
       }
+    } catch (e) {
+      errorPrint('Error saving product cache data: $e');
+    }
 
-      // Save customers
+    // Save customers
+    try {
       final customerRepository =
           _ref.read(customerScreenCacheRepositoryProvider);
       for (var screenData in data.customerData) {
         await _saveItemToCache(screenData, customerRepository);
       }
+    } catch (e) {
+      errorPrint('Error saving customer cache data: $e');
+    }
 
-      // Save salesmen
+    // Save salesmen
+    try {
       final salesmanRepository =
           _ref.read(salesmanScreenCacheRepositoryProvider);
       for (var screenData in data.salesmanData) {
         await _saveItemToCache(screenData, salesmanRepository);
       }
-
-      debugLog('Pre-calculated data saved to Firebase');
     } catch (e) {
-      errorPrint('Error saving pre-calculated data: $e');
+      errorPrint('Error saving salesman cache data: $e');
     }
+
+    debugLog('Pre-calculated data saved to Firebase');
   }
 
   /// Get all entities affected by transaction change

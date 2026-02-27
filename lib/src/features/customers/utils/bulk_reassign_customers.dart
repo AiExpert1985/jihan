@@ -183,7 +183,7 @@ class _ReassignmentDialogState extends ConsumerState<ReassignmentDialog> {
 
                 final salesmen = snapshot.data!;
                 return DropdownButtonFormField<String>(
-                  value: selectedSalesmanDbRef,
+                  initialValue: selectedSalesmanDbRef,
                   hint: const Text('اختيار مندوب'),
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),

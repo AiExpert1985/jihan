@@ -244,30 +244,32 @@ class RadioButtons extends ConsumerWidget {
     final settingsDataNotifier = ref.read(settingsFormDataProvider.notifier);
     final currentValue = settingsDataNotifier.getProperty(propertyName);
     ref.watch(settingsFormDataProvider);
-    return Row(
-      children: [
-        SettingLabel(label),
-        ...values.map(
-          (buttonValue) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  Text(translateDbTextToScreenText(context, buttonValue)),
-                  VerticalGap.s,
-                  Radio(
-                    value: buttonValue,
-                    groupValue: currentValue,
-                    onChanged: (value) {
-                      settingsDataNotifier.updateProperties({propertyName: value});
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
+    return RadioGroup<String>(
+      groupValue: currentValue,
+      onChanged: (String? value) {
+        settingsDataNotifier.updateProperties({propertyName: value});
+      },
+      child: Row(
+        children: [
+          SettingLabel(label),
+          ...values.map(
+            (buttonValue) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    Text(translateDbTextToScreenText(context, buttonValue)),
+                    VerticalGap.s,
+                    Radio<String>(
+                      value: buttonValue,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 }

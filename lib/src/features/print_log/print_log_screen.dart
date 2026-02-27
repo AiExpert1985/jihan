@@ -260,7 +260,7 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                 child: Padding(
                   padding: filterPadding,
                   child: DropdownButtonFormField<String>(
-                    value: _selectedType,
+                    initialValue: _selectedType,
                     hint: const Text('الكل', style: TextStyle(fontSize: 12)),
                     isExpanded: true,
                     isDense: true,
@@ -411,7 +411,7 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                 child: Padding(
                   padding: filterPadding,
                   child: DropdownButtonFormField<String>(
-                    value: _selectedPrintType,
+                    initialValue: _selectedPrintType,
                     hint: const Text('الكل', style: TextStyle(fontSize: 12)),
                     isExpanded: true,
                     isDense: true,

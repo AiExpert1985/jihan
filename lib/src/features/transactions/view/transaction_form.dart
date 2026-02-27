@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,45 +8,44 @@ import 'package:tablets/src/common/classes/db_cache.dart';
 import 'package:tablets/src/common/classes/item_form_controller.dart';
 import 'package:tablets/src/common/classes/item_form_data.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
-import 'package:tablets/src/common/printing/print_document.dart';
 import 'package:tablets/src/common/functions/transaction_type_drowdop_list.dart';
 import 'package:tablets/src/common/functions/user_messages.dart';
 import 'package:tablets/src/common/functions/utils.dart';
+import 'package:tablets/src/common/printing/print_document.dart';
 import 'package:tablets/src/common/providers/background_color.dart';
 // import 'package:tablets/src/common/providers/background_color.dart';
 import 'package:tablets/src/common/providers/image_picker_provider.dart';
+import 'package:tablets/src/common/providers/screen_cache_update_service.dart';
 import 'package:tablets/src/common/providers/text_editing_controllers_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/gaps.dart';
 import 'package:tablets/src/common/values/transactions_common_values.dart';
+import 'package:tablets/src/common/widgets/custom_icons.dart';
 import 'package:tablets/src/common/widgets/custome_appbar_for_back_return.dart';
 import 'package:tablets/src/common/widgets/dialog_delete_confirmation.dart';
 import 'package:tablets/src/common/widgets/form_frame.dart';
-import 'package:tablets/src/common/widgets/custom_icons.dart';
-import 'package:tablets/src/common/widgets/spinner_icon_button.dart';
 import 'package:tablets/src/common/widgets/form_title.dart';
+import 'package:tablets/src/common/widgets/spinner_icon_button.dart';
+import 'package:tablets/src/features/counters/repository/counter_repository_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/model/deleted_transactions.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_repository_provider.dart';
+import 'package:tablets/src/features/print_log/print_log_service.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
+import 'package:tablets/src/features/transactions/controllers/transaction_form_controller.dart';
+import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/transactions/model/transaction.dart';
 import 'package:tablets/src/features/transactions/repository/transaction_db_cache_provider.dart';
-import 'package:tablets/src/features/transactions/controllers/transaction_form_controller.dart';
-import 'package:tablets/src/features/transactions/controllers/transaction_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/view/forms/expenditure_form.dart';
 import 'package:tablets/src/features/transactions/view/forms/invoice_form.dart';
 import 'package:tablets/src/features/transactions/view/forms/receipt_form.dart';
 import 'package:tablets/src/features/transactions/view/forms/statement_form.dart';
 import 'package:tablets/src/features/transactions/view/transaction_show_form.dart';
-import 'package:tablets/src/routers/go_router_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
 import 'package:tablets/src/features/warehouse/services/warehouse_service.dart';
-import 'package:tablets/src/features/counters/repository/counter_repository_provider.dart';
-import 'package:tablets/src/common/providers/screen_cache_update_service.dart';
-import 'package:tablets/src/features/print_log/print_log_service.dart';
+import 'package:tablets/src/routers/go_router_provider.dart';
 
 final Map<String, dynamic> transactionFormDimenssions = {
   TransactionType.customerInvoice.name: {'height': 1100, 'width': 900},
@@ -276,10 +276,12 @@ class TransactionForm extends ConsumerWidget {
         icon: const PrintIcon(),
       ),
       // Print 2 button - hidden for now, may be re-enabled later
-      const Visibility(visible: false, child: IconButton(
-        onPressed: null,
-        icon: PrintIconB(),
-      )),
+      const Visibility(
+          visible: false,
+          child: IconButton(
+            onPressed: null,
+            icon: PrintIconB(),
+          )),
       if (transactionType == TransactionType.customerInvoice.name)
         SpinnerIconButton(
             onPressed: () async {
@@ -321,13 +323,14 @@ class TransactionForm extends ConsumerWidget {
     }
     if (!context.mounted) return;
     if (!success) {
+      formDataNotifier.updateProperties({isPrintedKey: false});
       failureUserMessage(context, 'فشل حفظ التعامل قبل الطباعة');
       return;
     }
+    await printForm(context, ref, formDataNotifier.data, isLogoB: isLogoB);
     ref.read(printLogServiceProvider).logPrint(
         {...formDataNotifier.data, 'imageUrls': ref.read(imagePickerProvider)},
         'local');
-    await printForm(context, ref, formDataNotifier.data, isLogoB: isLogoB);
   }
 
   Future<void> _onSendToWarehousePressed(
@@ -686,16 +689,29 @@ class TransactionForm extends ConsumerWidget {
   }
 
   /// Save pre-calculated data to Firebase asynchronously (no context needed)
+  /// Retries up to 3 times with increasing delays to handle transient network issues
   static void _savePreCalculatedDataAsync(
     ScreenCacheUpdateService cacheUpdateService,
     PreCalculatedCacheData preCalculatedData,
   ) {
     // Run asynchronously without blocking the UI
     Future.delayed(Duration.zero, () async {
-      try {
-        await cacheUpdateService.savePreCalculatedData(preCalculatedData);
-      } catch (e) {
-        errorPrint('Error saving pre-calculated cache data: $e');
+      const retryDelays = [
+        Duration.zero,
+        Duration(seconds: 3),
+        Duration(seconds: 5),
+        Duration(seconds: 10)
+      ];
+      for (int attempt = 0; attempt < retryDelays.length; attempt++) {
+        try {
+          if (attempt > 0) {
+            await Future.delayed(retryDelays[attempt]);
+          }
+          await cacheUpdateService.savePreCalculatedData(preCalculatedData);
+          return; // success, no need to retry
+        } catch (e) {
+          errorPrint('Attempt ${attempt + 1} failed saving cache data: $e');
+        }
       }
     });
   }
