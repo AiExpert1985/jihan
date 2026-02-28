@@ -8,25 +8,36 @@ class CounterRepository {
   final String _collectionName = 'counters';
 
   // Get the next transaction number and increment the counter
+  // Reads from local Firebase cache for instant response (cache is fresh from app startup)
+  // Falls back to server if cache is empty (e.g., first launch)
+  // Counter increment is fire-and-forget (syncs to server via Firebase persistence)
   Future<int> getNextNumber(String transactionType) async {
     try {
       final docRef = _firestore.collection(_collectionName).doc(transactionType);
 
-      // Get the current counter value (with timeout to prevent hanging on unstable internet)
-      final docSnapshot = await docRef.get().timeout(const Duration(seconds: 5));
+      // Read from cache first (instant), fallback to server if cache miss
+      DocumentSnapshot docSnapshot;
+      try {
+        docSnapshot = await docRef.get(const GetOptions(source: Source.cache));
+      } catch (e) {
+        // Cache miss (e.g., first launch before startup fetch completes) - fallback to server
+        docSnapshot = await docRef.get(const GetOptions(source: Source.server))
+            .timeout(const Duration(seconds: 5));
+      }
 
       int nextNumber = 1; // Default starting number
 
       if (docSnapshot.exists) {
-        final data = docSnapshot.data();
+        final data = docSnapshot.data() as Map<String, dynamic>?;
         if (data != null && data['nextNumber'] != null) {
           nextNumber = data['nextNumber'] is int
               ? data['nextNumber']
               : (data['nextNumber'] as num).toInt();
         }
       } else {
-        // Counter doesn't exist, create it with initial value
-        await docRef.set({
+        // Counter doesn't exist, create it (fire-and-forget, syncs via Firebase persistence)
+        // ignore: unawaited_futures
+        docRef.set({
           'transactionType': transactionType,
           'nextNumber': 2, // Next available will be 2
         });
@@ -34,8 +45,9 @@ class CounterRepository {
         return 1;
       }
 
-      // Update the counter to the next value for the next user
-      await docRef.update({
+      // Fire-and-forget: update counter for next use (syncs to server via Firebase persistence)
+      // ignore: unawaited_futures
+      docRef.update({
         'nextNumber': nextNumber + 1,
       });
 
@@ -109,6 +121,18 @@ class CounterRepository {
       }
     } catch (e) {
       errorPrint('Error ensuring counter for $transactionType: $e');
+    }
+  }
+
+  /// Fetch all counters from server to warm the local cache.
+  /// Called at app startup and from the transaction sync button.
+  Future<void> refreshCountersFromServer() async {
+    try {
+      await _firestore.collection(_collectionName)
+          .get(const GetOptions(source: Source.server));
+      tempPrint('Counters refreshed from server');
+    } catch (e) {
+      errorPrint('Error refreshing counters from server: $e');
     }
   }
 

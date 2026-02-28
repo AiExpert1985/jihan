@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:tablets/src/common/classes/screen_quick_filter.dart';
 import 'package:tablets/src/common/providers/page_is_loading_notifier.dart';
+import 'package:tablets/src/features/counters/repository/counter_repository_provider.dart';
 import 'package:tablets/src/common/values/constants.dart';
 import 'package:tablets/src/common/values/features_keys.dart';
 import 'package:tablets/src/common/values/gaps.dart';
@@ -281,13 +283,16 @@ class TransactionsFloatingButtons extends ConsumerWidget {
             ref.read(pageIsLoadingNotifier.notifier).state = true;
             final newData = await ref
                 .read(transactionRepositoryProvider)
-                .fetchItemListAsMaps();
+                .fetchItemListAsMaps(source: Source.server);
             ref.read(transactionDbCacheProvider.notifier).set(newData);
             if (context.mounted) {
               ref
                   .read(transactionScreenControllerProvider)
                   .setFeatureScreenData(context);
             }
+            // Also refresh counters from server to keep cache in sync
+            // ignore: unawaited_futures
+            ref.read(counterRepositoryProvider).refreshCountersFromServer();
             ref.read(pageIsLoadingNotifier.notifier).state = false;
           },
         ),

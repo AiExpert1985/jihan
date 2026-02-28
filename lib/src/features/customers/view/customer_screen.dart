@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -344,8 +345,9 @@ class CustomerFloatingButtons extends ConsumerWidget {
 
   Future<void> _refreshScreenData(BuildContext context, WidgetRef ref) async {
     successUserMessage(context, "تحديث البيانات");
-    final newData =
-        await ref.read(customerRepositoryProvider).fetchItemListAsMaps();
+    final newData = await ref
+        .read(customerRepositoryProvider)
+        .fetchItemListAsMaps(source: Source.server);
     ref.read(customerDbCacheProvider.notifier).set(newData);
     final cacheService = ref.read(screenCacheServiceProvider);
     // ignore: use_build_context_synchronously

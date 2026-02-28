@@ -313,20 +313,9 @@ class TransactionForm extends ConsumerWidget {
     // database matches the printed transaction.
     // isPrinted must be set BEFORE saveTransaction to avoid race condition with subsequent saves
     formDataNotifier.updateProperties({isPrintedKey: true});
-    // Add timeout to prevent app freezing if save hangs (e.g. unstable internet)
-    bool success;
-    try {
-      success = await saveTransaction(context, ref, formDataNotifier.data, true)
-          .timeout(const Duration(seconds: 15), onTimeout: () => false);
-    } catch (e) {
-      success = false;
-    }
+    // Save is non-blocking: writes to Firebase local cache instantly, syncs to server in background
+    await saveTransaction(context, ref, formDataNotifier.data, true);
     if (!context.mounted) return;
-    if (!success) {
-      formDataNotifier.updateProperties({isPrintedKey: false});
-      failureUserMessage(context, 'فشل حفظ التعامل قبل الطباعة');
-      return;
-    }
     await printForm(context, ref, formDataNotifier.data, isLogoB: isLogoB);
     ref.read(printLogServiceProvider).logPrint(
         {...formDataNotifier.data, 'imageUrls': ref.read(imagePickerProvider)},
@@ -522,20 +511,19 @@ class TransactionForm extends ConsumerWidget {
 
     if (!context.mounted) return false;
 
-    // Await Firebase delete and check result
-    final success = await formController.deleteItemFromDb(context, transaction,
-        keepDialogOpen: true);
-
-    // CRITICAL: Check if widget is still mounted after async operation
-    if (!context.mounted) return success;
-
-    if (!success) {
-      // Show error message to user - Firebase delete failed
-      failureUserMessage(context, "فشل حذف التعامل، يرجى المحاولة مرة أخرى");
+    // Fire-and-forget Firebase delete - writes go to Firebase local cache instantly,
+    // then sync to server in background via Firebase persistence
+    // ignore: unawaited_futures
+    formController
+        .deleteItemFromDb(context, transaction, keepDialogOpen: true)
+        .catchError((e) {
+      errorPrint('Background delete failed: $e');
       return false;
-    }
+    });
 
-    // Only update cache and proceed if Firebase delete succeeded
+    if (!context.mounted) return true;
+
+    // Update local cache immediately (Firebase local cache already has the delete)
     if (dialogOn && itemData['name'].isNotEmpty) {
       // if dialog is on, it means this is real transaction deletion (i.e. user pressed delete button)
       // not automatic delete for empty transaction (when no name entered and we leave the form)
@@ -640,20 +628,19 @@ class TransactionForm extends ConsumerWidget {
     final transaction =
         Transaction.fromMap({...formDataCopy, 'imageUrls': imageUrls});
 
-    // Await Firebase save and check result
-    final success = await formController
-        .saveItemToDb(context, transaction, isEditing, keepDialogOpen: true);
-
-    // CRITICAL: Check if widget is still mounted after async operation
-    if (!context.mounted) return success;
-
-    if (!success) {
-      // Show error message to user - Firebase save failed
-      failureUserMessage(context, "فشل حفظ التعامل، يرجى المحاولة مرة أخرى");
+    // Fire-and-forget Firebase save - writes go to Firebase local cache instantly,
+    // then sync to server in background via Firebase persistence
+    // ignore: unawaited_futures
+    formController
+        .saveItemToDb(context, transaction, isEditing, keepDialogOpen: true)
+        .catchError((e) {
+      errorPrint('Background save failed: $e');
       return false;
-    }
+    });
 
-    // Only update cache if Firebase save succeeded
+    if (!context.mounted) return true;
+
+    // Update local cache immediately (Firebase local cache already has the write)
     // update the bdCache (database mirror) so that we don't need to fetch data from db
     if (itemData[transactionDateKey] is DateTime) {
       // in our form the data type usually is DateTime, but the date type in dbCache should be

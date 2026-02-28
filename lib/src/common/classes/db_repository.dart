@@ -256,10 +256,10 @@ class DbRepository {
   //   }
   // }
 
-  /// below function fetch data from firestore if there is internet connection
-  /// if not, it fetch from cache
+  /// Fetches data from Firestore. Default behavior: uses server if online, cache if offline.
+  /// Pass [source] to force a specific source (e.g., Source.server for sync buttons)
   Future<List<Map<String, dynamic>>> fetchItemListAsMaps(
-      {String? filterKey, String? filterValue}) async {
+      {String? filterKey, String? filterValue, Source? source}) async {
     try {
       Query query = _firestore.collection(_collectionName);
 
@@ -268,7 +268,17 @@ class DbRepository {
             .where(filterKey, isGreaterThanOrEqualTo: filterValue)
             .where(filterKey, isLessThan: '$filterValue\uf8ff');
       }
-      // Attempt to fetch data from Firestore
+
+      // If a specific source is requested, use it directly
+      if (source != null) {
+        final snapshot = await query.get(GetOptions(source: source));
+        tempPrint('data fetched from $_collectionName (source: $source)');
+        return snapshot.docs
+            .map((docSnapshot) => docSnapshot.data() as Map<String, dynamic>)
+            .toList();
+      }
+
+      // Default behavior: use server if online, cache if offline
       final connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult.contains(ConnectivityResult.wifi) ||
           connectivityResult.contains(ConnectivityResult.ethernet) ||
