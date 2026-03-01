@@ -13,7 +13,14 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       routerConfig: goRouter,
       locale: const Locale('ar'),
-      theme: ThemeData(colorSchemeSeed: const Color.fromARGB(255, 11, 4, 70)),
+      theme: ThemeData(
+        colorSchemeSeed: const Color.fromARGB(255, 11, 4, 70),
+        tooltipTheme: const TooltipThemeData(
+          waitDuration: Duration(milliseconds: 1200),
+          constraints: BoxConstraints(maxWidth: 220),
+          textAlign: TextAlign.right,
+        ),
+      ),
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,

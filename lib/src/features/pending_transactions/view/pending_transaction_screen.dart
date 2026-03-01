@@ -326,10 +326,14 @@ class PendingTransactionsFloatingButtons extends ConsumerWidget {
           backgroundColor: iconsColor,
           onTap: () async {
             ref.read(pageIsLoadingNotifier.notifier).state = true;
-            final newData = await ref.read(pendingTransactionRepositoryProvider).fetchItemListAsMaps();
+            final newData = await ref
+                .read(pendingTransactionRepositoryProvider)
+                .fetchItemListAsMaps();
             ref.read(pendingTransactionDbCacheProvider.notifier).set(newData);
             if (context.mounted) {
-              ref.read(pendingTransactionScreenControllerProvider).setFeatureScreenData(context);
+              ref
+                  .read(pendingTransactionScreenControllerProvider)
+                  .setFeatureScreenData(context);
             }
             ref.read(pageIsLoadingNotifier.notifier).state = false;
           },

@@ -95,35 +95,6 @@ class CounterRepository {
     }
   }
 
-  // Update counter to ensure it's at least targetNumber
-  Future<void> ensureCounterAtLeast(String transactionType, int targetNumber) async {
-    try {
-      final docRef = _firestore.collection(_collectionName).doc(transactionType);
-      final docSnapshot = await docRef.get().timeout(const Duration(seconds: 5));
-
-      int currentNext = 1;
-      if (docSnapshot.exists) {
-        final data = docSnapshot.data();
-        if (data != null && data['nextNumber'] != null) {
-          currentNext = data['nextNumber'] is int
-              ? data['nextNumber']
-              : (data['nextNumber'] as num).toInt();
-        }
-      }
-
-      // Only update if target is higher than current
-      if (targetNumber >= currentNext) {
-        await docRef.set({
-          'transactionType': transactionType,
-          'nextNumber': targetNumber + 1,
-        });
-        tempPrint('Counter updated for $transactionType from $currentNext to ${targetNumber + 1}');
-      }
-    } catch (e) {
-      errorPrint('Error ensuring counter for $transactionType: $e');
-    }
-  }
-
   /// Fetch all counters from server to warm the local cache.
   /// Called at app startup and from the transaction sync button.
   Future<void> refreshCountersFromServer() async {

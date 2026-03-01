@@ -540,54 +540,129 @@ class SettingsDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final List<String> names = [
-      S.of(context).categories,
-      S.of(context).regions,
-      S.of(context).settings,
-      S.of(context).deleted_transactions,
-      'تخفيضات المجهز'
-    ];
-
-    final List<String> routes = [
-      AppRoute.categories.name,
-      AppRoute.regions.name,
-      AppRoute.settings.name,
-      AppRoute.deletedTransactions.name,
-      AppRoute.supplierDiscount.name
-    ];
+    const double itemWidth = 130;
+    const double itemHeight = 87;
 
     return AlertDialog(
       alignment: Alignment.center,
-      scrollable: true,
       content: Container(
-        padding: const EdgeInsets.all(25),
-        width: 400, // Increased width for two columns
-        height: 800,
+        padding: const EdgeInsets.all(15),
+        width: 450,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // Changed to 2 columns
-                  childAspectRatio: 1.3, // Aspect ratio of each card
-                  crossAxisSpacing: 10, // Space between columns
-                  mainAxisSpacing: 10, // Space between rows
+            // Section 1: Regions, Categories, Deleted Transactions
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SizedBox(
+                  width: itemWidth,
+                  height: itemHeight,
+                  child: SettingChildButton(
+                      S.of(context).regions, AppRoute.regions.name, Icons.map),
                 ),
-                itemCount: names.length,
-                itemBuilder: (context, index) {
-                  return SettingChildButton(names[index], routes[index]);
-                },
-              ),
+                SizedBox(
+                  width: itemWidth,
+                  height: itemHeight,
+                  child: SettingChildButton(S.of(context).categories,
+                      AppRoute.categories.name, Icons.category),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            // Add the Bulk Customer Reassignment Button
-            const BulkCustomerReassignmentButton(),
-            const SizedBox(height: 20),
-            const BackupButton(),
-            const SizedBox(height: 20),
-            const InvoiceValidationButton(),
-            const SizedBox(height: 20),
-            const PrintLogButton(),
+            const SizedBox(height: 10),
+            const Divider(),
+            const SizedBox(height: 10),
+            // Section 2: Print Log, Edit Log
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                const SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: PrintLogButton()),
+                const SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: EditLogButton()),
+                Tooltip(
+                  message: 'سلة المهملات لكل للتعاملات التي تم حدفها من البرنامج (من كافة الاجهزة)',
+                  child: SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: SettingChildButton(S.of(context).deleted_transactions,
+                        AppRoute.deletedTransactions.name, Icons.delete_outline),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(),
+            const SizedBox(height: 10),
+            // Section 3: Utility Tools
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Tooltip(
+                  message: 'تخفيض اسعار المواد التي تم شرائها من المجهز حيث يتم تغيير الاسعار في القوائم و كتابة ملاحظات',
+                  child: SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: SettingChildButton('تخفيضات المجهز',
+                        AppRoute.supplierDiscount.name, Icons.discount),
+                  ),
+                ),
+                const SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: BackupButton()),
+                const SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: BulkCustomerReassignmentButton()),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(),
+            const SizedBox(height: 10),
+            // Section 4: Detection Tools
+            const Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: DuplicateTransactionsButton()),
+                SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: InvoiceValidationButton()),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(),
+            const SizedBox(height: 10),
+            // Section 5: Settings
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                SizedBox(
+                  width: itemWidth,
+                  height: itemHeight,
+                  child: SettingChildButton(S.of(context).settings,
+                      AppRoute.settings.name, Icons.settings),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -596,10 +671,11 @@ class SettingsDialog extends ConsumerWidget {
 }
 
 class SettingChildButton extends ConsumerWidget {
-  const SettingChildButton(this.name, this.route, {super.key});
+  const SettingChildButton(this.name, this.route, this.icon, {super.key});
 
   final String name;
   final String route;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -625,45 +701,48 @@ class SettingChildButton extends ConsumerWidget {
       },
       child: Card(
         elevation: 4,
-        margin: const EdgeInsets.all(16),
-        child: SizedBox(
-          height: 40, // Reduced height for the card
-          child: Center(
-            child: Text(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 28, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 4),
+            Text(
+              name,
               textAlign: TextAlign.center,
-              name, // Use the corresponding name
-              style: const TextStyle(fontSize: 18),
+              style: const TextStyle(fontSize: 13),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-
 class BackupButton extends ConsumerWidget {
   const BackupButton({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      height: 125,
+    return Tooltip(
+      message: 'عمل نسخة احتياطية من قاعدة البيانات',
       child: InkWell(
         onTap: () async {
           await backupDataBase(context, ref);
         },
         child: Card(
           elevation: 4,
-          margin: const EdgeInsets.all(16),
-          child: SizedBox(
-            height: 40, // Reduced height for the card
-            child: Center(
-              child: Text(
-                S.of(context).save_data_backup, // Use the corresponding name
-                style: const TextStyle(fontSize: 18),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.backup,
+                  size: 28, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 4),
+              Text(
+                S.of(context).save_data_backup,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -685,8 +764,8 @@ class _InvoiceValidationButtonState
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 125,
+    return Tooltip(
+      message: 'مطابقة مبالغ المواد داخل القائمة مع المبلغ الكلي للقائمة لكشف الاختلافات ان وجدت',
       child: InkWell(
         onTap: _isValidating
             ? null
@@ -707,7 +786,7 @@ class _InvoiceValidationButtonState
                         mismatches;
 
                     if (context.mounted) {
-                      Navigator.of(context).pop(); // Close the dialog
+                      Navigator.of(context).pop();
                       context.goNamed(AppRoute.invoiceValidationResults.name);
                     }
                   }
@@ -724,21 +803,24 @@ class _InvoiceValidationButtonState
               },
         child: Card(
           elevation: 4,
-          margin: const EdgeInsets.all(16),
-          child: SizedBox(
-            height: 40,
-            child: Center(
-              child: _isValidating
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _isValidating
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 24,
+                      height: 24,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text(
-                      'مطابقة مبالغ القوائم',
-                      style: TextStyle(fontSize: 18),
-                    ),
-            ),
+                  : Icon(Icons.fact_check,
+                      size: 28, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 4),
+              const Text(
+                'مطابقة مبالغ القوائم',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13),
+              ),
+            ],
           ),
         ),
       ),
@@ -751,24 +833,93 @@ class PrintLogButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SizedBox(
-      height: 125,
+    return Tooltip(
+      message: 'سجل لكل التعاملات التي تمت طباعتها المرسلة الى المخزن للتجهيز و تخص هذا الجهاز فقط',
       child: InkWell(
         onTap: () {
-          Navigator.of(context).pop(); // Close settings dialog
+          Navigator.of(context).pop();
           context.goNamed(AppRoute.printLog.name);
         },
-        child: const Card(
+        child: Card(
           elevation: 4,
-          margin: EdgeInsets.all(16),
-          child: SizedBox(
-            height: 40,
-            child: Center(
-              child: Text(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.print,
+                  size: 28, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 4),
+              const Text(
                 'سجل الطباعة',
-                style: TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class EditLogButton extends ConsumerWidget {
+  const EditLogButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Tooltip(
+      message: 'سجل جميع التعاملات التي تم تعديلها على هذا الجهاز',
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).pop();
+          context.goNamed(AppRoute.editLog.name);
+        },
+        child: Card(
+          elevation: 4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.edit_note,
+                  size: 28, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 4),
+              const Text(
+                'سجل التعديلات',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class DuplicateTransactionsButton extends ConsumerWidget {
+  const DuplicateTransactionsButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Tooltip(
+      message: 'كشف التعاملات المتكررة بنفس الرقم المرجعي فقط',
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).pop();
+          context.goNamed(AppRoute.duplicateTransactions.name);
+        },
+        child: Card(
+          elevation: 4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.copy_all,
+                  size: 28, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 4),
+              const Text(
+                'التعاملات المكررة',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13),
+              ),
+            ],
           ),
         ),
       ),
@@ -934,8 +1085,10 @@ class _MissingTransactionsDetectionButtonState
               final dbRef = m.fullTransactionData['dbRef']?.toString();
               return dbRef != null && !existingDbRefs.contains(dbRef);
             }).toList();
-            ref.read(missingTransactionsProvider.notifier).state =
-                [...currentResults, ...newFromLog];
+            ref.read(missingTransactionsProvider.notifier).state = [
+              ...currentResults,
+              ...newFromLog
+            ];
           }
           // Navigate to results screen
           context.goNamed(AppRoute.missingTransactionsResults.name);

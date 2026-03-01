@@ -24,6 +24,7 @@ import 'package:tablets/src/features/transactions/repository/transaction_reposit
 import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider.dart';
 import 'package:tablets/src/features/vendors/repository/vendor_repository_provider.dart';
 import 'package:tablets/src/common/providers/daily_reconciliation_service.dart';
+import 'package:tablets/src/features/edit_log/edit_log_service.dart';
 import 'package:tablets/src/features/print_log/print_log_service.dart';
 import 'package:tablets/src/features/daily_tasks/repo/weekly_tasks_db_cache_provider.dart';
 import 'package:tablets/src/features/daily_tasks/repo/weekly_tasks_repo.dart';
@@ -117,6 +118,10 @@ Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   // Sync print log to Firebase (fire-and-forget, non-blocking)
   // ignore: unawaited_futures
   ref.read(printLogServiceProvider).syncToFirebase();
+
+  // Sync edit log to Firebase (fire-and-forget, non-blocking)
+  // ignore: unawaited_futures
+  ref.read(editLogServiceProvider).syncToFirebase();
 }
 
 Future<void> _initializeCustomerDbCache(BuildContext context, WidgetRef ref) async {
