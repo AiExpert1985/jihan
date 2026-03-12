@@ -25,7 +25,9 @@ import 'package:tablets/src/features/vendors/repository/vendor_db_cache_provider
 import 'package:tablets/src/features/vendors/repository/vendor_repository_provider.dart';
 import 'package:tablets/src/common/providers/daily_reconciliation_service.dart';
 import 'package:tablets/src/features/edit_log/edit_log_service.dart';
+import 'package:tablets/src/features/error_log/error_log_service.dart';
 import 'package:tablets/src/features/print_log/print_log_service.dart';
+import 'package:tablets/src/features/save_log/save_log_service.dart';
 import 'package:tablets/src/features/daily_tasks/repo/weekly_tasks_db_cache_provider.dart';
 import 'package:tablets/src/features/daily_tasks/repo/weekly_tasks_repo.dart';
 import 'package:tablets/src/features/authentication/repository/accounts_db_cache_provider.dart';
@@ -122,6 +124,14 @@ Future<void> initializeAllDbCaches(BuildContext context, WidgetRef ref) async {
   // Sync edit log to Firebase (fire-and-forget, non-blocking)
   // ignore: unawaited_futures
   ref.read(editLogServiceProvider).syncToFirebase();
+
+  // Sync error log to Firebase (fire-and-forget, non-blocking)
+  // ignore: unawaited_futures
+  ref.read(errorLogServiceProvider).syncToFirebase();
+
+  // Sync save log to Firebase (fire-and-forget, non-blocking)
+  // ignore: unawaited_futures
+  ref.read(saveLogServiceProvider).syncToFirebase();
 }
 
 Future<void> _initializeCustomerDbCache(BuildContext context, WidgetRef ref) async {

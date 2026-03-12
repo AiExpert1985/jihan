@@ -522,7 +522,7 @@ class SalesmanScreenController implements ScreenDataController {
       final items = transaction[itemsKey];
       if (items == null) continue;
       for (var item in transaction[itemsKey]) {
-        String itemName = item[itemNameKey];
+        String itemDbRef = item[itemDbRefKey];
         num soldQuantity = 0, giftQuantity = 0, returnedQuanity = 0;
         if (transaction[transactionTypeKey] ==
             TransactionType.customerInvoice.name) {
@@ -533,29 +533,29 @@ class SalesmanScreenController implements ScreenDataController {
           returnedQuanity = item[itemSoldQuantityKey] ?? 0;
         }
         summary.putIfAbsent(
-            itemName,
+            itemDbRef,
             () => {
                   itemSoldQuantityKey: 0,
                   itemGiftQuantityKey: 0,
                   'returnedQuantity': 0
                 });
-        summary[itemName]![itemSoldQuantityKey] =
-            summary[itemName]![itemSoldQuantityKey]! + soldQuantity;
-        summary[itemName]![itemGiftQuantityKey] =
-            summary[itemName]![itemGiftQuantityKey]! + giftQuantity;
-        summary[itemName]!['returnedQuantity'] =
-            summary[itemName]!['returnedQuantity']! + returnedQuanity;
+        summary[itemDbRef]![itemSoldQuantityKey] =
+            summary[itemDbRef]![itemSoldQuantityKey]! + soldQuantity;
+        summary[itemDbRef]![itemGiftQuantityKey] =
+            summary[itemDbRef]![itemGiftQuantityKey]! + giftQuantity;
+        summary[itemDbRef]!['returnedQuantity'] =
+            summary[itemDbRef]!['returnedQuantity']! + returnedQuanity;
       }
     }
     List<List<dynamic>> result = [];
-    summary.forEach((itemName, quantities) {
-      final product = productDbCache.getItemByProperty('name', itemName);
+    summary.forEach((itemDbRef, quantities) {
+      final product = productDbCache.getItemByProperty('dbRef', itemDbRef);
       if (product.isNotEmpty) {
         final commission = product['salesmanCommission'];
         final netQuantity =
             quantities[itemSoldQuantityKey]! - quantities['returnedQuantity']!;
         result.add([
-          itemName,
+          product['name'],
           quantities[itemSoldQuantityKey],
           quantities[itemGiftQuantityKey],
           quantities['returnedQuantity'],
@@ -564,7 +564,7 @@ class SalesmanScreenController implements ScreenDataController {
           commission * netQuantity
         ]);
       } else {
-        errorPrint('product $itemName not found in dbCacche');
+        errorPrint('product $itemDbRef not found in dbCache');
       }
     });
     return result;

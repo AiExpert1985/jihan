@@ -22,7 +22,7 @@ class MissingTransactionsResultsScreen extends ConsumerWidget {
         title: const Text('القوائم المفقودة'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.goNamed(AppRoute.printLog.name),
+          onPressed: () => context.goNamed(AppRoute.home.name),
         ),
       ),
       body: Container(

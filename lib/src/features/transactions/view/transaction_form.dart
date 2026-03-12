@@ -31,7 +31,9 @@ import 'package:tablets/src/features/deleted_transactions/model/deleted_transact
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/deleted_transactions/repository/deleted_transaction_repository_provider.dart';
 import 'package:tablets/src/features/edit_log/edit_log_service.dart';
+import 'package:tablets/src/features/error_log/error_log_service.dart';
 import 'package:tablets/src/features/print_log/print_log_service.dart';
+import 'package:tablets/src/features/save_log/save_log_service.dart';
 import 'package:tablets/src/features/settings/controllers/settings_form_data_notifier.dart';
 import 'package:tablets/src/features/transactions/controllers/customer_debt_info_provider.dart';
 import 'package:tablets/src/features/transactions/controllers/form_navigator_provider.dart';
@@ -553,6 +555,8 @@ class TransactionForm extends ConsumerWidget {
         .deleteItemFromDb(context, transaction, keepDialogOpen: true)
         .catchError((e) {
       errorPrint('Background delete failed: $e');
+      ref.read(errorLogServiceProvider).logError(
+          itemData, 'delete_failed', 'delete', e.toString());
       return false;
     });
 
@@ -663,14 +667,33 @@ class TransactionForm extends ConsumerWidget {
     final transaction =
         Transaction.fromMap({...formDataCopy, 'imageUrls': imageUrls});
 
+    // Read services before async call — ref may become invalid after widget disposal
+    final saveLogService = ref.read(saveLogServiceProvider);
+    final errorLogService = ref.read(errorLogServiceProvider);
+    final operationLabel = isEditing ? 'edit' : 'add';
+    // Defensive copy — itemData is mutated below (date→Timestamp, dbCache.update)
+    final itemDataForLog = {...itemData};
+
+    // Only log new transactions (old name was empty); edits are tracked by edit log
+    final oldName = oldTransaction?['name']?.toString() ?? '';
+    final isNewTransaction = oldName.isEmpty;
+
     // Fire-and-forget Firebase save - writes go to Firebase local cache instantly,
     // then sync to server in background via Firebase persistence
     // ignore: unawaited_futures
     formController
         .saveItemToDb(context, transaction, isEditing, keepDialogOpen: true)
-        .catchError((e) {
+        .then((success) {
+      if (success && isNewTransaction) {
+        saveLogService.logSave(itemDataForLog);
+      } else if (!success) {
+        errorLogService.logError(
+            itemDataForLog, 'save_failed', operationLabel, 'saveItemToDb returned false');
+      }
+    }).catchError((e) {
       errorPrint('Background save failed: $e');
-      return false;
+      errorLogService.logError(
+          itemDataForLog, 'save_failed', operationLabel, e.toString());
     });
 
     if (!context.mounted) return true;

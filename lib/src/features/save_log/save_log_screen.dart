@@ -3,55 +3,50 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:tablets/src/common/functions/utils.dart';
-import 'package:tablets/src/common/widgets/show_transaction_dialog.dart';
-import 'package:tablets/src/features/print_log/print_log_service.dart';
-import 'package:tablets/src/features/transactions/model/transaction.dart';
+import 'package:tablets/src/common/values/gaps.dart';
+import 'package:tablets/src/features/save_log/save_log_service.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
 
-
-/// Provider that holds the loaded print log entries
-final printLogEntriesProvider =
-    StateProvider<List<PrintLogEntry>>((ref) => []);
+/// Provider that holds the loaded save log entries
+final saveLogEntriesProvider =
+    StateProvider<List<SaveLogEntry>>((ref) => []);
 
 /// Provider that holds the filtered entries for display
-final filteredPrintLogEntriesProvider =
-    StateProvider<List<PrintLogEntry>>((ref) => []);
+final filteredSaveLogEntriesProvider =
+    StateProvider<List<SaveLogEntry>>((ref) => []);
 
-class PrintLogScreen extends ConsumerStatefulWidget {
-  const PrintLogScreen({super.key});
+class SaveLogScreen extends ConsumerStatefulWidget {
+  const SaveLogScreen({super.key});
 
   @override
-  ConsumerState<PrintLogScreen> createState() => _PrintLogScreenState();
+  ConsumerState<SaveLogScreen> createState() => _SaveLogScreenState();
 }
 
-class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
+class _SaveLogScreenState extends ConsumerState<SaveLogScreen> {
   final TextEditingController _numberController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
-  String? _selectedType;
-  DateTime? _selectedDate;
-  DateTime? _selectedPrintDate;
-  String? _selectedPrintType;
+  String? _selectedTransactionType;
+  DateTime? _selectedSaveDate;
 
   @override
   void initState() {
     super.initState();
-    // Load entries after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadEntries();
     });
   }
 
   void _loadEntries() {
-    final service = ref.read(printLogServiceProvider);
+    final service = ref.read(saveLogServiceProvider);
     final entries = service.loadAllEntries();
     // Sort newest first
-    entries.sort((a, b) => b.printTime.compareTo(a.printTime));
-    ref.read(printLogEntriesProvider.notifier).state = entries;
-    ref.read(filteredPrintLogEntriesProvider.notifier).state = entries;
+    entries.sort((a, b) => b.saveTime.compareTo(a.saveTime));
+    ref.read(saveLogEntriesProvider.notifier).state = entries;
+    ref.read(filteredSaveLogEntriesProvider.notifier).state = entries;
   }
 
   void _applyFilters() {
-    final allEntries = ref.read(printLogEntriesProvider);
+    final allEntries = ref.read(saveLogEntriesProvider);
     var filtered = allEntries.toList();
 
     // Filter by transaction number
@@ -59,9 +54,7 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
     if (numberText.isNotEmpty) {
       final number = int.tryParse(numberText);
       if (number != null) {
-        filtered = filtered
-            .where((e) => e.transaction['number'] == number)
-            .toList();
+        filtered = filtered.where((e) => e.number == number).toList();
       }
     }
 
@@ -69,64 +62,39 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
     final nameText = _nameController.text.trim();
     if (nameText.isNotEmpty) {
       filtered = filtered
-          .where((e) =>
-              (e.transaction['name'] ?? '').toString().contains(nameText))
+          .where((e) => e.name.contains(nameText))
           .toList();
     }
 
     // Filter by transaction type
-    if (_selectedType != null && _selectedType!.isNotEmpty) {
+    if (_selectedTransactionType != null &&
+        _selectedTransactionType!.isNotEmpty) {
       filtered = filtered
-          .where((e) => e.transaction['transactionType'] == _selectedType)
+          .where((e) => e.transactionType == _selectedTransactionType)
           .toList();
     }
 
-    // Filter by transaction date
-    if (_selectedDate != null) {
+    // Filter by save date
+    if (_selectedSaveDate != null) {
       filtered = filtered.where((e) {
-        final entryDate = _parseTransactionDate(e.transaction['date']);
-        if (entryDate == null) return false;
-        return entryDate.year == _selectedDate!.year &&
-            entryDate.month == _selectedDate!.month &&
-            entryDate.day == _selectedDate!.day;
+        return e.saveTime.year == _selectedSaveDate!.year &&
+            e.saveTime.month == _selectedSaveDate!.month &&
+            e.saveTime.day == _selectedSaveDate!.day;
       }).toList();
     }
 
-    // Filter by print date
-    if (_selectedPrintDate != null) {
-      filtered = filtered.where((e) {
-        return e.printTime.year == _selectedPrintDate!.year &&
-            e.printTime.month == _selectedPrintDate!.month &&
-            e.printTime.day == _selectedPrintDate!.day;
-      }).toList();
-    }
-
-    // Filter by print type
-    if (_selectedPrintType != null && _selectedPrintType!.isNotEmpty) {
-      filtered =
-          filtered.where((e) => e.printType == _selectedPrintType).toList();
-    }
-
-    ref.read(filteredPrintLogEntriesProvider.notifier).state = filtered;
-  }
-
-  DateTime? _parseTransactionDate(dynamic date) {
-    if (date is DateTime) return date;
-    if (date is String) return DateTime.tryParse(date);
-    return null;
+    ref.read(filteredSaveLogEntriesProvider.notifier).state = filtered;
   }
 
   void _clearFilters() {
     _numberController.clear();
     _nameController.clear();
     setState(() {
-      _selectedType = null;
-      _selectedDate = null;
-      _selectedPrintDate = null;
-      _selectedPrintType = null;
+      _selectedTransactionType = null;
+      _selectedSaveDate = null;
     });
-    ref.read(filteredPrintLogEntriesProvider.notifier).state =
-        ref.read(printLogEntriesProvider);
+    ref.read(filteredSaveLogEntriesProvider.notifier).state =
+        ref.read(saveLogEntriesProvider);
   }
 
   @override
@@ -138,18 +106,16 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredEntries = ref.watch(filteredPrintLogEntriesProvider);
-    final allEntries = ref.watch(printLogEntriesProvider);
+    final filteredEntries = ref.watch(filteredSaveLogEntriesProvider);
+    final allEntries = ref.watch(saveLogEntriesProvider);
     final hasFilters = _numberController.text.isNotEmpty ||
         _nameController.text.isNotEmpty ||
-        _selectedType != null ||
-        _selectedDate != null ||
-        _selectedPrintDate != null ||
-        _selectedPrintType != null;
+        _selectedTransactionType != null ||
+        _selectedSaveDate != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('سجل الطباعة'),
+        title: const Text('سجل الحفظ'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.goNamed(AppRoute.home.name),
@@ -159,14 +125,12 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Table header with filters
             _buildHeaderWithFilters(context, hasFilters),
             const Divider(thickness: 2),
-            // Table data
             Expanded(
               child: allEntries.isEmpty
                   ? const Center(
-                      child: Text('لا توجد سجلات طباعة',
+                      child: Text('لا توجد سجلات حفظ',
                           style: TextStyle(fontSize: 18)))
                   : filteredEntries.isEmpty
                       ? const Center(
@@ -178,17 +142,14 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                             final entry = filteredEntries[index];
                             return Column(
                               children: [
-                                InkWell(
-                                  onTap: () => _showTransaction(context, entry),
-                                  child: _buildTableRow(
-                                      context, entry, index + 1),
-                                ),
+                                _buildTableRow(context, entry, index + 1),
                                 const Divider(thickness: 0.5),
                               ],
                             );
                           },
                         ),
             ),
+            VerticalGap.l,
           ],
         ),
       ),
@@ -233,15 +194,11 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                       style: headerStyle, textAlign: TextAlign.center)),
               const Expanded(
                   flex: 1,
-                  child: Text('تاريخ التعامل',
+                  child: Text('المبلغ',
                       style: headerStyle, textAlign: TextAlign.center)),
               const Expanded(
                   flex: 2,
-                  child: Text('تاريخ الطباعة',
-                      style: headerStyle, textAlign: TextAlign.center)),
-              const Expanded(
-                  flex: 1,
-                  child: Text('نوع الطباعة',
+                  child: Text('تاريخ الحفظ',
                       style: headerStyle, textAlign: TextAlign.center)),
             ],
           ),
@@ -256,7 +213,7 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                 child: Padding(
                   padding: filterPadding,
                   child: DropdownButtonFormField<String>(
-                    initialValue: _selectedType,
+                    initialValue: _selectedTransactionType,
                     hint: const Text('الكل', style: TextStyle(fontSize: 12)),
                     isExpanded: true,
                     isDense: true,
@@ -284,7 +241,7 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                             ))
                         .toList(),
                     onChanged: (value) {
-                      setState(() => _selectedType = value);
+                      setState(() => _selectedTransactionType = value);
                       _applyFilters();
                     },
                   ),
@@ -330,42 +287,12 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                   ),
                 ),
               ),
-              // Transaction date filter
-              Expanded(
+              // Total amount - no filter
+              const Expanded(
                 flex: 1,
-                child: Padding(
-                  padding: filterPadding,
-                  child: InkWell(
-                    onTap: () async {
-                      final date = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate ?? DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now(),
-                      );
-                      if (date != null) {
-                        setState(() => _selectedDate = date);
-                        _applyFilters();
-                      }
-                    },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                      ),
-                      child: Text(
-                        _selectedDate != null
-                            ? DateFormat('dd-MM-yyyy').format(_selectedDate!)
-                            : '...',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ),
-                  ),
-                ),
+                child: SizedBox(),
               ),
-              // Print date filter
+              // Save date filter
               Expanded(
                 flex: 2,
                 child: Padding(
@@ -374,12 +301,12 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                     onTap: () async {
                       final date = await showDatePicker(
                         context: context,
-                        initialDate: _selectedPrintDate ?? DateTime.now(),
+                        initialDate: _selectedSaveDate ?? DateTime.now(),
                         firstDate: DateTime(2020),
                         lastDate: DateTime.now(),
                       );
                       if (date != null) {
-                        setState(() => _selectedPrintDate = date);
+                        setState(() => _selectedSaveDate = date);
                         _applyFilters();
                       }
                     },
@@ -390,46 +317,14 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
                             EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       ),
                       child: Text(
-                        _selectedPrintDate != null
+                        _selectedSaveDate != null
                             ? DateFormat('dd-MM-yyyy')
-                                .format(_selectedPrintDate!)
+                                .format(_selectedSaveDate!)
                             : '...',
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 11),
                       ),
                     ),
-                  ),
-                ),
-              ),
-              // Print type dropdown
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: filterPadding,
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _selectedPrintType,
-                    hint: const Text('الكل', style: TextStyle(fontSize: 12)),
-                    isExpanded: true,
-                    isDense: true,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'local',
-                          child: Text('طباعة محلية',
-                              style: TextStyle(fontSize: 12))),
-                      DropdownMenuItem(
-                          value: 'warehouse',
-                          child: Text('ارسال للمخزن',
-                              style: TextStyle(fontSize: 12))),
-                    ],
-                    onChanged: (value) {
-                      setState(() => _selectedPrintType = value);
-                      _applyFilters();
-                    },
                   ),
                 ),
               ),
@@ -441,26 +336,8 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
   }
 
   Widget _buildTableRow(
-      BuildContext context, PrintLogEntry entry, int rowNumber) {
-    final dateFormat = DateFormat('dd-MM-yyyy');
+      BuildContext context, SaveLogEntry entry, int rowNumber) {
     final dateTimeFormat = DateFormat('dd-MM-yyyy HH:mm');
-
-    // Parse transaction date
-    String transactionDate = '';
-    final dateValue = entry.transaction['date'];
-    if (dateValue is String) {
-      final parsed = DateTime.tryParse(dateValue);
-      if (parsed != null) {
-        transactionDate = dateFormat.format(parsed);
-      } else {
-        transactionDate = dateValue;
-      }
-    } else if (dateValue is DateTime) {
-      transactionDate = dateFormat.format(dateValue);
-    }
-
-    final printTypeText =
-        entry.printType == 'local' ? 'طباعة محلية' : 'ارسال للمخزن';
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
@@ -473,8 +350,7 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
           Expanded(
             flex: 2,
             child: Text(
-              translateDbTextToScreenText(
-                  context, entry.transaction['transactionType'] ?? ''),
+              translateDbTextToScreenText(context, entry.transactionType),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12),
             ),
@@ -482,21 +358,21 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
           Expanded(
             flex: 1,
             child: Text(
-              (entry.transaction['number'] ?? '').toString(),
+              entry.number.toString(),
               textAlign: TextAlign.center,
             ),
           ),
           Expanded(
             flex: 2,
             child: Text(
-              entry.transaction['name'] ?? '',
+              entry.name,
               textAlign: TextAlign.center,
             ),
           ),
           Expanded(
             flex: 1,
             child: Text(
-              transactionDate,
+              entry.totalAmount.toStringAsFixed(0),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12),
             ),
@@ -504,15 +380,7 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
           Expanded(
             flex: 2,
             child: Text(
-              dateTimeFormat.format(entry.printTime),
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              printTypeText,
+              dateTimeFormat.format(entry.saveTime),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12),
             ),
@@ -520,24 +388,5 @@ class _PrintLogScreenState extends ConsumerState<PrintLogScreen> {
         ],
       ),
     );
-  }
-
-  void _showTransaction(BuildContext context, PrintLogEntry entry) {
-    try {
-      final transactionData = Map<String, dynamic>.from(entry.transaction);
-      // Provide default for imageUrls - older log entries may not have it
-      transactionData['imageUrls'] ??= <String>[];
-      // Convert date from ISO string to DateTime if needed
-      if (transactionData['date'] is String) {
-        final parsed = DateTime.tryParse(transactionData['date']);
-        if (parsed != null) {
-          transactionData['date'] = parsed;
-        }
-      }
-      final transaction = Transaction.fromMap(transactionData);
-      showReadOnlyTransaction(context, transaction);
-    } catch (e) {
-      // silently ignore if transaction data is corrupted
-    }
   }
 }

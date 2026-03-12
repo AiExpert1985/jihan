@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,11 +22,11 @@ import 'package:tablets/src/features/deleted_transactions/controllers/deleted_tr
 import 'package:tablets/src/features/pending_transactions/controllers/pending_transaction_screen_controller.dart';
 import 'package:tablets/src/features/pending_transactions/repository/pending_transaction_db_cache_provider.dart';
 import 'package:tablets/src/features/regions/controllers/region_screen_controller.dart';
+import 'package:tablets/src/features/transactions/controllers/invoice_validation_controller.dart';
+import 'package:tablets/src/features/transactions/controllers/missing_transactions_detector.dart';
 import 'package:tablets/src/features/transactions/controllers/transaction_screen_controller.dart';
 import 'package:tablets/src/features/vendors/controllers/vendor_screen_controller.dart';
 import 'package:tablets/src/routers/go_router_provider.dart';
-import 'package:tablets/src/features/transactions/controllers/invoice_validation_controller.dart';
-import 'package:tablets/src/features/transactions/controllers/missing_transactions_detector.dart';
 
 class MainDrawer extends ConsumerWidget {
   const MainDrawer({super.key});
@@ -588,13 +589,24 @@ class SettingsDialog extends ConsumerWidget {
                     width: itemWidth,
                     height: itemHeight,
                     child: EditLogButton()),
+                const SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: ErrorLogButton()),
+                const SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: SaveLogButton()),
                 Tooltip(
-                  message: 'سلة المهملات لكل للتعاملات التي تم حدفها من البرنامج (من كافة الاجهزة)',
+                  message:
+                      'سلة المهملات لكل للتعاملات التي تم حدفها من البرنامج (من كافة الاجهزة)',
                   child: SizedBox(
                     width: itemWidth,
                     height: itemHeight,
-                    child: SettingChildButton(S.of(context).deleted_transactions,
-                        AppRoute.deletedTransactions.name, Icons.delete_outline),
+                    child: SettingChildButton(
+                        S.of(context).deleted_transactions,
+                        AppRoute.deletedTransactions.name,
+                        Icons.delete_outline),
                   ),
                 ),
               ],
@@ -609,7 +621,8 @@ class SettingsDialog extends ConsumerWidget {
               runSpacing: 8,
               children: [
                 Tooltip(
-                  message: 'تخفيض اسعار المواد التي تم شرائها من المجهز حيث يتم تغيير الاسعار في القوائم و كتابة ملاحظات',
+                  message:
+                      'تخفيض اسعار المواد التي تم شرائها من المجهز حيث يتم تغيير الاسعار في القوائم و كتابة ملاحظات',
                   child: SizedBox(
                     width: itemWidth,
                     height: itemHeight,
@@ -644,6 +657,10 @@ class SettingsDialog extends ConsumerWidget {
                     width: itemWidth,
                     height: itemHeight,
                     child: InvoiceValidationButton()),
+                SizedBox(
+                    width: itemWidth,
+                    height: itemHeight,
+                    child: MissingTransactionsDetectionButton()),
               ],
             ),
             const SizedBox(height: 10),
@@ -765,7 +782,8 @@ class _InvoiceValidationButtonState
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'مطابقة مبالغ المواد داخل القائمة مع المبلغ الكلي للقائمة لكشف الاختلافات ان وجدت',
+      message:
+          'مطابقة مبالغ المواد داخل القائمة مع المبلغ الكلي للقائمة لكشف الاختلافات ان وجدت',
       child: InkWell(
         onTap: _isValidating
             ? null
@@ -834,7 +852,8 @@ class PrintLogButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Tooltip(
-      message: 'سجل لكل التعاملات التي تمت طباعتها المرسلة الى المخزن للتجهيز و تخص هذا الجهاز فقط',
+      message:
+          'سجل لكل التعاملات التي تمت طباعتها المرسلة الى المخزن للتجهيز و تخص هذا الجهاز فقط',
       child: InkWell(
         onTap: () {
           Navigator.of(context).pop();
@@ -883,6 +902,74 @@ class EditLogButton extends ConsumerWidget {
               const SizedBox(height: 4),
               const Text(
                 'سجل التعديلات',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ErrorLogButton extends ConsumerWidget {
+  const ErrorLogButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Tooltip(
+      message:
+          'سجل الاخطاء التي حدثت اثناء حفظ او حذف التعاملات على هذا الجهاز',
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).pop();
+          context.goNamed(AppRoute.errorLog.name);
+        },
+        child: Card(
+          elevation: 4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline,
+                  size: 28, color: Theme.of(context).colorScheme.error),
+              const SizedBox(height: 4),
+              const Text(
+                'سجل الاخطاء',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SaveLogButton extends ConsumerWidget {
+  const SaveLogButton({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Tooltip(
+      message:
+          'سجل جميع التعاملات التي تم حفظها على السيرفر بنجاح من هذا الجهاز',
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).pop();
+          context.goNamed(AppRoute.saveLog.name);
+        },
+        child: Card(
+          elevation: 4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.save_outlined,
+                  size: 28, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 4),
+              const Text(
+                'سجل الحفظ',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13),
               ),
@@ -945,27 +1032,30 @@ class _MissingTransactionsDetectionButtonState
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 125,
+    return Tooltip(
+      message: 'البحث عن القوائم المفقودة من خلال ملفات النسخ الاحتياطي',
       child: InkWell(
         onTap: _isDetecting ? null : _startDetection,
         child: Card(
           elevation: 4,
-          margin: const EdgeInsets.all(16),
-          child: SizedBox(
-            height: 40,
-            child: Center(
-              child: _isDetecting
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _isDetecting
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 28,
+                      height: 28,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text(
-                      'البحث عن القوائم المفقودة',
-                      style: TextStyle(fontSize: 18),
-                    ),
-            ),
+                  : Icon(Icons.search_off,
+                      size: 28, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 4),
+              const Text(
+                'القوائم المفقودة',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13),
+              ),
+            ],
           ),
         ),
       ),
