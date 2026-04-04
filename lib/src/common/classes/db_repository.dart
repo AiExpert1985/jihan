@@ -135,6 +135,29 @@ class DbRepository {
     }
   }
 
+  /// Deletes any documents in the collection whose dbRef is not in [validDbRefs]
+  Future<void> batchDeleteOrphanedDocs(Set<String> validDbRefs) async {
+    try {
+      final snapshot = await _firestore.collection(_collectionName).get();
+      final orphaned = snapshot.docs
+          .where((doc) => !validDbRefs.contains(doc.data()[_dbReferenceKey]))
+          .toList();
+      if (orphaned.isEmpty) return;
+      const int batchSize = 500;
+      for (var i = 0; i < orphaned.length; i += batchSize) {
+        final chunk = orphaned.skip(i).take(batchSize).toList();
+        final batch = _firestore.batch();
+        for (var doc in chunk) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      }
+      debugLog('Deleted ${orphaned.length} orphaned docs from $_collectionName');
+    } catch (e) {
+      errorPrint('Error deleting orphaned docs from $_collectionName: $e');
+    }
+  }
+
   Stream<List<Map<String, dynamic>>> watchItemListAsMaps() {
     final ref = _firestore.collection(_collectionName);
     return ref.snapshots().map((snapshot) =>

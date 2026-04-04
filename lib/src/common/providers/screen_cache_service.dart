@@ -240,10 +240,12 @@ class ScreenCacheService {
   ) async {
     // Convert all items first
     final List<ScreenCacheItem> cacheItems = [];
+    final Set<String> validDbRefs = {};
     for (var item in data) {
       try {
         final cacheItem = convertForCacheSave(item);
         cacheItems.add(ScreenCacheItem(cacheItem));
+        if (item['dbRef'] != null) validDbRefs.add(item['dbRef'] as String);
       } catch (e) {
         errorPrint('Error converting item for cache: $e');
       }
@@ -251,5 +253,7 @@ class ScreenCacheService {
 
     // Use batch write for all items at once
     await repository.batchAddOrUpdateItemsWithRef(cacheItems);
+    // Delete any docs in the cache collection that are no longer valid
+    await repository.batchDeleteOrphanedDocs(validDbRefs);
   }
 }
