@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart' as firebase;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -683,12 +684,26 @@ class TransactionForm extends ConsumerWidget {
     // ignore: unawaited_futures
     formController
         .saveItemToDb(context, transaction, isEditing, keepDialogOpen: true)
-        .then((success) {
+        .then((success) async {
       if (success && isNewTransaction) {
         saveLogService.logSave(itemDataForLog);
       } else if (!success) {
-        errorLogService.logError(
-            itemDataForLog, 'save_failed', operationLabel, 'saveItemToDb returned false');
+        // Read the real Firestore error captured by the repository so the log
+        // entry is useful for diagnosing why the save actually failed instead
+        // of just recording the generic "returned false" message.
+        // Also snapshot connectivity state at the moment of failure to help
+        // distinguish fluctuating-network timeouts from real Firestore errors.
+        String connectivity;
+        try {
+          final result = await Connectivity().checkConnectivity();
+          connectivity = result.toString();
+        } catch (e) {
+          connectivity = 'unknown ($e)';
+        }
+        final realError = formController.lastErrorMessage ??
+            'saveItemToDb returned false (no error detail captured)';
+        errorLogService.logError(itemDataForLog, 'save_failed', operationLabel,
+            'connectivity=$connectivity | $realError');
       }
     }).catchError((e) {
       errorPrint('Background save failed: $e');

@@ -10,11 +10,19 @@ class DbRepository {
   final String _collectionName;
   final String _dbReferenceKey = 'dbRef';
 
+  /// Holds the last error message from addItem/updateItem/deleteItem when they
+  /// catch an exception and return false. Callers can read this to log the real
+  /// underlying error instead of a generic "returned false" message.
+  /// Note: single-threaded (Dart event loop), but concurrent fire-and-forget ops
+  /// may overwrite each other — acceptable for diagnostic purposes.
+  String? lastErrorMessage;
+
   /// Returns true if save succeeded, false if failed
   /// Uses dbRef as document ID to ensure idempotency (prevents duplicates)
   /// With persistence enabled, writes go to local cache first and sync in background
   Future<bool> addItem(BaseItem item) async {
     try {
+      lastErrorMessage = null;
       await _firestore
           .collection(_collectionName)
           .doc(item.dbRef)
@@ -22,8 +30,10 @@ class DbRepository {
           .timeout(const Duration(seconds: 5));
       debugLog('Item added successfully!');
       return true;
-    } catch (e) {
+    } catch (e, st) {
       errorPrint('Error adding item to firestore: $e');
+      lastErrorMessage =
+          'addItem[$_collectionName] ${e.runtimeType}: $e\n$st';
       return false;
     }
   }
@@ -78,6 +88,7 @@ class DbRepository {
   /// Falls back to direct doc(dbRef).set() if not found in cache.
   Future<bool> updateItem(BaseItem updatedItem) async {
     try {
+      lastErrorMessage = null;
       final querySnapshot = await _firestore
           .collection(_collectionName)
           .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef)
@@ -97,8 +108,10 @@ class DbRepository {
       }
       debugLog('Item updated successfully!');
       return true;
-    } catch (e) {
+    } catch (e, st) {
       errorPrint('Error updating item in firestore: $e');
+      lastErrorMessage =
+          'updateItem[$_collectionName] ${e.runtimeType}: $e\n$st';
       return false;
     }
   }
@@ -110,6 +123,7 @@ class DbRepository {
   /// Falls back to direct doc(dbRef).delete() if not found in cache.
   Future<bool> deleteItem(BaseItem item) async {
     try {
+      lastErrorMessage = null;
       final querySnapshot = await _firestore
           .collection(_collectionName)
           .where(_dbReferenceKey, isEqualTo: item.dbRef)
@@ -129,8 +143,10 @@ class DbRepository {
       }
       debugLog('Item deleted successfully!');
       return true;
-    } catch (e) {
+    } catch (e, st) {
       errorPrint('Error deleting item from firestore: $e');
+      lastErrorMessage =
+          'deleteItem[$_collectionName] ${e.runtimeType}: $e\n$st';
       return false;
     }
   }

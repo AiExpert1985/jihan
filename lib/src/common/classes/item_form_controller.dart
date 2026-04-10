@@ -13,6 +13,11 @@ class ItemFormController {
 
   // void submitData() => formKey.currentState!.save();
 
+  /// Exposes the last error message captured by the repository when addItem,
+  /// updateItem, or deleteItem caught an exception and returned false.
+  /// Useful for logging the real underlying Firestore error for diagnostics.
+  String? get lastErrorMessage => _repository.lastErrorMessage;
+
   /// Saves item to database and returns true if successful, false if failed
   Future<bool> saveItemToDb(BuildContext context, BaseItem item, bool isEditMode,
       {bool keepDialogOpen = false}) async {
