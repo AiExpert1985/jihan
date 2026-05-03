@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:tablets/src/common/interfaces/base_item.dart';
 import 'package:tablets/src/common/functions/debug_print.dart';
+import 'package:tablets/src/common/interfaces/base_item.dart';
 
 class DbRepository {
   DbRepository(this._collectionName);
@@ -27,13 +27,12 @@ class DbRepository {
           .collection(_collectionName)
           .doc(item.dbRef)
           .set(item.toMap())
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
       debugLog('Item added successfully!');
       return true;
     } catch (e, st) {
       errorPrint('Error adding item to firestore: $e');
-      lastErrorMessage =
-          'addItem[$_collectionName] ${e.runtimeType}: $e\n$st';
+      lastErrorMessage = 'addItem[$_collectionName] ${e.runtimeType}: $e\n$st';
       return false;
     }
   }
@@ -93,18 +92,18 @@ class DbRepository {
           .collection(_collectionName)
           .where(_dbReferenceKey, isEqualTo: updatedItem.dbRef)
           .get(const GetOptions(source: Source.cache))
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
       if (querySnapshot.docs.isNotEmpty) {
         await querySnapshot.docs.first.reference
             .set(updatedItem.toMap())
-            .timeout(const Duration(seconds: 5));
+            .timeout(const Duration(seconds: 30));
       } else {
         // Document not in cache - use direct document ID
         await _firestore
             .collection(_collectionName)
             .doc(updatedItem.dbRef)
             .set(updatedItem.toMap())
-            .timeout(const Duration(seconds: 5));
+            .timeout(const Duration(seconds: 30));
       }
       debugLog('Item updated successfully!');
       return true;
@@ -128,18 +127,18 @@ class DbRepository {
           .collection(_collectionName)
           .where(_dbReferenceKey, isEqualTo: item.dbRef)
           .get(const GetOptions(source: Source.cache))
-          .timeout(const Duration(seconds: 5));
+          .timeout(const Duration(seconds: 30));
       if (querySnapshot.docs.isNotEmpty) {
         await querySnapshot.docs.first.reference
             .delete()
-            .timeout(const Duration(seconds: 5));
+            .timeout(const Duration(seconds: 30));
       } else {
         // Document not in cache - try direct delete by document ID as fallback
         await _firestore
             .collection(_collectionName)
             .doc(item.dbRef)
             .delete()
-            .timeout(const Duration(seconds: 5));
+            .timeout(const Duration(seconds: 30));
       }
       debugLog('Item deleted successfully!');
       return true;
@@ -168,7 +167,8 @@ class DbRepository {
         }
         await batch.commit();
       }
-      debugLog('Deleted ${orphaned.length} orphaned docs from $_collectionName');
+      debugLog(
+          'Deleted ${orphaned.length} orphaned docs from $_collectionName');
     } catch (e) {
       errorPrint('Error deleting orphaned docs from $_collectionName: $e');
     }
